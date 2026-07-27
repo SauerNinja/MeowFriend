@@ -6,7 +6,7 @@
 
 <!-- Primary SEO -->
 <title>MeowFriend — Free Meowcoin (MEWC) Faucet | Boop Every 24h</title>
-<meta name="description" content="MeowFriend is a free Meowcoin (MEWC) faucet — boop once every 24 hours to claim MEWC. No signup, no wallet connection required.">
+<meta name="description" content="MeowFriend is a free Meowcoin (MEWC) faucet — boop once every 24 hours to claim MEWC. No signup required, wallet connect coming soon.">
 <meta name="keywords" content="Meowcoin, MEWC, Meowcoin faucet, MEWC faucet, free crypto faucet, MeowFriend, cat cryptocurrency, MeowPow, proof of work coin, crypto giveaway">
 <meta name="author" content="MeowFriend">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -28,7 +28,7 @@
 <!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="MeowFriend — Free Meowcoin (MEWC) Faucet">
-<meta property="og:description" content="Boop once every 24 hours to claim free MEWC. No signup, no wallet connection required.">
+<meta property="og:description" content="Boop once every 24 hours to claim free MEWC. No signup required, wallet connect coming soon.">
 <meta property="og:image" content="https://YOUR-USERNAME.github.io/meowfriend/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -41,7 +41,7 @@
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="MeowFriend — Free Meowcoin (MEWC) Faucet">
-<meta name="twitter:description" content="Boop once every 24 hours to claim free MEWC. No signup, no wallet connection required.">
+<meta name="twitter:description" content="Boop once every 24 hours to claim free MEWC. No signup required, wallet connect coming soon.">
 <meta name="twitter:image" content="https://YOUR-USERNAME.github.io/meowfriend/og-image.png">
 <meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
 
@@ -64,7 +64,7 @@
       "@id": "https://YOUR-USERNAME.github.io/meowfriend/#app",
       "name": "MeowFriend Faucet",
       "url": "https://YOUR-USERNAME.github.io/meowfriend/",
-      "description": "Claim free Meowcoin (MEWC) once every 24 hours. No signup or wallet connection required.",
+      "description": "Claim free Meowcoin (MEWC) once every 24 hours. No signup required. Wallet connect, high scores, and mini-games coming soon.",
       "applicationCategory": "FinanceApplication",
       "operatingSystem": "Any",
       "image": "https://YOUR-USERNAME.github.io/meowfriend/og-image.png",
@@ -156,6 +156,16 @@
     filter: drop-shadow(0 0 6px var(--neon-red)) drop-shadow(0 0 14px rgba(255,30,67,0.6));
   }
 
+  .cat-emoji-logo{
+    font-size: 72px;
+    line-height: 1;
+    display: inline-block;
+    filter:
+      drop-shadow(0 0 6px var(--neon-red-bright))
+      drop-shadow(0 0 16px var(--neon-red))
+      drop-shadow(0 0 30px rgba(255,30,67,0.55));
+  }
+
   .chassis{
     background: linear-gradient(180deg, var(--chassis-mid), var(--chassis-dark));
     border: 4px solid #3a3a42;
@@ -195,7 +205,22 @@
     text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
   }
 
-  .faucet-pill{
+  .test-spin-btn{
+    background: transparent;
+    border: 2px dashed #4a2a30;
+    color: #9a5a62;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 6px 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .test-spin-btn:hover{
+    border-color: var(--neon-red);
+    color: var(--neon-red);
+  }
+
+
     background: #0e0e10;
     border: 3px solid var(--neon-red);
     box-shadow: 0 0 8px rgba(255,30,67,0.5), inset 0 0 8px rgba(255,30,67,0.2);
@@ -203,6 +228,69 @@
     text-shadow: 0 0 6px var(--neon-red);
     font-size: 12px;
     padding: 6px 22px;
+  }
+
+  .slot-frame{
+    background: linear-gradient(180deg, #2a2a30, #17171a);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 0 2px #000, 0 0 14px rgba(255,30,67,0.2);
+    padding: 10px;
+  }
+
+  .slot-window{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    background: var(--led-bg);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 14px rgba(255,30,67,0.3), inset 0 0 0 2px #000;
+    padding: 10px 6px;
+  }
+
+  /* The window is a fixed-height viewport; only one symbol's worth of
+     height is visible at a time. A faint top/bottom vignette sells the
+     illusion of a physical reel disappearing into the housing. */
+  .slot-reel{
+    height: 52px;
+    overflow: hidden;
+    border-right: 2px solid #1e1e22;
+    position: relative;
+    background:
+      linear-gradient(var(--led-bg), transparent 22%, transparent 78%, var(--led-bg)) ;
+  }
+  .slot-reel:last-child{ border-right: none; }
+
+  /* The strip is a tall column of stacked symbol cells. Spinning moves it
+     upward continuously; landing hands off to a CSS transition that eases
+     out, like a real mechanical reel losing momentum. */
+  .reel-strip{
+    display: flex;
+    flex-direction: column;
+    will-change: transform;
+  }
+
+  .reel-cell{
+    height: 52px;
+    flex: 0 0 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .reel-cell .glyph{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    line-height: 1;
+    font-size: 24px;
+    font-family: "Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif;
+    filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 12px rgba(255,30,67,0.6));
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .reel-strip{ transition: none !important; }
   }
 
   .boop-btn{
@@ -392,7 +480,7 @@
 
   <!-- Header -->
   <header class="flex flex-col items-center mb-8">
-    <img src="cat-logo.png" alt="MeowFriend black cat logo with glowing red eyes" width="80" height="80" fetchpriority="high" class="w-20 h-20 cat-glow mb-3">
+    <div class="cat-emoji-logo cat-glow mb-3" role="img" aria-label="MeowFriend black cat logo with glowing red eyes">🐈‍⬛</div>
     <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">MEOWFRIEND</h1>
     <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">FREE MEOWCOIN, ONE BOOP AT A TIME</p>
   </header>
@@ -410,9 +498,16 @@
     <div class="rivet absolute bottom-2 left-2"></div>
     <div class="rivet absolute bottom-2 right-2"></div>
 
-    <!-- Top badge -->
+    <!-- Slot machine strip -->
+    <div class="slot-frame mb-3">
+      <div class="slot-window" aria-hidden="true">
+        <div class="slot-reel" id="reel1"><div class="reel-strip"></div></div>
+        <div class="slot-reel" id="reel2"><div class="reel-strip"></div></div>
+        <div class="slot-reel" id="reel3"><div class="reel-strip"></div></div>
+      </div>
+    </div>
     <div class="flex justify-center mb-6">
-      <span class="faucet-pill rounded-full">Faucet</span>
+      <button type="button" id="testSpinBtn" class="test-spin-btn">TEST SPIN (no boop)</button>
     </div>
 
     <!-- LED screens -->
@@ -553,6 +648,118 @@
   const API_URL = "https://YOUR_TUNNEL_URL.trycloudflare.com/api/boop";
   const BALANCE_URL = "https://YOUR_TUNNEL_URL.trycloudflare.com/api/balance";
   const balanceDisplay = document.getElementById("balanceDisplay");
+  const reels = [document.getElementById("reel1"), document.getElementById("reel2"), document.getElementById("reel3")];
+  const testSpinBtn = document.getElementById("testSpinBtn");
+
+  const SLOT_SYMBOLS = [
+    "🐱","🐀",
+    "😹","😻","😼","😽","🙀","😿","😾",
+    "7️⃣","💎","💰","💸","🤑","🧧"
+  ];
+  const CELL_H = 52;
+
+  function randomSymbol(){
+    return SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
+  }
+
+  function makeCell(symbol){
+    const cell = document.createElement("div");
+    cell.className = "reel-cell";
+    const g = document.createElement("span");
+    g.className = "glyph";
+    g.textContent = symbol;
+    cell.appendChild(g);
+    return cell;
+  }
+
+  // Build a long strip per reel: enough repeated symbols that spinning fast
+  // for ~1.5s+ never visibly runs out, followed by a final resting symbol.
+  function buildStrip(reel, finalSymbol, strideCount){
+    const strip = reel.querySelector(".reel-strip");
+    strip.style.transition = "none";
+    strip.style.transform = "translateY(0px)";
+    strip.innerHTML = "";
+    for(let i = 0; i < strideCount; i++){
+      strip.appendChild(makeCell(randomSymbol()));
+    }
+    strip.appendChild(makeCell(finalSymbol));
+    return strip;
+  }
+
+  let spinRAF = null;
+  let spinning = false;
+  let stoppedReels = new Set();
+
+  function startReels(){
+    if(spinning) return;
+    spinning = true;
+    stoppedReels = new Set();
+    reels.forEach(reel => {
+      buildStrip(reel, randomSymbol(), 60);
+    });
+
+    let offset = 0;
+    const speed = 38; // px per frame-ish, fast continuous scroll
+    let last = performance.now();
+
+    function tick(now){
+      const dt = Math.min(now - last, 48);
+      last = now;
+      offset += speed * (dt / 16.7);
+      reels.forEach((reel, i) => {
+        if(stoppedReels.has(i)) return;
+        const strip = reel.querySelector(".reel-strip");
+        const wrapped = offset % (CELL_H * 60);
+        strip.style.transform = `translateY(-${wrapped}px)`;
+      });
+      if(spinning && stoppedReels.size < reels.length){
+        spinRAF = requestAnimationFrame(tick);
+      } else {
+        spinning = false;
+        spinRAF = null;
+      }
+    }
+    spinRAF = requestAnimationFrame(tick);
+  }
+
+  function stopReels(){
+    spinning = false;
+    if(spinRAF) cancelAnimationFrame(spinRAF);
+    spinRAF = null;
+  }
+
+  // Lands each reel by easing its strip to rest on the pre-appended final
+  // cell, staggered left-to-right, so each reel "clunks" to a stop in turn
+  // like a physical machine rather than all three freezing at once. Each
+  // reel keeps actively spinning right up until its own stagger point.
+  function landReels(){
+    reels.forEach((reel, i) => {
+      const strip = reel.querySelector(".reel-strip");
+      const finalIndex = strip.children.length - 1;
+      const target = finalIndex * CELL_H;
+      const delay = i * 450;             // stagger: each reel stops a bit after the last
+      const duration = 900 + i * 150;    // and takes a moment to ease to a stop
+
+      setTimeout(() => {
+        stoppedReels.add(i);
+        strip.style.transition = `transform ${duration}ms cubic-bezier(0.12, 0.85, 0.2, 1)`;
+        strip.style.transform = `translateY(-${target}px)`;
+      }, delay);
+    });
+  }
+
+  function setReelsIdle(symbols){
+    reels.forEach((reel, i) => {
+      const strip = buildStrip(reel, symbols[i], 0);
+      strip.style.transform = "translateY(0px)";
+    });
+  }
+
+  function waitOutMinimumSpin(startedAt, minMs){
+    const elapsed = Date.now() - startedAt;
+    const remaining = Math.max(0, minMs - elapsed);
+    return new Promise(resolve => setTimeout(resolve, remaining));
+  }
 
   const boopBtn = document.getElementById("boopBtn");
   const addrInput = document.getElementById("mewcAddress");
@@ -654,20 +861,33 @@
     boopBtn.disabled = true;
     boopBtn.textContent = "BOOPING...";
     showBanner("BOOPING THE BLOCKCHAIN...", "pending");
+    const spinStarted = Date.now();
+    const MIN_SPIN_MS = 1400;
+    startReels();
 
     try {
       const data = await requestBoop(addr);
+      await waitOutMinimumSpin(spinStarted, MIN_SPIN_MS);
+      landReels();
       showBanner(`SUCCESS! ${data.amount || 10} MEWC DRIPPED.\nTXID: ${data.txid}`, "success");
       localStorage.setItem(STORAGE_KEY, String(Date.now()));
       refreshBalance();
     } catch (err) {
+      await waitOutMinimumSpin(spinStarted, MIN_SPIN_MS);
+      landReels();
       showBanner(`ERROR: ${String(err.message || err).toUpperCase()}`, "error");
     } finally {
       updateCooldownUI();
     }
   });
 
+  testSpinBtn.addEventListener("click", () => {
+    startReels();
+    setTimeout(landReels, 1400);
+  });
+
   updateCooldownUI();
+  setReelsIdle(["🐱","💰","7️⃣"]);
   refreshBalance();
   setInterval(refreshBalance, 60000);
 </script>
