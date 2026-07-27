@@ -1,0 +1,19 @@
+{
+  "name": "meowfriend-api",
+  "version": "1.0.0",
+  "description": "Secure bridge between MeowFriend GitHub Pages frontend and a Meowcoin Core node",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "express-rate-limit": "^7.4.1",
+    "node-cache": "^5.1.2"
+  }
+}

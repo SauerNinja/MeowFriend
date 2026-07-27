@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Primary SEO -->
+<title>MeowFriend — Free Meowcoin (MEWC) Faucet | Boop Every 24h</title>
+<meta name="description" content="MeowFriend is a free Meowcoin (MEWC) faucet — boop once every 24 hours to claim MEWC. No signup, no wallet connection required.">
+<meta name="keywords" content="Meowcoin, MEWC, Meowcoin faucet, MEWC faucet, free crypto faucet, MeowFriend, cat cryptocurrency, MeowPow, proof of work coin, crypto giveaway">
+<meta name="author" content="MeowFriend">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<link rel="canonical" href="https://YOUR-USERNAME.github.io/meowfriend/">
+
+<!-- Icons / Manifest -->
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="application-name" content="MeowFriend">
+<meta name="apple-mobile-web-app-title" content="MeowFriend">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="MeowFriend — Free Meowcoin (MEWC) Faucet">
+<meta property="og:description" content="Boop once every 24 hours to claim free MEWC. No signup, no wallet connection required.">
+<meta property="og:image" content="https://YOUR-USERNAME.github.io/meowfriend/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="MeowFriend logo: a glowing black cat face beside the MEOWFRIEND wordmark on a dark neon-red arcade console background">
+<meta property="og:url" content="https://YOUR-USERNAME.github.io/meowfriend/">
+<meta property="og:site_name" content="MeowFriend">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MeowFriend — Free Meowcoin (MEWC) Faucet">
+<meta name="twitter:description" content="Boop once every 24 hours to claim free MEWC. No signup, no wallet connection required.">
+<meta name="twitter:image" content="https://YOUR-USERNAME.github.io/meowfriend/og-image.png">
+<meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
+
+<meta name="theme-color" content="#000000">
+
+<!-- Structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://YOUR-USERNAME.github.io/meowfriend/#website",
+      "url": "https://YOUR-USERNAME.github.io/meowfriend/",
+      "name": "MeowFriend",
+      "description": "A free Meowcoin (MEWC) faucet."
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://YOUR-USERNAME.github.io/meowfriend/#app",
+      "name": "MeowFriend Faucet",
+      "url": "https://YOUR-USERNAME.github.io/meowfriend/",
+      "description": "Claim free Meowcoin (MEWC) once every 24 hours. No signup or wallet connection required.",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Any",
+      "image": "https://YOUR-USERNAME.github.io/meowfriend/og-image.png",
+      "isPartOf": { "@id": "https://YOUR-USERNAME.github.io/meowfriend/#website" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://YOUR-USERNAME.github.io/meowfriend/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Meowcoin (MEWC)?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Meowcoin is a cat-themed, proof-of-work cryptocurrency that launched in 2022 with a fair launch and no premine or ICO. It runs on MeowPow, a GPU-mineable algorithm in the ProgPow family, and sends a share of block rewards to animal shelters." }
+        },
+        {
+          "@type": "Question",
+          "name": "How much MEWC do I get, and how often?",
+          "acceptedAnswer": { "@type": "Answer", "text": "10 MEWC per boop, once every 24 hours. The RECHARGE screen counts down to your next claim." }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need to sign up or connect a wallet?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. There's no account and nothing to connect. Paste a Meowcoin address that starts with M and boop." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is MeowFriend affiliated with the official Meowcoin project?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. MeowFriend is an independent, community-built faucet and isn't affiliated with or endorsed by the Meowcoin core team." }
+        },
+        {
+          "@type": "Question",
+          "name": "How does the drip actually get paid out?",
+          "acceptedAnswer": { "@type": "Answer", "text": "This build simulates the drip locally in your browser so the full flow can be tested end to end. Wiring it up to a live Meowcoin node and hot wallet is the next step before a public launch." }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root{
+    --neon-red: #ff1e43;
+    --neon-red-bright: #ff0033;
+    --chassis-dark: #1a1a1e;
+    --chassis-mid: #222228;
+    --led-bg: #0a0a0c;
+  }
+
+  * { box-sizing: border-box; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, #14090b 0%, #000000 55%);
+    font-family: 'Press Start 2P', monospace;
+    color: #ffb3bd;
+    min-height: 100vh;
+  }
+
+  .scanlines::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.02) 0px,
+      rgba(255,255,255,0.02) 1px,
+      transparent 2px,
+      transparent 3px
+    );
+    z-index: 50;
+  }
+
+  .neon-text{
+    color: var(--neon-red);
+    text-shadow:
+      0 0 2px var(--neon-red-bright),
+      0 0 8px var(--neon-red),
+      0 0 18px var(--neon-red);
+  }
+
+  .cat-glow{
+    filter: drop-shadow(0 0 6px var(--neon-red)) drop-shadow(0 0 14px rgba(255,30,67,0.6));
+  }
+
+  .chassis{
+    background: linear-gradient(180deg, var(--chassis-mid), var(--chassis-dark));
+    border: 4px solid #3a3a42;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,0.05),
+      inset 0 -2px 0 rgba(0,0,0,0.6),
+      0 0 0 2px #000,
+      0 0 30px rgba(255,30,67,0.12);
+    position: relative;
+  }
+
+  .rivet{
+    width: 8px;
+    height: 8px;
+    background: #454550;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.6);
+  }
+
+  .led-screen{
+    background: var(--led-bg);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 12px rgba(255,30,67,0.25), inset 0 0 0 2px #000;
+    padding: 10px 8px;
+  }
+
+  .led-label{
+    font-size: 8px;
+    color: #7a3038;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .led-value{
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+
+  .faucet-pill{
+    background: #0e0e10;
+    border: 3px solid var(--neon-red);
+    box-shadow: 0 0 8px rgba(255,30,67,0.5), inset 0 0 8px rgba(255,30,67,0.2);
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    font-size: 12px;
+    padding: 6px 22px;
+  }
+
+  .boop-btn{
+    background: linear-gradient(180deg, #ff2f4d 0%, #d80f2b 55%, #9c0a1f 100%);
+    border: 3px solid #7a0818;
+    box-shadow:
+      0 8px 0 #6e0716,
+      0 10px 14px rgba(0,0,0,0.6),
+      0 0 22px rgba(255,30,67,0.55),
+      inset 0 2px 0 rgba(255,255,255,0.3);
+    color: #fff0f2;
+    text-shadow: 0 0 6px rgba(0,0,0,0.4);
+    transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+    cursor: pointer;
+  }
+
+  .boop-btn:hover:not(:disabled){
+    filter: drop-shadow(0 0 14px var(--neon-red-bright)) brightness(1.12);
+  }
+
+  .boop-btn:active:not(:disabled){
+    transform: translateY(6px);
+    box-shadow:
+      0 2px 0 #6e0716,
+      0 3px 6px rgba(0,0,0,0.6),
+      inset 0 2px 0 rgba(255,255,255,0.15);
+  }
+
+  .boop-btn:disabled{
+    background: linear-gradient(180deg, #3a2226, #2a1518);
+    border-color: #401019;
+    box-shadow: 0 6px 0 #200a0d, inset 0 2px 0 rgba(255,255,255,0.05);
+    color: #6e4a4f;
+    cursor: not-allowed;
+    text-shadow: none;
+  }
+
+  .floppy-slot{
+    width: 64px;
+    height: 26px;
+    background: #0e0e10;
+    border: 2px solid #3a3a42;
+    position: relative;
+    overflow: hidden;
+  }
+  .floppy-slot::after{
+    content:"";
+    position: absolute;
+    left: 6px; right: 6px; top: 10px;
+    height: 4px;
+    background: repeating-linear-gradient(to right, #444 0 4px, #222 4px 6px);
+  }
+
+  .vent-switch{
+    width: 34px;
+    height: 14px;
+    background: #0e0e10;
+    border: 2px solid #3a3a42;
+  }
+
+  .addr-input{
+    background: #0a0a0c;
+    border: 3px solid #3a3a42;
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    padding: 12px 10px;
+    letter-spacing: 1px;
+    box-shadow: inset 0 0 10px rgba(255,30,67,0.15);
+  }
+  .addr-input::placeholder{ color: #5c2a30; }
+  .addr-input:focus{ outline: none; box-shadow: 0 0 0 2px var(--neon-red), inset 0 0 10px rgba(255,30,67,0.25); }
+  .addr-input.invalid{ border-color: #ff5566; box-shadow: 0 0 0 2px #ff5566; }
+
+  .status-banner{
+    font-size: 9px;
+    line-height: 1.7;
+    border: 3px solid var(--neon-red);
+    background: #0a0a0c;
+    box-shadow: inset 0 0 10px rgba(255,30,67,0.2), 0 0 12px rgba(255,30,67,0.35);
+    padding: 12px;
+    white-space: pre-line;
+  }
+  .status-banner.success{ border-color: #29ff8a; color: #29ff8a; box-shadow: inset 0 0 10px rgba(41,255,138,0.2), 0 0 12px rgba(41,255,138,0.35); }
+  .status-banner.error{ border-color: #ff5566; color: #ff8b96; box-shadow: inset 0 0 10px rgba(255,85,102,0.2), 0 0 12px rgba(255,85,102,0.35); }
+  .status-banner.pending{ color: var(--neon-red); }
+
+  /* ---- Content panels (About / How it works / FAQ) ---- */
+  .font-body{ font-family: 'VT323', monospace; }
+
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+
+  .body-copy{
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.65;
+    color: #ffc7cf;
+  }
+
+  .step-badge{
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--neon-red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    box-shadow: inset 0 0 8px rgba(255,30,67,0.25);
+    background: #0a0a0c;
+    font-size: 14px;
+  }
+
+  .step-label{
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: #ff8b96;
+  }
+
+  details.faq-item{
+    border: 2px solid #2a2a30;
+    background: #0a0a0c;
+  }
+  details.faq-item[open]{
+    border-color: var(--neon-red);
+    box-shadow: 0 0 12px rgba(255,30,67,0.25);
+  }
+  details.faq-item summary{
+    cursor: pointer;
+    list-style: none;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10.5px;
+    line-height: 1.6;
+    color: #ffb3bd;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+  }
+  details.faq-item summary::-webkit-details-marker{ display: none; }
+  details.faq-item summary::after{
+    content: "+";
+    color: var(--neon-red);
+    font-size: 18px;
+    flex-shrink: 0;
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+  details.faq-item[open] summary::after{ content: "\2013"; }
+  details.faq-item .faq-answer{ padding: 0 16px 16px; }
+
+  :focus-visible{
+    outline: 2px solid var(--neon-red);
+    outline-offset: 3px;
+  }
+
+  @keyframes blink { 0%,49%{opacity:1;} 50%,100%{opacity:0.2;} }
+  .blink{ animation: blink 1s steps(1) infinite; }
+
+  @media (prefers-reduced-motion: reduce){
+    .blink{ animation: none; }
+    .boop-btn{ transition: none; }
+  }
+</style>
+</head>
+<body class="scanlines flex items-center justify-center px-4 py-10">
+
+<main class="w-full max-w-xl">
+
+  <!-- Header -->
+  <header class="flex flex-col items-center mb-8">
+    <img src="cat-logo.png" alt="MeowFriend black cat logo with glowing red eyes" width="80" height="80" fetchpriority="high" class="w-20 h-20 cat-glow mb-3">
+    <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">MEOWFRIEND</h1>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">FREE MEOWCOIN, ONE BOOP AT A TIME</p>
+  </header>
+
+  <noscript>
+    <p class="body-copy text-center px-4 py-3 mb-6 border-2" style="border-color:#2a2a30;">MeowFriend needs JavaScript enabled to process boops. Please enable it in your browser to use the faucet.</p>
+  </noscript>
+
+  <!-- Console -->
+  <section class="chassis p-5 sm:p-7" aria-labelledby="faucet-heading">
+    <h2 id="faucet-heading" class="sr-only">Meowcoin Faucet</h2>
+    <!-- rivets -->
+    <div class="rivet absolute top-2 left-2"></div>
+    <div class="rivet absolute top-2 right-2"></div>
+    <div class="rivet absolute bottom-2 left-2"></div>
+    <div class="rivet absolute bottom-2 right-2"></div>
+
+    <!-- Top badge -->
+    <div class="flex justify-center mb-6">
+      <span class="faucet-pill rounded-full">Faucet</span>
+    </div>
+
+    <!-- LED screens -->
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div class="led-screen">
+        <div class="led-label">DAILY DRIP</div>
+        <div class="led-value">10 MEWC</div>
+      </div>
+      <div class="led-screen text-right">
+        <div class="led-label">RECHARGE</div>
+        <div class="led-value" id="rechargeDisplay">24h</div>
+      </div>
+    </div>
+    <div class="led-screen mb-6 text-center">
+      <div class="led-label">FAUCET BALANCE</div>
+      <div class="led-value" id="balanceDisplay">-- MEWC</div>
+    </div>
+
+    <!-- Address input -->
+    <div class="mb-5">
+      <label for="mewcAddress" class="block led-label mb-2 text-center">YOUR MEOWCOIN ADDRESS</label>
+      <input
+        type="text"
+        id="mewcAddress"
+        class="addr-input w-full"
+        placeholder="M....................."
+        autocomplete="off"
+        spellcheck="false"
+        aria-describedby="addrError"
+      >
+      <p id="addrError" class="hidden text-[8px] text-[#ff8b96] mt-2 tracking-wide">ADDRESS MUST START WITH "M"</p>
+    </div>
+
+    <!-- Boop button -->
+    <div class="flex justify-center mb-6">
+      <button id="boopBtn" class="boop-btn w-full py-6 text-base sm:text-lg tracking-wider">
+        BOOP FOR MEOWCOIN
+      </button>
+    </div>
+
+    <!-- Status banner -->
+    <div id="statusBanner" class="status-banner hidden mb-6" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Bottom details -->
+    <div class="flex items-center justify-between">
+      <div class="floppy-slot"></div>
+      <div class="flex gap-2">
+        <div class="vent-switch"></div>
+        <div class="vent-switch"></div>
+        <div class="vent-switch"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="info-panel p-6 sm:p-8 mt-8" aria-labelledby="how-it-works-heading">
+    <p class="panel-eyebrow mb-3">GUIDE</p>
+    <h2 id="how-it-works-heading" class="panel-heading mb-7">HOW IT WORKS</h2>
+    <ol class="grid grid-cols-2 sm:grid-cols-4 gap-6 list-none p-0 m-0">
+      <li class="flex flex-col items-center text-center gap-3">
+        <span class="step-badge" aria-hidden="true">1</span>
+        <span class="step-label">PASTE ADDRESS</span>
+        <p class="body-copy text-base leading-snug">Enter a Meowcoin address starting with M.</p>
+      </li>
+      <li class="flex flex-col items-center text-center gap-3">
+        <span class="step-badge" aria-hidden="true">2</span>
+        <span class="step-label">BOOP</span>
+        <p class="body-copy text-base leading-snug">Click BOOP FOR MEOWCOIN to start the drip.</p>
+      </li>
+      <li class="flex flex-col items-center text-center gap-3">
+        <span class="step-badge" aria-hidden="true">3</span>
+        <span class="step-label">GET MEWC</span>
+        <p class="body-copy text-base leading-snug">Watch the success banner confirm your drip.</p>
+      </li>
+      <li class="flex flex-col items-center text-center gap-3">
+        <span class="step-badge" aria-hidden="true">4</span>
+        <span class="step-label">COME BACK</span>
+        <p class="body-copy text-base leading-snug">The RECHARGE timer unlocks the button in 24h.</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- About Meowcoin -->
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="about-heading">
+    <p class="panel-eyebrow mb-3">ABOUT</p>
+    <h2 id="about-heading" class="panel-heading mb-4">WHAT IS MEOWCOIN?</h2>
+    <p class="body-copy">
+      Meowcoin (MEWC) is a proof-of-work cryptocurrency built around one idea: mining that also helps animals.
+      Miners secure the network with MeowPow, an energy-conscious algorithm in the ProgPow family that's friendly
+      to ordinary GPUs, and every block sends a portion of its reward to animal shelters and pet-welfare causes.
+      The project launched in 2022 with a fair distribution — no premine, no ICO, no insider allocation — so new
+      holders start on the same footing as everyone else. MeowFriend exists to make that first step easier: claim
+      a small starter balance, and go explore the network.
+    </p>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mt-6" aria-labelledby="faq-heading">
+    <p class="panel-eyebrow mb-3">FAQ</p>
+    <h2 id="faq-heading" class="panel-heading mb-4">FREQUENTLY ASKED QUESTIONS</h2>
+    <div class="flex flex-col gap-3">
+      <details class="faq-item">
+        <summary>What is Meowcoin (MEWC)?</summary>
+        <div class="faq-answer body-copy">Meowcoin is a cat-themed, proof-of-work cryptocurrency that launched in 2022 with a fair launch — no premine, no ICO. It runs on MeowPow, a GPU-mineable algorithm in the ProgPow family, and sends a share of block rewards to animal shelters.</div>
+      </details>
+      <details class="faq-item">
+        <summary>How much MEWC do I get, and how often?</summary>
+        <div class="faq-answer body-copy">10 MEWC per boop, once every 24 hours. The RECHARGE screen counts down to your next claim.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Do I need to sign up or connect a wallet?</summary>
+        <div class="faq-answer body-copy">No. There's no account and nothing to connect. Paste a Meowcoin address that starts with M and boop.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Is MeowFriend affiliated with the official Meowcoin project?</summary>
+        <div class="faq-answer body-copy">No. MeowFriend is an independent, community-built faucet and isn't affiliated with or endorsed by the Meowcoin core team.</div>
+      </details>
+      <details class="faq-item">
+        <summary>How does the drip actually get paid out?</summary>
+        <div class="faq-answer body-copy">This build simulates the drip locally in your browser so the full flow can be tested end to end. Wiring it up to a live Meowcoin node and hot wallet is the next step before a public launch.</div>
+      </details>
+    </div>
+  </section>
+
+  <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
+    <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
+    <p class="mt-2">NOT AFFILIATED WITH THE OFFICIAL MEOWCOIN TEAM. NOT FINANCIAL ADVICE.</p>
+    <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
+  </footer>
+
+</main>
+
+<script>
+  const STORAGE_KEY = "meowfriend_last_boop";
+  const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+  // Point this at your Cloudflare Tunnel URL, e.g.
+  // "https://your-tunnel-name.trycloudflare.com/api/boop"
+  const API_URL = "https://YOUR_TUNNEL_URL.trycloudflare.com/api/boop";
+  const BALANCE_URL = "https://YOUR_TUNNEL_URL.trycloudflare.com/api/balance";
+  const balanceDisplay = document.getElementById("balanceDisplay");
+
+  const boopBtn = document.getElementById("boopBtn");
+  const addrInput = document.getElementById("mewcAddress");
+  const addrError = document.getElementById("addrError");
+  const statusBanner = document.getElementById("statusBanner");
+  const rechargeDisplay = document.getElementById("rechargeDisplay");
+
+  function isValidAddress(addr){
+    return typeof addr === "string" && addr.trim().length >= 6 && addr.trim().startsWith("M");
+  }
+
+  function formatCountdown(ms){
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  }
+
+  function showBanner(text, type){
+    statusBanner.textContent = text;
+    statusBanner.className = "status-banner mb-6 " + type;
+  }
+
+  async function requestBoop(address){
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ address })
+    });
+    const data = await response.json().catch(() => ({}));
+    if(!response.ok){
+      throw new Error(data.error || `Server error (${response.status})`);
+    }
+    return data; // { success, txid, amount }
+  }
+
+  async function refreshBalance(){
+    try {
+      const response = await fetch(BALANCE_URL, { credentials: "include" });
+      const data = await response.json();
+      if(response.ok && typeof data.balance === "number"){
+        balanceDisplay.textContent = `${data.balance} MEWC`;
+      } else {
+        balanceDisplay.textContent = "-- MEWC";
+      }
+    } catch (err) {
+      balanceDisplay.textContent = "-- MEWC";
+    }
+  }
+
+  let countdownTimer = null;
+
+  function updateCooldownUI(){
+    const last = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10);
+    const elapsed = Date.now() - last;
+    const remaining = COOLDOWN_MS - elapsed;
+
+    if(remaining > 0){
+      boopBtn.disabled = true;
+      boopBtn.textContent = "RECHARGING...";
+      rechargeDisplay.textContent = formatCountdown(remaining);
+      if(!countdownTimer){
+        countdownTimer = setInterval(updateCooldownUI, 1000);
+      }
+    } else {
+      boopBtn.disabled = false;
+      boopBtn.textContent = "BOOP FOR MEOWCOIN";
+      rechargeDisplay.textContent = "24h";
+      if(countdownTimer){
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+    }
+  }
+
+  addrInput.addEventListener("input", () => {
+    addrInput.classList.remove("invalid");
+    addrInput.removeAttribute("aria-invalid");
+    addrError.classList.add("hidden");
+  });
+
+  boopBtn.addEventListener("click", async () => {
+    const addr = addrInput.value.trim();
+
+    if(!isValidAddress(addr)){
+      addrInput.classList.add("invalid");
+      addrInput.setAttribute("aria-invalid", "true");
+      addrError.classList.remove("hidden");
+      showBanner("ERROR: ENTER A VALID MEOWCOIN ADDRESS", "error");
+      return;
+    }
+
+    addrInput.classList.remove("invalid");
+    addrInput.removeAttribute("aria-invalid");
+    addrError.classList.add("hidden");
+
+    boopBtn.disabled = true;
+    boopBtn.textContent = "BOOPING...";
+    showBanner("BOOPING THE BLOCKCHAIN...", "pending");
+
+    try {
+      const data = await requestBoop(addr);
+      showBanner(`SUCCESS! ${data.amount || 10} MEWC DRIPPED.\nTXID: ${data.txid}`, "success");
+      localStorage.setItem(STORAGE_KEY, String(Date.now()));
+      refreshBalance();
+    } catch (err) {
+      showBanner(`ERROR: ${String(err.message || err).toUpperCase()}`, "error");
+    } finally {
+      updateCooldownUI();
+    }
+  });
+
+  updateCooldownUI();
+  refreshBalance();
+  setInterval(refreshBalance, 60000);
+</script>
+
+</body>
+</html>
