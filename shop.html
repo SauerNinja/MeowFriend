@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MeowFriend — Shop</title>
+<meta name="description" content="Shop: buy Gotchya food, books, and permanent furniture upgrades with tickets.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sauerninja.github.io/MeowFriend/shop.html">
+
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="MeowFriend — Shop">
+<meta property="og:description" content="Buy Gotchya food, books, and permanent furniture upgrades with tickets.">
+<meta property="og:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="MeowFriend logo: a glowing black cat face beside the MEOWFRIEND wordmark on a dark neon-red arcade console background">
+<meta property="og:url" content="https://sauerninja.github.io/MeowFriend/shop.html">
+<meta property="og:site_name" content="MeowFriend">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MeowFriend — Shop">
+<meta name="twitter:description" content="Buy Gotchya food, books, and permanent furniture upgrades with tickets.">
+<meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
+
+<script src="shared-tickets.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root{
+    --neon-red: #ff1e43;
+    --neon-red-bright: #ff0033;
+    --led-bg: #0a0a0c;
+  }
+  * { box-sizing: border-box; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, #14090b 0%, #000000 55%);
+    font-family: 'Press Start 2P', monospace;
+    color: #ffb3bd;
+    min-height: 100vh;
+  }
+
+  .scanlines::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 3px);
+    z-index: 50;
+  }
+
+  .neon-text{
+    color: var(--neon-red);
+    text-shadow: 0 0 2px var(--neon-red-bright), 0 0 8px var(--neon-red), 0 0 18px var(--neon-red);
+  }
+
+  .back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: #ff8b96;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+  .back-link:hover{ color: var(--neon-red); }
+
+  .led-screen{
+    background: var(--led-bg);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 12px rgba(255,30,67,0.25), inset 0 0 0 2px #000;
+    padding: 10px 8px;
+  }
+  .led-label{ font-size: 8px; color: #7a3038; letter-spacing: 1px; margin-bottom: 6px; }
+  .led-value{
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+  .body-copy{
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.65;
+    color: #ffc7cf;
+  }
+
+  .draft-warning{
+    border: 2px dashed #ffb347;
+    background: rgba(255,179,71,0.06);
+    padding: 12px 14px;
+  }
+
+  .shop-item{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 2px solid #2a2a30;
+    background: #0a0a0c;
+    padding: 12px 14px;
+  }
+  .shop-item.owned{
+    border-color: #29ff8a;
+    background: #081410;
+  }
+  .shop-item-info{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .shop-item-icon{ font-size: 24px; }
+  .shop-item-name{
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    color: #ffc7cf;
+  }
+  .shop-item-desc{
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: #7a3038;
+  }
+  .shop-buy-btn{
+    background: transparent;
+    border: 2px solid var(--neon-red);
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 8px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .shop-buy-btn:hover:not(:disabled){ filter: brightness(1.3); }
+  .shop-buy-btn:disabled{
+    border-color: #401019;
+    color: #6e4a4f;
+    cursor: not-allowed;
+  }
+  .owned-badge{
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: #29ff8a;
+    text-shadow: 0 0 6px #29ff8a;
+    white-space: nowrap;
+  }
+
+  :focus-visible{
+    outline: 2px solid var(--neon-red);
+    outline-offset: 3px;
+  }
+</style>
+</head>
+<body class="scanlines flex items-center justify-center px-4 py-10">
+
+<main class="w-full max-w-xl">
+
+  <header class="flex flex-col items-center mb-6">
+    <a href="index.html" class="back-link mb-4">&larr; BACK TO FAUCET</a>
+    <div class="text-5xl mb-5" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">🏪</div>
+    <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">SHOP</h1>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">GOTCHYA ITEMS &amp; FURNITURE &mdash; TICKETS ONLY</p>
+  </header>
+
+  <div class="led-screen mb-6 text-center">
+    <div class="led-label">YOUR TICKETS</div>
+    <div class="led-value" id="ticketDisplay">0 🎟️</div>
+  </div>
+
+  <div id="noPetWarning" class="draft-warning mb-6 hidden">
+    <p class="led-label mb-2" style="color:#ffb347;">⚠ NO PET ADOPTED YET</p>
+    <p class="body-copy text-base leading-snug">
+      You can still buy items and furniture here — they'll be waiting in your backpack — but you'll
+      need to <a href="gotchya.html" style="color:#ffb347;">adopt a pet on the Gotchya page</a> before
+      you can use them.
+    </p>
+  </div>
+
+  <section class="info-panel p-6 sm:p-8" aria-labelledby="items-heading">
+    <p class="panel-eyebrow mb-3">CONSUMABLES</p>
+    <h2 id="items-heading" class="panel-heading mb-4">FOOD &amp; BOOKS</h2>
+    <p class="body-copy mb-4">
+      These normally only drop from playing Slots, Crossing, and Runner — buy them directly here
+      instead, if you'd rather spend tickets than chase the drop.
+    </p>
+    <div class="flex flex-col gap-3" id="itemList"></div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="furniture-heading">
+    <p class="panel-eyebrow mb-3">FURNITURE</p>
+    <h2 id="furniture-heading" class="panel-heading mb-4">PERMANENT UPGRADES</h2>
+    <p class="body-copy mb-4">
+      One-time purchases that permanently change how fast your pet's stats move. Owning more than
+      one item that affects the same stat still helps, but with diminishing returns rather than a
+      flat stack.
+    </p>
+    <div class="flex flex-col gap-3" id="furnitureShopList"></div>
+  </section>
+
+  <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
+    <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
+    <p class="mt-2">NOT AFFILIATED WITH THE OFFICIAL MEOWCOIN TEAM. NOT FINANCIAL ADVICE.</p>
+    <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
+  </footer>
+
+</main>
+
+<script>
+  const ticketDisplay = document.getElementById("ticketDisplay");
+  const itemList = document.getElementById("itemList");
+  const furnitureShopList = document.getElementById("furnitureShopList");
+  const noPetWarning = document.getElementById("noPetWarning");
+
+  // Same catalog as gotchya.html's DROP_ITEMS — duplicated intentionally
+  // since these are just display/purchase data here, while gotchya.html
+  // owns the actual gameplay logic for using them.
+  const SHOP_DROP_ITEMS = [
+    { id: "kibble_bag", name: "Kibble Bag", icon: "🥫", desc: "+2 weight", cost: 40 },
+    { id: "cat_burger", name: "Cat Burger", icon: "🍔", desc: "+5 weight", cost: 90 },
+    { id: "feast", name: "Big Feast", icon: "🍗", desc: "+12 weight", cost: 200 },
+    { id: "picture_book", name: "Picture Book", icon: "📗", desc: "+2 IQ", cost: 40 },
+    { id: "novel", name: "Novel", icon: "📘", desc: "+5 IQ", cost: 90 },
+    { id: "encyclopedia", name: "Encyclopedia", icon: "📚", desc: "+12 IQ", cost: 200 },
+  ];
+
+  function updateTicketDisplay(){
+    ticketDisplay.textContent = `${getTickets()} 🎟️`;
+    renderItems();
+    renderFurniture();
+  }
+  document.addEventListener("tickets:changed", updateTicketDisplay);
+
+  function renderItems(){
+    itemList.innerHTML = "";
+    SHOP_DROP_ITEMS.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "shop-item";
+      row.innerHTML = `
+        <div class="shop-item-info">
+          <span class="shop-item-icon">${item.icon}</span>
+          <div>
+            <div class="shop-item-name">${item.name}</div>
+            <div class="shop-item-desc">${item.desc}</div>
+          </div>
+        </div>
+        <button type="button" class="shop-buy-btn" data-item="${item.id}" data-cost="${item.cost}">${item.cost} 🎟️</button>
+      `;
+      itemList.appendChild(row);
+    });
+    itemList.querySelectorAll(".shop-buy-btn").forEach(btn => {
+      const cost = parseInt(btn.dataset.cost, 10);
+      btn.disabled = getTickets() < cost;
+      btn.addEventListener("click", () => buyDropItem(btn.dataset.item, cost));
+    });
+  }
+
+  function buyDropItem(itemId, cost){
+    if(getTickets() < cost) return;
+    addTickets(-cost);
+    grantGotchyaItem(itemId);
+    updateTicketDisplay();
+  }
+
+  function renderFurniture(){
+    const pet = getGotchyaPet();
+    noPetWarning.classList.toggle("hidden", !!pet);
+
+    furnitureShopList.innerHTML = "";
+    GOTCHYA_FURNITURE.forEach(item => {
+      const owned = pet && pet.furniture && pet.furniture[item.id];
+      const row = document.createElement("div");
+      row.className = "shop-item" + (owned ? " owned" : "");
+      row.innerHTML = owned
+        ? `
+          <div class="shop-item-info">
+            <span class="shop-item-icon">${item.icon}</span>
+            <div>
+              <div class="shop-item-name">${item.name}</div>
+              <div class="shop-item-desc">${item.desc}</div>
+            </div>
+          </div>
+          <span class="owned-badge">OWNED</span>
+        `
+        : `
+          <div class="shop-item-info">
+            <span class="shop-item-icon">${item.icon}</span>
+            <div>
+              <div class="shop-item-name">${item.name}</div>
+              <div class="shop-item-desc">${item.desc}</div>
+            </div>
+          </div>
+          <button type="button" class="shop-buy-btn" data-furniture="${item.id}" data-cost="${item.cost}">${item.cost.toLocaleString()} 🎟️</button>
+        `;
+      furnitureShopList.appendChild(row);
+    });
+
+    furnitureShopList.querySelectorAll(".shop-buy-btn[data-furniture]").forEach(btn => {
+      const cost = parseInt(btn.dataset.cost, 10);
+      const needsPet = !pet;
+      btn.disabled = needsPet || getTickets() < cost;
+      btn.addEventListener("click", () => buyFurniture(btn.dataset.furniture, cost));
+    });
+  }
+
+  function buyFurniture(itemId, cost){
+    const pet = getGotchyaPet();
+    if(!pet){
+      noPetWarning.classList.remove("hidden");
+      return;
+    }
+    if(getTickets() < cost) return;
+    if(pet.furniture && pet.furniture[itemId]) return;
+
+    addTickets(-cost);
+    pet.furniture = pet.furniture || {};
+    pet.furniture[itemId] = true;
+    saveGotchyaPet(pet);
+    renderFurniture();
+  }
+
+  updateTicketDisplay();
+</script>
+
+</body>
+</html>

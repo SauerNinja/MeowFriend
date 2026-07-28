@@ -438,6 +438,42 @@
     padding: 12px 14px;
   }
 
+  .shop-link-card{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(180deg, #2a2a30, #17171a);
+    border: 3px solid var(--neon-red);
+    box-shadow: 0 0 14px rgba(255,30,67,0.3), inset 0 0 10px rgba(255,30,67,0.1);
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: filter 0.15s ease, transform 0.08s ease;
+  }
+  .shop-link-card:hover{ filter: brightness(1.15); }
+  .shop-link-card:active{ transform: translateY(2px); }
+  .shop-link-icon{
+    font-size: 32px;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px var(--neon-red-bright));
+  }
+  .shop-link-title{
+    font-size: 12px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+  .shop-link-sub{
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: #ffc7cf;
+    margin-top: 4px;
+  }
+  .shop-link-arrow{
+    margin-left: auto;
+    font-size: 22px;
+    color: var(--neon-red);
+    text-shadow: 0 0 8px var(--neon-red);
+  }
+
   .reset-btn{
     background: transparent;
     border: 2px dashed #4a2a30;
@@ -544,11 +580,14 @@
     </p>
   </section>
 
-  <section id="shopSection" class="info-panel p-6 sm:p-8 mt-6 hidden" aria-labelledby="shop-heading">
-    <p class="panel-eyebrow mb-3">SHOP</p>
-    <h2 id="shop-heading" class="panel-heading mb-4">FOOD &amp; CARE ITEMS</h2>
-    <div class="flex flex-col gap-3" id="shopList"></div>
-  </section>
+  <a href="shop.html" class="shop-link-card mt-6" aria-label="Go to the Shop for food, books, and furniture">
+    <span class="shop-link-icon" aria-hidden="true">🏪</span>
+    <span class="flex flex-col items-start">
+      <span class="shop-link-title">SHOP</span>
+      <span class="shop-link-sub">Buy food, books, and furniture with tickets</span>
+    </span>
+    <span class="shop-link-arrow" aria-hidden="true">&rarr;</span>
+  </a>
 
   <section id="inventorySection" class="info-panel p-6 sm:p-8 mt-6 hidden" aria-labelledby="inventory-heading">
     <p class="panel-eyebrow mb-3">BACKPACK</p>
@@ -561,7 +600,7 @@
     <h2 id="furniture-heading" class="panel-heading mb-4">OWNED FURNITURE</h2>
     <div class="inventory-list" id="furnitureList"></div>
     <p class="body-copy text-base leading-snug mt-4">
-      Furniture is a permanent boost bought once from the <a href="petshop.html" style="color:var(--neon-red);">Pet Shop</a>.
+      Furniture is a permanent boost bought once from the <a href="shop.html" style="color:var(--neon-red);">Shop</a>.
     </p>
   </section>
 
@@ -684,7 +723,6 @@
 
   const adoptScreen = document.getElementById("adoptScreen");
   const careScreen = document.getElementById("careScreen");
-  const shopSection = document.getElementById("shopSection");
   const inventorySection = document.getElementById("inventorySection");
   const furnitureSection = document.getElementById("furnitureSection");
   const furnitureList = document.getElementById("furnitureList");
@@ -715,7 +753,6 @@
   const playBtn = document.getElementById("playBtn");
   const sleepBtn = document.getElementById("sleepBtn");
 
-  const shopList = document.getElementById("shopList");
   const inventoryList = document.getElementById("inventoryList");
   const resetBtn = document.getElementById("resetBtn");
 
@@ -830,29 +867,7 @@
     setTimeout(() => popup.remove(), 800);
   }
 
-  function renderShop(){
-    shopList.innerHTML = "";
-    SHOP_ITEMS.forEach(item => {
-      const row = document.createElement("div");
-      row.className = "shop-item";
-      row.innerHTML = `
-        <div class="shop-item-info">
-          <span class="shop-item-icon">${item.icon}</span>
-          <div>
-            <div class="shop-item-name">${item.name}</div>
-            <div class="shop-item-desc">${item.desc}</div>
-          </div>
-        </div>
-        <button type="button" class="shop-buy-btn" data-item="${item.id}">${item.cost} 🎟️</button>
-      `;
-      shopList.appendChild(row);
-    });
-    shopList.querySelectorAll(".shop-buy-btn").forEach(btn => {
-      const cost = parseInt(btn.textContent, 10);
-      btn.disabled = getTickets() < cost;
-      btn.addEventListener("click", () => buyItem(btn.dataset.item));
-    });
-  }
+
 
   function renderInventory(){
     const entries = Object.entries(pet.inventory || {}).filter(([, count]) => count > 0);
@@ -879,7 +894,6 @@
     if(!pet){
       adoptScreen.classList.remove("hidden");
       careScreen.classList.add("hidden");
-      shopSection.classList.add("hidden");
       inventorySection.classList.add("hidden");
       furnitureSection.classList.add("hidden");
       resetWrap.classList.add("hidden");
@@ -887,14 +901,12 @@
     }
     adoptScreen.classList.add("hidden");
     careScreen.classList.remove("hidden");
-    shopSection.classList.remove("hidden");
     inventorySection.classList.remove("hidden");
     furnitureSection.classList.remove("hidden");
     resetWrap.classList.remove("hidden");
 
     ticketDisplay.textContent = `${getTickets()} 🎟️`;
     renderStats();
-    renderShop();
     renderInventory();
     renderFurniture();
     updateCareButtons();
@@ -903,7 +915,7 @@
   function renderFurniture(){
     const owned = Object.entries(pet.furniture || {}).filter(([, has]) => has);
     if(owned.length === 0){
-      furnitureList.innerHTML = `<span class="body-copy text-base">No furniture yet — visit the Pet Shop to buy permanent boosts.</span>`;
+      furnitureList.innerHTML = `<span class="body-copy text-base">No furniture yet — visit the Shop to buy permanent boosts.</span>`;
       return;
     }
     furnitureList.innerHTML = owned.map(([id]) => {
@@ -975,17 +987,6 @@
   feedBtn.addEventListener("click", () => useBestItem("hunger"));
   playBtn.addEventListener("click", () => useBestItem("happiness"));
   sleepBtn.addEventListener("click", () => useBestItem("energy"));
-
-  function buyItem(id){
-    const item = SHOP_ITEMS.find(i => i.id === id);
-    if(!item) return;
-    if(getTickets() < item.cost) return;
-    addTickets(-item.cost);
-    pet.inventory = pet.inventory || {};
-    pet.inventory[id] = (pet.inventory[id] || 0) + 1;
-    savePet(pet);
-    renderAll();
-  }
 
   resetBtn.addEventListener("click", () => {
     if(!confirm(`Release ${pet.name}? This can't be undone.`)) return;

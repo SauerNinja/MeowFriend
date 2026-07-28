@@ -107,7 +107,7 @@ function grantGotchyaMilestone(){
 }
 
 // --- Gotchya furniture (permanent, one-time purchases) ---
-// Furniture is bought once from petshop.html, stored as owned:true flags
+// Furniture is bought once from shop.html, stored as owned:true flags
 // on the pet object, and modifies the decay/growth RATES computed in
 // gotchya.html. Defined here as the single source of truth so the shop
 // page (which shows what each item does) and gotchya.html (which applies
