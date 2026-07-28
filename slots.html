@@ -619,6 +619,17 @@
         resultDisplay.textContent = payout.label;
       }
 
+      // Gotchya item drops: small chance on any real match win, guaranteed
+      // bonus item on the rare jackpot specifically. No-op if the player
+      // hasn't adopted a Gotchya pet yet.
+      if(payout.type === "win"){
+        if(payout.tickets >= 500000){
+          grantGotchyaMilestone();
+        } else {
+          rollGotchyaDrop(0.08);
+        }
+      }
+
       // Hold longer for a real win so the rainbow chase has room to play;
       // shorter, non-blocking flash for cherry/loss results.
       const holdMs = payout.type === "win" ? 1400 : 700;

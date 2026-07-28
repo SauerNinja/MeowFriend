@@ -338,7 +338,7 @@
   }
 
   // --- Game state ---
-  let cat, obstacles, birds, score, speed, spawnTimer, birdTimer, animFrame, lastTick, distance;
+  let cat, obstacles, birds, score, speed, spawnTimer, birdTimer, animFrame, lastTick, distance, birdsCaught;
 
   function resetState(){
     cat = { y: GROUND_Y, vy: 0, jumping: false, w: 30, h: 26 };
@@ -349,6 +349,7 @@
     spawnTimer = 0;
     birdTimer = 0;
     distance = 0;
+    birdsCaught = 0;
   }
 
   function startGame(){
@@ -438,6 +439,14 @@
       if(!b.caught && rectsOverlap(catBox, b)){
         b.caught = true;
         score += 25;
+        birdsCaught += 1;
+        // Small chance on every bird catch; guaranteed bonus item every
+        // 5th bird caught in the same run. No-op if no Gotchya pet yet.
+        if(birdsCaught % 5 === 0){
+          grantGotchyaMilestone();
+        } else {
+          rollGotchyaDrop(0.1);
+        }
       }
     }
 

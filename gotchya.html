@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MeowFriend — Gotchya</title>
+<meta name="description" content="Gotchya: adopt and raise a persistent virtual pet. Feed, play, and care for it using tickets — for-fun only.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sauerninja.github.io/MeowFriend/gotchya.html">
+
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="MeowFriend — Gotchya">
+<meta property="og:description" content="Adopt and raise a persistent virtual pet. Feed, play, and care for it using tickets — for-fun only.">
+<meta property="og:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="MeowFriend logo: a glowing black cat face beside the MEOWFRIEND wordmark on a dark neon-red arcade console background">
+<meta property="og:url" content="https://sauerninja.github.io/MeowFriend/gotchya.html">
+<meta property="og:site_name" content="MeowFriend">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MeowFriend — Gotchya">
+<meta name="twitter:description" content="Adopt and raise a persistent virtual pet. Feed, play, and care for it using tickets — for-fun only.">
+<meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
+
+<script src="shared-tickets.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root{
+    --neon-red: #ff1e43;
+    --neon-red-bright: #ff0033;
+    --chassis-dark: #1a1a1e;
+    --chassis-mid: #222228;
+    --led-bg: #0a0a0c;
+  }
+  * { box-sizing: border-box; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, #14090b 0%, #000000 55%);
+    font-family: 'Press Start 2P', monospace;
+    color: #ffb3bd;
+    min-height: 100vh;
+  }
+
+  .scanlines::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 3px);
+    z-index: 50;
+  }
+
+  .neon-text{
+    color: var(--neon-red);
+    text-shadow: 0 0 2px var(--neon-red-bright), 0 0 8px var(--neon-red), 0 0 18px var(--neon-red);
+  }
+
+  .back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: #ff8b96;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+  .back-link:hover{ color: var(--neon-red); }
+
+  .chassis{
+    background: linear-gradient(180deg, var(--chassis-mid), var(--chassis-dark));
+    border: 4px solid #3a3a42;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,0.05),
+      inset 0 -2px 0 rgba(0,0,0,0.6),
+      0 0 0 2px #000,
+      0 0 30px rgba(255,30,67,0.12);
+    position: relative;
+  }
+
+  .rivet{
+    width: 8px; height: 8px;
+    background: #454550;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.6);
+  }
+
+  .led-screen{
+    background: var(--led-bg);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 12px rgba(255,30,67,0.25), inset 0 0 0 2px #000;
+    padding: 10px 8px;
+  }
+  .led-label{ font-size: 8px; color: #7a3038; letter-spacing: 1px; margin-bottom: 6px; }
+  .led-value{
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+  .led-value.large{ font-size: 18px; }
+
+  .pet-stage{
+    background: var(--led-bg);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.2), inset 0 0 0 2px #000;
+    padding: 24px 10px;
+    text-align: center;
+    position: relative;
+    transition: border-color 0.2s ease;
+  }
+  .pet-sprite{
+    font-size: 64px;
+    line-height: 1;
+    display: inline-block;
+    filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));
+  }
+  .pet-name{
+    font-size: 13px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    margin-top: 10px;
+  }
+  .pet-mood{
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: #ffc7cf;
+    margin-top: 4px;
+  }
+
+  /* --- Distress state: any stat critical --- */
+  @keyframes pet-shake{
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    20% { transform: translateX(-3px) rotate(-4deg); }
+    40% { transform: translateX(3px) rotate(4deg); }
+    60% { transform: translateX(-2px) rotate(-2deg); }
+    80% { transform: translateX(2px) rotate(2deg); }
+  }
+  .pet-sprite.distress{
+    animation: pet-shake 0.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 6px #ff0033) drop-shadow(0 0 18px #ff1e43);
+  }
+
+  @keyframes stage-warning-pulse{
+    0%, 100% { border-color: #3a3a42; box-shadow: inset 0 0 20px rgba(255,30,67,0.2), inset 0 0 0 2px #000; }
+    50% { border-color: #ff1e43; box-shadow: inset 0 0 30px rgba(255,30,67,0.6), inset 0 0 0 2px #000, 0 0 18px rgba(255,30,67,0.5); }
+  }
+  .pet-stage.warning{
+    animation: stage-warning-pulse 1s ease-in-out infinite;
+  }
+
+  /* --- Thriving state: all stats high --- */
+  @keyframes rainbow-cycle{
+    0%   { box-shadow: 0 0 24px 6px #ff1e43, inset 0 0 20px rgba(255,30,67,0.4); border-color: #ff1e43; }
+    16%  { box-shadow: 0 0 24px 6px #ffcc00, inset 0 0 20px rgba(255,204,0,0.4); border-color: #ffcc00; }
+    33%  { box-shadow: 0 0 24px 6px #33ff77, inset 0 0 20px rgba(51,255,119,0.4); border-color: #33ff77; }
+    50%  { box-shadow: 0 0 24px 6px #33e0ff, inset 0 0 20px rgba(51,224,255,0.4); border-color: #33e0ff; }
+    66%  { box-shadow: 0 0 24px 6px #cc44ff, inset 0 0 20px rgba(204,68,255,0.4); border-color: #cc44ff; }
+    83%  { box-shadow: 0 0 24px 6px #ff44aa, inset 0 0 20px rgba(255,68,170,0.4); border-color: #ff44aa; }
+    100% { box-shadow: 0 0 24px 6px #ff1e43, inset 0 0 20px rgba(255,30,67,0.4); border-color: #ff1e43; }
+  }
+  .pet-stage.thriving{
+    animation: rainbow-cycle 1.4s linear infinite;
+  }
+  @keyframes pet-bounce{
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .pet-sprite.thriving{
+    animation: pet-bounce 0.6s ease-in-out infinite;
+  }
+
+  /* --- Care-action success flash: brief green confirmation --- */
+  @keyframes care-success-flash{
+    0%   { border-color: #29ff8a; box-shadow: inset 0 0 24px rgba(41,255,138,0.5), inset 0 0 0 2px #000, 0 0 16px rgba(41,255,138,0.5); }
+    100% { border-color: #3a3a42; box-shadow: inset 0 0 20px rgba(255,30,67,0.2), inset 0 0 0 2px #000; }
+  }
+  .pet-stage.care-success{
+    animation: care-success-flash 0.8s ease-out forwards;
+  }
+  @keyframes pop-up{
+    0%   { opacity: 0; transform: translate(-50%, 0) scale(0.7); }
+    30%  { opacity: 1; transform: translate(-50%, -18px) scale(1.1); }
+    100% { opacity: 0; transform: translate(-50%, -42px) scale(1); }
+  }
+  .stat-popup{
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: #29ff8a;
+    text-shadow: 0 0 8px #29ff8a;
+    pointer-events: none;
+    animation: pop-up 0.8s ease-out forwards;
+    white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .pet-sprite.distress, .pet-stage.warning, .pet-stage.thriving,
+    .pet-sprite.thriving, .pet-stage.care-success{
+      animation: none !important;
+    }
+  }
+
+  .stat-row{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .stat-label{
+    display: flex;
+    justify-content: space-between;
+    font-size: 8px;
+    color: #7a3038;
+    letter-spacing: 1px;
+  }
+  .stat-bar-track{
+    height: 10px;
+    background: #0a0a0c;
+    border: 2px solid #3a3a42;
+    overflow: hidden;
+  }
+  .stat-bar-fill{
+    height: 100%;
+    transition: width 0.3s ease;
+  }
+  .stat-bar-fill.hunger{ background: linear-gradient(90deg, #ff8a3d, #ffb347); }
+  .stat-bar-fill.happiness{ background: linear-gradient(90deg, #29ff8a, #6bff29); }
+  .stat-bar-fill.energy{ background: linear-gradient(90deg, #33e0ff, #33aaff); }
+  .stat-bar-fill.weight{ background: linear-gradient(90deg, #ffcc00, #ff9900); }
+  .stat-bar-fill.iq{ background: linear-gradient(90deg, #cc44ff, #8833ff); }
+  .stat-bar-fill.critical{
+    background: linear-gradient(90deg, #ff1e43, #ff0033) !important;
+    animation: bar-flash 0.7s ease-in-out infinite;
+  }
+  @keyframes bar-flash{
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .stat-bar-fill.critical{ animation: none; opacity: 1; }
+  }
+
+  .care-btn{
+    background: linear-gradient(180deg, #2a2a30, #17171a);
+    border: 2px solid var(--neon-red);
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 12px 6px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    text-shadow: 0 0 6px var(--neon-red);
+    box-shadow: 0 0 8px rgba(255,30,67,0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .care-btn:hover:not(:disabled){ filter: brightness(1.2); }
+  .care-btn:disabled{
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .care-btn-icon{ font-size: 20px; }
+
+  .species-grid{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .species-btn{
+    background: #0a0a0c;
+    border: 2px solid #2a2a30;
+    padding: 10px 4px;
+    font-size: 26px;
+    cursor: pointer;
+    text-align: center;
+  }
+  .species-btn:hover{ border-color: var(--neon-red); }
+  .species-btn.selected{
+    border-color: var(--neon-red);
+    box-shadow: 0 0 10px rgba(255,30,67,0.5), inset 0 0 8px rgba(255,30,67,0.2);
+  }
+
+  .name-input{
+    background: #0a0a0c;
+    border: 3px solid #3a3a42;
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    padding: 12px 10px;
+    letter-spacing: 1px;
+    box-shadow: inset 0 0 10px rgba(255,30,67,0.15);
+    width: 100%;
+  }
+  .name-input::placeholder{ color: #5c2a30; }
+  .name-input:focus{ outline: none; box-shadow: 0 0 0 2px var(--neon-red), inset 0 0 10px rgba(255,30,67,0.25); }
+
+  .adopt-btn, .shop-btn{
+    background: linear-gradient(180deg, #ff2f4d 0%, #d80f2b 55%, #9c0a1f 100%);
+    border: 3px solid #7a0818;
+    box-shadow: 0 8px 0 #6e0716, 0 10px 14px rgba(0,0,0,0.6), 0 0 22px rgba(255,30,67,0.55), inset 0 2px 0 rgba(255,255,255,0.3);
+    color: #fff0f2;
+    text-shadow: 0 0 6px rgba(0,0,0,0.4);
+    transition: transform 0.08s ease, filter 0.15s ease;
+    cursor: pointer;
+  }
+  .adopt-btn:hover:not(:disabled), .shop-btn:hover:not(:disabled){ filter: brightness(1.12); }
+  .adopt-btn:active:not(:disabled), .shop-btn:active:not(:disabled){ transform: translateY(4px); }
+  .adopt-btn:disabled, .shop-btn:disabled{
+    background: linear-gradient(180deg, #3a2226, #2a1518);
+    border-color: #401019;
+    box-shadow: 0 6px 0 #200a0d;
+    color: #6e4a4f;
+    cursor: not-allowed;
+    text-shadow: none;
+  }
+
+  .shop-item{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 2px solid #2a2a30;
+    background: #0a0a0c;
+    padding: 10px 12px;
+  }
+  .shop-item-info{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .shop-item-icon{ font-size: 22px; }
+  .shop-item-name{
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    color: #ffc7cf;
+  }
+  .shop-item-desc{
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    color: #7a3038;
+  }
+  .shop-buy-btn{
+    background: transparent;
+    border: 2px solid var(--neon-red);
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 8px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .shop-buy-btn:hover:not(:disabled){ filter: brightness(1.3); }
+  .shop-buy-btn:disabled{
+    border-color: #401019;
+    color: #6e4a4f;
+    cursor: not-allowed;
+  }
+
+  .inventory-list{
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: #ffc7cf;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .inventory-chip{
+    border: 1px solid #2a2a30;
+    padding: 4px 10px;
+    background: #0a0a0c;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: #ffc7cf;
+  }
+  button.inventory-chip.drop-use-btn{
+    cursor: pointer;
+    border-color: var(--neon-red);
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red);
+  }
+  button.inventory-chip.drop-use-btn:hover{
+    background: #12080a;
+    filter: brightness(1.2);
+  }
+  .drop-use-hint{
+    color: #7a3038;
+    font-size: 13px;
+  }
+
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+  .body-copy{
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.65;
+    color: #ffc7cf;
+  }
+
+  .draft-warning{
+    border: 2px dashed #ffb347;
+    background: rgba(255,179,71,0.06);
+    padding: 12px 14px;
+  }
+
+  .reset-btn{
+    background: transparent;
+    border: 2px dashed #4a2a30;
+    color: #9a5a62;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 8px 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .reset-btn:hover{ border-color: var(--neon-red); color: var(--neon-red); }
+
+  :focus-visible{
+    outline: 2px solid var(--neon-red);
+    outline-offset: 3px;
+  }
+</style>
+</head>
+<body class="scanlines flex items-center justify-center px-4 py-10">
+
+<main class="w-full max-w-xl">
+
+  <header class="flex flex-col items-center mb-6">
+    <a href="index.html" class="back-link mb-4">&larr; BACK TO FAUCET</a>
+    <div class="text-5xl mb-5" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">🐾</div>
+    <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">GOTCHYA</h1>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">ADOPT &amp; RAISE A PET &mdash; FOR-FUN TICKETS ONLY</p>
+  </header>
+
+  <section id="adoptScreen" class="chassis p-5 sm:p-7" aria-labelledby="adopt-heading">
+    <h2 id="adopt-heading" class="sr-only">Adopt a Pet</h2>
+    <div class="rivet absolute top-2 left-2"></div>
+    <div class="rivet absolute top-2 right-2"></div>
+    <div class="rivet absolute bottom-2 left-2"></div>
+    <div class="rivet absolute bottom-2 right-2"></div>
+
+    <p class="text-[9px] text-center mb-4" style="color:var(--neon-red); text-shadow:0 0 6px var(--neon-red);">CHOOSE YOUR PET</p>
+    <div class="species-grid mb-5" id="speciesGrid"></div>
+
+    <label for="petNameInput" class="block led-label mb-2 text-center">NAME YOUR PET</label>
+    <input type="text" id="petNameInput" class="name-input mb-5" placeholder="Enter a name" maxlength="16" autocomplete="off" spellcheck="false">
+
+    <button type="button" id="adoptBtn" class="adopt-btn w-full py-4 text-sm tracking-wider" disabled>
+      ADOPT
+    </button>
+  </section>
+
+  <section id="careScreen" class="chassis p-5 sm:p-7 hidden" aria-labelledby="care-heading">
+    <h2 id="care-heading" class="sr-only">Care for Your Pet</h2>
+    <div class="rivet absolute top-2 left-2"></div>
+    <div class="rivet absolute top-2 right-2"></div>
+    <div class="rivet absolute bottom-2 left-2"></div>
+    <div class="rivet absolute bottom-2 right-2"></div>
+
+    <div class="led-screen mb-4 text-center">
+      <div class="led-label">TICKETS</div>
+      <div class="led-value large" id="ticketDisplay">0 🎟️</div>
+    </div>
+
+    <div class="pet-stage mb-5" id="petStage">
+      <span class="pet-sprite" id="petSprite">🐱</span>
+      <div class="pet-name" id="petNameDisplay">PET</div>
+      <div class="pet-mood" id="petMoodDisplay">feeling okay</div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-label"><span>HUNGER</span><span id="hungerValue">100</span></div>
+      <div class="stat-bar-track"><div class="stat-bar-fill hunger" id="hungerBar" style="width:100%"></div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-label"><span>HAPPINESS</span><span id="happinessValue">100</span></div>
+      <div class="stat-bar-track"><div class="stat-bar-fill happiness" id="happinessBar" style="width:100%"></div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-label"><span>ENERGY</span><span id="energyValue">100</span></div>
+      <div class="stat-bar-track"><div class="stat-bar-fill energy" id="energyBar" style="width:100%"></div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-label"><span>WEIGHT</span><span id="weightValue">0</span></div>
+      <div class="stat-bar-track"><div class="stat-bar-fill weight" id="weightBar" style="width:0%"></div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-label"><span>IQ</span><span id="iqValue">0</span></div>
+      <div class="stat-bar-track"><div class="stat-bar-fill iq" id="iqBar" style="width:0%"></div></div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3 my-5">
+      <button type="button" class="care-btn" id="feedBtn">
+        <span class="care-btn-icon">🍽️</span>
+        FEED
+      </button>
+      <button type="button" class="care-btn" id="playBtn">
+        <span class="care-btn-icon">🧶</span>
+        PLAY
+      </button>
+      <button type="button" class="care-btn" id="sleepBtn">
+        <span class="care-btn-icon">💤</span>
+        REST
+      </button>
+    </div>
+
+    <p class="text-[8px] text-[#6e3a41] leading-relaxed text-center">
+      TICKETS ARE A FOR-FUN SCORE ONLY. NOT REDEEMABLE FOR MEWC, CASH, OR ANYTHING OF VALUE.
+    </p>
+  </section>
+
+  <section id="shopSection" class="info-panel p-6 sm:p-8 mt-6 hidden" aria-labelledby="shop-heading">
+    <p class="panel-eyebrow mb-3">SHOP</p>
+    <h2 id="shop-heading" class="panel-heading mb-4">FOOD &amp; CARE ITEMS</h2>
+    <div class="flex flex-col gap-3" id="shopList"></div>
+  </section>
+
+  <section id="inventorySection" class="info-panel p-6 sm:p-8 mt-6 hidden" aria-labelledby="inventory-heading">
+    <p class="panel-eyebrow mb-3">BACKPACK</p>
+    <h2 id="inventory-heading" class="panel-heading mb-4">YOUR ITEMS</h2>
+    <div class="inventory-list" id="inventoryList"></div>
+  </section>
+
+  <section id="furnitureSection" class="info-panel p-6 sm:p-8 mt-6 hidden" aria-labelledby="furniture-heading">
+    <p class="panel-eyebrow mb-3">HOME</p>
+    <h2 id="furniture-heading" class="panel-heading mb-4">OWNED FURNITURE</h2>
+    <div class="inventory-list" id="furnitureList"></div>
+    <p class="body-copy text-base leading-snug mt-4">
+      Furniture is a permanent boost bought once from the <a href="petshop.html" style="color:var(--neon-red);">Pet Shop</a>.
+    </p>
+  </section>
+
+  <div id="resetWrap" class="flex justify-center mt-6 hidden">
+    <button type="button" id="resetBtn" class="reset-btn">RELEASE PET &amp; START OVER</button>
+  </div>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="about-heading">
+    <p class="panel-eyebrow mb-3">ABOUT</p>
+    <h2 id="about-heading" class="panel-heading mb-4">HOW GOTCHYA WORKS</h2>
+    <p class="body-copy">
+      Your pet's hunger, happiness, and energy drain slowly over real time — even while this tab is
+      closed, so check back and take care of it. Feeding, playing, and letting it rest all cost
+      tickets and restore stats. Neglect it too long and its mood will show it.
+    </p>
+    <div class="draft-warning mt-5">
+      <p class="led-label mb-2" style="color:#ffb347;">⚠ SAVED ONLY IN THIS BROWSER</p>
+      <p class="body-copy text-base leading-snug">
+        Your pet, its stats, and its items are stored in this browser's local storage only — clearing
+        site data, switching browsers, or switching devices will lose it. A persistent account tied to
+        a registered wallet is planned for later.
+      </p>
+    </div>
+  </section>
+
+  <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
+    <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
+    <p class="mt-2">NOT AFFILIATED WITH THE OFFICIAL MEOWCOIN TEAM. NOT FINANCIAL ADVICE.</p>
+    <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
+  </footer>
+
+</main>
+
+<script>
+  const SPECIES = ["🐱","🐶","🐰","🐹","🐭","🐼","🐨","🐯","🦊","🐸","🐷","🐥"];
+
+  const SHOP_ITEMS = [
+    { id: "kibble", name: "Kibble", icon: "🍚", desc: "+15 hunger", cost: 3, stat: "hunger", amount: 15 },
+    { id: "fish", name: "Fish Treat", icon: "🐟", desc: "+30 hunger", cost: 6, stat: "hunger", amount: 30 },
+    { id: "ball", name: "Yarn Ball", icon: "🧶", desc: "+20 happiness", cost: 4, stat: "happiness", amount: 20 },
+    { id: "toy", name: "Squeaky Toy", icon: "🦴", desc: "+35 happiness", cost: 7, stat: "happiness", amount: 35 },
+    { id: "pillow", name: "Soft Pillow", icon: "🛏️", desc: "+25 energy", cost: 5, stat: "energy", amount: 25 },
+    { id: "blanket", name: "Warm Blanket", icon: "🧣", desc: "+40 energy", cost: 8, stat: "energy", amount: 40 },
+  ];
+
+  // Weight and IQ items are NOT sold in this shop — they only drop from
+  // playing the other MeowFriend games (Slots, Crossing, Runner). Defined
+  // here so this page can render them in the backpack/feed actions; the
+  // drop logic itself lives in shared-tickets.js so every game can grant
+  // them without duplicating this list per page.
+  const DROP_ITEMS = [
+    { id: "kibble_bag", name: "Kibble Bag", icon: "🥫", desc: "+2 weight", stat: "weight", amount: 2 },
+    { id: "cat_burger", name: "Cat Burger", icon: "🍔", desc: "+5 weight", stat: "weight", amount: 5 },
+    { id: "feast", name: "Big Feast", icon: "🍗", desc: "+12 weight", stat: "weight", amount: 12 },
+    { id: "picture_book", name: "Picture Book", icon: "📗", desc: "+2 IQ", stat: "iq", amount: 2 },
+    { id: "novel", name: "Novel", icon: "📘", desc: "+5 IQ", stat: "iq", amount: 5 },
+    { id: "encyclopedia", name: "Encyclopedia", icon: "📚", desc: "+12 IQ", stat: "iq", amount: 12 },
+  ];
+
+  const ALL_ITEMS = [...SHOP_ITEMS, ...DROP_ITEMS];
+
+  const PET_KEY = "meowfriend_gotchya_pet";
+  const DECAY_PER_HOUR = 4; // hunger/happiness/energy drain rate
+
+  function loadPet(){
+    try {
+      const raw = localStorage.getItem(PET_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  function savePet(p){
+    localStorage.setItem(PET_KEY, JSON.stringify(p));
+  }
+
+  function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+  // Soft-cap growth for Weight/IQ: rate scales up with current value (the
+  // "higher stat grows faster" behavior), peaks just past the first soft
+  // cap (100), then decays smoothly toward and past the second, much
+  // softer cap (500) rather than hitting a hard ceiling. No stat can ever
+  // truly max out, but gains become negligible well beyond 500.
+  function softCapGrowthPerHour(value){
+    const BASE = 0.02;
+    const SOFT_CAP = 100;
+    const DECAY_START = 90;
+    const scaled = BASE * (1 + (value / SOFT_CAP) * 3);
+    const falloff = value < DECAY_START ? 1 : Math.exp(-(value - DECAY_START) / SOFT_CAP);
+    return scaled * falloff;
+  }
+
+  function applyDecay(p){
+    const now = Date.now();
+    const hoursElapsed = (now - p.lastSeen) / (1000 * 60 * 60);
+    if(hoursElapsed > 0){
+      const hungerLoss = hoursElapsed * DECAY_PER_HOUR * getFurnitureMultiplier(p, "hungerDecayMult");
+      const happinessLoss = hoursElapsed * DECAY_PER_HOUR * getFurnitureMultiplier(p, "happinessDecayMult");
+      const energyLoss = hoursElapsed * DECAY_PER_HOUR * getFurnitureMultiplier(p, "energyDecayMult");
+      p.hunger = clamp(p.hunger - hungerLoss, 0, 100);
+      p.happiness = clamp(p.happiness - happinessLoss, 0, 100);
+      p.energy = clamp(p.energy - energyLoss, 0, 100);
+
+      // Weight/IQ grow slowly over time on their own (soft-capped, no
+      // upper bound), boosted by owned furniture (Fridge/Bookcase).
+      const weightMult = getFurnitureMultiplier(p, "weightGainMult");
+      const iqMult = getFurnitureMultiplier(p, "iqGainMult");
+      p.weight = Math.max(0, (p.weight || 0) + softCapGrowthPerHour(p.weight || 0) * hoursElapsed * weightMult);
+      p.iq = Math.max(0, (p.iq || 0) + softCapGrowthPerHour(p.iq || 0) * hoursElapsed * iqMult);
+
+      p.lastSeen = now;
+    }
+    return p;
+  }
+
+  let pet = loadPet();
+  if(pet){
+    pet = applyDecay(pet);
+    savePet(pet);
+  }
+
+  const adoptScreen = document.getElementById("adoptScreen");
+  const careScreen = document.getElementById("careScreen");
+  const shopSection = document.getElementById("shopSection");
+  const inventorySection = document.getElementById("inventorySection");
+  const furnitureSection = document.getElementById("furnitureSection");
+  const furnitureList = document.getElementById("furnitureList");
+  const resetWrap = document.getElementById("resetWrap");
+
+  const speciesGrid = document.getElementById("speciesGrid");
+  const petNameInput = document.getElementById("petNameInput");
+  const adoptBtn = document.getElementById("adoptBtn");
+
+  const ticketDisplay = document.getElementById("ticketDisplay");
+  const petStage = document.getElementById("petStage");
+  const petSprite = document.getElementById("petSprite");
+  const petNameDisplay = document.getElementById("petNameDisplay");
+  const petMoodDisplay = document.getElementById("petMoodDisplay");
+
+  const hungerBar = document.getElementById("hungerBar");
+  const happinessBar = document.getElementById("happinessBar");
+  const energyBar = document.getElementById("energyBar");
+  const hungerValue = document.getElementById("hungerValue");
+  const happinessValue = document.getElementById("happinessValue");
+  const energyValue = document.getElementById("energyValue");
+  const weightBar = document.getElementById("weightBar");
+  const iqBar = document.getElementById("iqBar");
+  const weightValue = document.getElementById("weightValue");
+  const iqValue = document.getElementById("iqValue");
+
+  const feedBtn = document.getElementById("feedBtn");
+  const playBtn = document.getElementById("playBtn");
+  const sleepBtn = document.getElementById("sleepBtn");
+
+  const shopList = document.getElementById("shopList");
+  const inventoryList = document.getElementById("inventoryList");
+  const resetBtn = document.getElementById("resetBtn");
+
+  let selectedSpecies = null;
+
+  SPECIES.forEach(emoji => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "species-btn";
+    btn.textContent = emoji;
+    btn.setAttribute("aria-label", `Choose ${emoji} as your pet`);
+    btn.addEventListener("click", () => {
+      selectedSpecies = emoji;
+      [...speciesGrid.children].forEach(c => c.classList.remove("selected"));
+      btn.classList.add("selected");
+      updateAdoptBtn();
+    });
+    speciesGrid.appendChild(btn);
+  });
+
+  function updateAdoptBtn(){
+    adoptBtn.disabled = !selectedSpecies || petNameInput.value.trim().length === 0;
+  }
+  petNameInput.addEventListener("input", updateAdoptBtn);
+
+  adoptBtn.addEventListener("click", () => {
+    if(!selectedSpecies || petNameInput.value.trim().length === 0) return;
+    pet = {
+      species: selectedSpecies,
+      name: petNameInput.value.trim().slice(0, 16),
+      hunger: 100,
+      happiness: 100,
+      energy: 100,
+      weight: 0,
+      iq: 0,
+      inventory: {},
+      furniture: {},
+      lastSeen: Date.now(),
+      adoptedAt: Date.now(),
+    };
+    savePet(pet);
+    renderAll();
+  });
+
+  function getMood(p){
+    const avg = (p.hunger + p.happiness + p.energy) / 3;
+    if(avg >= 80) return "thriving!";
+    if(avg >= 55) return "feeling okay";
+    if(avg >= 30) return "could use some care";
+    if(avg > 0) return "not doing great...";
+    return "needs you right now";
+  }
+
+  function renderStats(){
+    if(!pet) return;
+    hungerBar.style.width = pet.hunger + "%";
+    happinessBar.style.width = pet.happiness + "%";
+    energyBar.style.width = pet.energy + "%";
+    hungerValue.textContent = Math.round(pet.hunger);
+    happinessValue.textContent = Math.round(pet.happiness);
+    energyValue.textContent = Math.round(pet.energy);
+
+    // Weight/IQ are uncapped, so their bar shows progress toward the
+    // nearest soft milestone (100, then 500, then just stays near-full —
+    // there's always further to go, but the bar doesn't need to pretend
+    // there's a hard ceiling to be readable).
+    weightBar.style.width = milestoneBarWidth(pet.weight || 0) + "%";
+    iqBar.style.width = milestoneBarWidth(pet.iq || 0) + "%";
+    weightValue.textContent = Math.round(pet.weight || 0);
+    iqValue.textContent = Math.round(pet.iq || 0);
+
+    const isCritical = pet.hunger < 20 || pet.happiness < 20 || pet.energy < 20;
+    const isThriving = pet.hunger >= 90 && pet.happiness >= 90 && pet.energy >= 90;
+
+    hungerBar.classList.toggle("critical", pet.hunger < 20);
+    happinessBar.classList.toggle("critical", pet.happiness < 20);
+    energyBar.classList.toggle("critical", pet.energy < 20);
+
+    // Distress and thriving are mutually exclusive visual states on the
+    // stage/sprite — critical always wins if somehow both were true.
+    petStage.classList.toggle("warning", isCritical);
+    petStage.classList.toggle("thriving", !isCritical && isThriving);
+    petSprite.classList.toggle("distress", isCritical);
+    petSprite.classList.toggle("thriving", !isCritical && isThriving);
+
+    petSprite.textContent = pet.species;
+    petNameDisplay.textContent = pet.name.toUpperCase();
+    petMoodDisplay.textContent = getMood(pet);
+  }
+
+  // Scales an uncapped value into a 0-100 bar width using soft milestones
+  // at 100 and 500, so the bar stays meaningful without implying a real max.
+  function milestoneBarWidth(value){
+    if(value <= 100) return (value / 100) * 60; // 0-100 fills first 60% of bar
+    if(value <= 500) return 60 + ((value - 100) / 400) * 35; // 100-500 fills next 35%
+    return 95 + Math.min(5, (value - 500) / 200); // beyond 500, creep toward 100%
+  }
+
+  // Brief green flash + floating "+N" popup on the stage whenever a care
+  // action successfully restores a stat, so feeding/playing/resting has an
+  // actual moment of feedback instead of just the bar quietly moving.
+  function playCareSuccess(statLabel, amount){
+    petStage.classList.remove("care-success");
+    void petStage.offsetWidth; // force reflow so the animation restarts cleanly
+    petStage.classList.add("care-success");
+    setTimeout(() => petStage.classList.remove("care-success"), 800);
+
+    const popup = document.createElement("div");
+    popup.className = "stat-popup";
+    popup.textContent = `+${Math.round(amount)} ${statLabel}`;
+    petStage.appendChild(popup);
+    setTimeout(() => popup.remove(), 800);
+  }
+
+  function renderShop(){
+    shopList.innerHTML = "";
+    SHOP_ITEMS.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "shop-item";
+      row.innerHTML = `
+        <div class="shop-item-info">
+          <span class="shop-item-icon">${item.icon}</span>
+          <div>
+            <div class="shop-item-name">${item.name}</div>
+            <div class="shop-item-desc">${item.desc}</div>
+          </div>
+        </div>
+        <button type="button" class="shop-buy-btn" data-item="${item.id}">${item.cost} 🎟️</button>
+      `;
+      shopList.appendChild(row);
+    });
+    shopList.querySelectorAll(".shop-buy-btn").forEach(btn => {
+      const cost = parseInt(btn.textContent, 10);
+      btn.disabled = getTickets() < cost;
+      btn.addEventListener("click", () => buyItem(btn.dataset.item));
+    });
+  }
+
+  function renderInventory(){
+    const entries = Object.entries(pet.inventory || {}).filter(([, count]) => count > 0);
+    if(entries.length === 0){
+      inventoryList.innerHTML = `<span class="body-copy text-base">No items yet — visit the shop below, or play Slots, Crossing, and Runner for a chance at weight/IQ items.</span>`;
+      return;
+    }
+    inventoryList.innerHTML = entries.map(([id, count]) => {
+      const item = ALL_ITEMS.find(i => i.id === id);
+      if(!item) return "";
+      const isDropItem = DROP_ITEMS.some(d => d.id === id);
+      if(isDropItem){
+        return `<button type="button" class="inventory-chip drop-use-btn" data-item="${id}">${item.icon} ${item.name} &times;${count} <span class="drop-use-hint">(use)</span></button>`;
+      }
+      return `<span class="inventory-chip">${item.icon} ${item.name} &times;${count}</span>`;
+    }).join("");
+
+    inventoryList.querySelectorAll(".drop-use-btn").forEach(btn => {
+      btn.addEventListener("click", () => useDropItem(btn.dataset.item));
+    });
+  }
+
+  function renderAll(){
+    if(!pet){
+      adoptScreen.classList.remove("hidden");
+      careScreen.classList.add("hidden");
+      shopSection.classList.add("hidden");
+      inventorySection.classList.add("hidden");
+      furnitureSection.classList.add("hidden");
+      resetWrap.classList.add("hidden");
+      return;
+    }
+    adoptScreen.classList.add("hidden");
+    careScreen.classList.remove("hidden");
+    shopSection.classList.remove("hidden");
+    inventorySection.classList.remove("hidden");
+    furnitureSection.classList.remove("hidden");
+    resetWrap.classList.remove("hidden");
+
+    ticketDisplay.textContent = `${getTickets()} 🎟️`;
+    renderStats();
+    renderShop();
+    renderInventory();
+    renderFurniture();
+    updateCareButtons();
+  }
+
+  function renderFurniture(){
+    const owned = Object.entries(pet.furniture || {}).filter(([, has]) => has);
+    if(owned.length === 0){
+      furnitureList.innerHTML = `<span class="body-copy text-base">No furniture yet — visit the Pet Shop to buy permanent boosts.</span>`;
+      return;
+    }
+    furnitureList.innerHTML = owned.map(([id]) => {
+      const item = GOTCHYA_FURNITURE.find(f => f.id === id);
+      if(!item) return "";
+      return `<span class="inventory-chip">${item.icon} ${item.name} &mdash; ${item.desc}</span>`;
+    }).join("");
+  }
+
+  function updateCareButtons(){
+    const hasFood = Object.entries(pet.inventory || {}).some(([id, c]) => c > 0 && SHOP_ITEMS.find(i => i.id === id)?.stat === "hunger");
+    const hasFun = Object.entries(pet.inventory || {}).some(([id, c]) => c > 0 && SHOP_ITEMS.find(i => i.id === id)?.stat === "happiness");
+    const hasRest = Object.entries(pet.inventory || {}).some(([id, c]) => c > 0 && SHOP_ITEMS.find(i => i.id === id)?.stat === "energy");
+    feedBtn.disabled = !hasFood;
+    playBtn.disabled = !hasFun;
+    sleepBtn.disabled = !hasRest;
+  }
+
+  const STAT_LABELS = { hunger: "hunger", happiness: "happiness", energy: "energy", weight: "weight", iq: "IQ" };
+
+  // Small guaranteed side-effect from ordinary care actions (not the big
+  // drop-item boosts) — per your spec: feeding nudges weight, resting
+  // nudges IQ, playing nudges both a little.
+  const CARE_SIDE_EFFECTS = {
+    hunger: { weight: 0.4 },
+    energy: { iq: 0.4 },
+    happiness: { weight: 0.2, iq: 0.2 },
+  };
+
+  function useBestItem(statType){
+    const owned = Object.entries(pet.inventory || {})
+      .filter(([id, c]) => c > 0 && SHOP_ITEMS.find(i => i.id === id)?.stat === statType)
+      .map(([id]) => SHOP_ITEMS.find(i => i.id === id))
+      .sort((a, b) => b.amount - a.amount);
+    if(owned.length === 0) return;
+    const item = owned[0];
+    const before = pet[statType];
+    pet.inventory[item.id] -= 1;
+    pet[statType] = clamp(pet[statType] + item.amount, 0, 100);
+    const actualGain = pet[statType] - before;
+
+    // Weight/IQ have no upper cap, so only clamp their lower bound.
+    const sideEffects = CARE_SIDE_EFFECTS[statType] || {};
+    Object.entries(sideEffects).forEach(([stat, amount]) => {
+      pet[stat] = Math.max(0, (pet[stat] || 0) + amount);
+    });
+
+    pet.lastSeen = Date.now();
+    savePet(pet);
+    renderAll();
+    playCareSuccess(STAT_LABELS[statType], actualGain);
+  }
+
+  // Using a Weight or IQ drop item directly from the backpack — these are
+  // the bigger jumps found by playing the other games, uncapped like the
+  // stats themselves.
+  function useDropItem(itemId){
+    const item = DROP_ITEMS.find(i => i.id === itemId);
+    if(!item) return;
+    if(!pet.inventory || !pet.inventory[itemId]) return;
+    pet.inventory[itemId] -= 1;
+    pet[item.stat] = Math.max(0, (pet[item.stat] || 0) + item.amount);
+    pet.lastSeen = Date.now();
+    savePet(pet);
+    renderAll();
+    playCareSuccess(STAT_LABELS[item.stat], item.amount);
+  }
+
+  feedBtn.addEventListener("click", () => useBestItem("hunger"));
+  playBtn.addEventListener("click", () => useBestItem("happiness"));
+  sleepBtn.addEventListener("click", () => useBestItem("energy"));
+
+  function buyItem(id){
+    const item = SHOP_ITEMS.find(i => i.id === id);
+    if(!item) return;
+    if(getTickets() < item.cost) return;
+    addTickets(-item.cost);
+    pet.inventory = pet.inventory || {};
+    pet.inventory[id] = (pet.inventory[id] || 0) + 1;
+    savePet(pet);
+    renderAll();
+  }
+
+  resetBtn.addEventListener("click", () => {
+    if(!confirm(`Release ${pet.name}? This can't be undone.`)) return;
+    localStorage.removeItem(PET_KEY);
+    pet = null;
+    selectedSpecies = null;
+    petNameInput.value = "";
+    renderAll();
+  });
+
+  document.addEventListener("tickets:changed", () => {
+    if(pet) renderAll();
+  });
+
+  setInterval(() => {
+    if(!pet) return;
+    pet = applyDecay(pet);
+    savePet(pet);
+    renderStats();
+  }, 30000);
+
+  renderAll();
+</script>
+
+</body>
+</html>

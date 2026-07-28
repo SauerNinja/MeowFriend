@@ -391,6 +391,8 @@
     });
   }
 
+  let crossingCount = 0;
+
   function resetPlayer(){
     player = { col: Math.floor(COLS / 2), row: ROWS - 1 };
   }
@@ -400,6 +402,7 @@
     if(getTickets() < PLAY_COST) return;
     addTickets(-PLAY_COST);
     score = 0;
+    crossingCount = 0;
     scoreDisplay.textContent = "0";
     playBtn.disabled = true;
     playBtn.textContent = "PLAYING...";
@@ -435,6 +438,14 @@
     if(player.row === 0){
       score += 50;
       scoreDisplay.textContent = String(score);
+      crossingCount += 1;
+      // Small chance on every successful crossing; guaranteed bonus item
+      // every 3rd crossing in the same run. No-op if no Gotchya pet yet.
+      if(crossingCount % 3 === 0){
+        grantGotchyaMilestone();
+      } else {
+        rollGotchyaDrop(0.12);
+      }
       resetPlayer();
     }
   }
