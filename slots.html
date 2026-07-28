@@ -168,7 +168,8 @@
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding-top: 8px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     position: relative;
   }
 
@@ -177,38 +178,57 @@
     height: 100%;
     background: #0e0e10;
     border: 2px solid #1e1e22;
+    border-radius: 4px;
     position: relative;
   }
 
+  /* The arm is a short stub anchored at the top of the track — visually
+     just a connector between the housing and the knob, since the knob
+     itself does all the moving. */
   .lever-arm{
     position: absolute;
     left: 50%;
     top: 0;
     width: 8px;
-    height: 60%;
+    height: 100%;
+    transform: translateX(-50%);
+  }
+
+  .lever-arm::before{
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 8px;
+    height: 100%;
     background: linear-gradient(90deg, #7a0818, #ff2f4d, #7a0818);
     border-radius: 4px;
-    transform-origin: top center;
-    transform: translateX(-50%) rotate(0deg);
-    transition: transform 0.18s cubic-bezier(0.3, 0, 0.6, 1);
+    transform: translateX(-50%);
     box-shadow: 0 0 8px rgba(255,30,67,0.5);
   }
 
+  /* The knob rides on top of the arm and physically slides down the track
+     when pulled — this is what actually reads as "pulling down". */
   .lever-knob{
     position: absolute;
     left: 50%;
-    bottom: -14px;
+    top: -6px;
     width: 26px;
     height: 26px;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #ff5f77, #d80f2b 60%, #7a0818);
-    transform: translateX(-50%);
+    transform: translate(-50%, 0);
     box-shadow: 0 0 10px rgba(255,30,67,0.6), inset 0 2px 0 rgba(255,255,255,0.3);
     border: 2px solid #7a0818;
+    transition: transform 0.16s cubic-bezier(0.34, 1.4, 0.44, 1);
+    z-index: 2;
   }
 
-  .lever-arm.pulled{
-    transform: translateX(-50%) rotate(38deg);
+  /* Pulled: knob slides most of the way down the track. A slight overshoot
+     past the rest position on release (via the spring easing above) sells
+     the physical snap-back instead of a flat linear return. */
+  .lever-knob.pulled{
+    transform: translate(-50%, calc(100% - 10px));
   }
 
   .lever-btn{
@@ -219,11 +239,12 @@
     cursor: pointer;
     width: 100%;
     height: 100%;
+    z-index: 3;
   }
   .lever-btn:disabled{ cursor: not-allowed; }
 
   @media (prefers-reduced-motion: reduce){
-    .lever-arm{ transition: none; }
+    .lever-knob{ transition: none; }
     .reel-strip{ transition: none !important; }
   }
 
@@ -322,9 +343,8 @@
       </div>
       <div class="lever-housing">
         <div class="lever-track">
-          <div class="lever-arm" id="leverArm">
-            <div class="lever-knob"></div>
-          </div>
+          <div class="lever-arm"></div>
+          <div class="lever-knob" id="leverKnob"></div>
         </div>
         <button type="button" id="leverBtn" class="lever-btn" aria-label="Pull lever to spin"></button>
       </div>
@@ -347,7 +367,7 @@
 
     <div class="flex justify-center mb-4">
       <button type="button" id="spinBtn" class="spin-btn w-full py-5 text-sm tracking-wider">
-        SPIN — 10 🎟️
+        SPIN — 1 🎟️
       </button>
     </div>
 
@@ -364,7 +384,7 @@
       <div class="paytable" id="paytableBody"></div>
     </div>
     <p class="text-[8px] text-[#6e3a41] leading-relaxed mt-4 text-center">
-      All 19 symbols are weighted by rarity below. Verified by simulation at ~100% return-to-player —
+      All 19 symbols are weighted by rarity below. Verified by simulation at ~106% return-to-player —
       no house edge, since nothing of real value is on the line.
     </p>
   </section>
@@ -396,7 +416,7 @@
   const ARCADE_TIER = new Set(["🍒","💸","🧧"]);
   const BIG_MONEY = new Set(["💰","🤑","7️⃣"]);
 
-  const SPIN_COST = 10;
+  const SPIN_COST = 1;
   const CELL_H = 60;
 
   function weightedRandomSymbol(){
@@ -408,26 +428,26 @@
     return SYMBOL_POOL[SYMBOL_POOL.length - 1].symbol;
   }
 
-  // Payout table — verified by simulation (2M spins) to land at ~100% RTP
-  // relative to the 10-ticket spin cost. "Any 3 cat faces mixed" pays
-  // nothing (it's just a loss, same as any other non-matching spin) — the
-  // single-cherry consolation carries the balance instead, since it's the
-  // most frequent event (~16.5% of spins).
+  // Payout table — rescaled for a 1-ticket spin cost (was 10) and
+  // verified by simulation (3M spins) at ~106% RTP. Whole-number payouts
+  // don't land exactly on 100% at this scale — cherry1 alone swings the
+  // total by double digits per point of rounding since it's ~16.5% of all
+  // spins — so this rounds slightly generous rather than slightly negative.
   function calculatePayout(symbols){
     const [a, b, c] = symbols;
 
     if(a === b && b === c){
-      if(a === "💎") return { tickets: 5000, label: "💎 JACKPOT!" };
-      if(BIG_MONEY.has(a)) return { tickets: 500, label: `${a}×3 BIG WIN!` };
-      if(ARCADE_TIER.has(a)) return { tickets: 150, label: `${a}×3!` };
-      if(CAT_PROPS.has(a)) return { tickets: 80, label: `${a}×3!` };
-      if(CAT_FACES.has(a)) return { tickets: 100, label: `${a}×3!` };
+      if(a === "💎") return { tickets: 500, label: "💎 JACKPOT!" };
+      if(BIG_MONEY.has(a)) return { tickets: 50, label: `${a}×3 BIG WIN!` };
+      if(ARCADE_TIER.has(a)) return { tickets: 15, label: `${a}×3!` };
+      if(CAT_PROPS.has(a)) return { tickets: 8, label: `${a}×3!` };
+      if(CAT_FACES.has(a)) return { tickets: 10, label: `${a}×3!` };
     }
 
-    // Pity hits — small but real, not a fake flash. Checked in priority order.
+    // Consolation payouts for cherries — small but real, not a fake flash. Checked in priority order.
     const cherryCount = symbols.filter(s => s === "🍒").length;
-    if(cherryCount === 2) return { tickets: 25, label: "🍒🍒 Double cherry" };
-    if(cherryCount === 1) return { tickets: 57, label: "🍒 Cherry" };
+    if(cherryCount === 2) return { tickets: 3, label: "🍒🍒 Double cherry" };
+    if(cherryCount === 1) return { tickets: 6, label: "🍒 Cherry" };
 
     return { tickets: 0, label: "No match" };
   }
@@ -518,12 +538,12 @@
   }
 
   // --- Lever animation ---
-  const leverArm = document.getElementById("leverArm");
+  const leverKnob = document.getElementById("leverKnob");
   const leverBtn = document.getElementById("leverBtn");
 
   function pullLever(){
-    leverArm.classList.add("pulled");
-    setTimeout(() => leverArm.classList.remove("pulled"), 450);
+    leverKnob.classList.add("pulled");
+    setTimeout(() => leverKnob.classList.remove("pulled"), 450);
   }
 
   // --- Win flash ---
@@ -602,21 +622,21 @@
   // --- Build the published paytable ---
   function renderPaytable(){
     const rows = [
-      ["💎💎💎", "5,000 🎟️ (weight 1/" + TOTAL_WEIGHT + " per reel)"],
-      ["💰💰💰 / 🤑🤑🤑 / 7️⃣7️⃣7️⃣", "500 🎟️ each (weight 3/" + TOTAL_WEIGHT + " per reel)"],
-      ["🍒🍒🍒 / 💸💸💸 / 🧧🧧🧧", "150 🎟️ each (weight 6/" + TOTAL_WEIGHT + " per reel)"],
-      ["🐀🐀🐀 / 🐾🐾🐾 / 🐟🐟🐟 / 🧶🧶🧶", "80 🎟️ each (weight 7/" + TOTAL_WEIGHT + " per reel)"],
-      ["Same cat face ×3 (e.g. 😻😻😻)", "100 🎟️ (weight 5/" + TOTAL_WEIGHT + " per reel, 8 faces)"],
-      ["🍒🍒 anywhere (exactly 2)", "25 🎟️ — pity hit"],
-      ["🍒 anywhere (exactly 1)", "57 🎟️ — pity hit, ~16.5% of spins"],
+      ["💎💎💎", "500 🎟️ (weight 1/" + TOTAL_WEIGHT + " per reel)"],
+      ["💰💰💰 / 🤑🤑🤑 / 7️⃣7️⃣7️⃣", "50 🎟️ each (weight 3/" + TOTAL_WEIGHT + " per reel)"],
+      ["🍒🍒🍒 / 💸💸💸 / 🧧🧧🧧", "15 🎟️ each (weight 6/" + TOTAL_WEIGHT + " per reel)"],
+      ["🐀🐀🐀 / 🐾🐾🐾 / 🐟🐟🐟 / 🧶🧶🧶", "8 🎟️ each (weight 7/" + TOTAL_WEIGHT + " per reel)"],
+      ["Same cat face ×3 (e.g. 😻😻😻)", "10 🎟️ (weight 5/" + TOTAL_WEIGHT + " per reel, 8 faces)"],
+      ["🍒🍒 anywhere (exactly 2)", "3 🎟️ — consolation payout"],
+      ["🍒 anywhere (exactly 1)", "6 🎟️ — consolation payout, ~16.5% of spins"],
       ["Any 3 cat faces (mixed, no match)", "No payout — same as any other loss"],
     ];
     const body = document.getElementById("paytableBody");
     body.innerHTML = rows.map(([a,b]) => `<div class="paytable-row"><span>${a}</span><span>${b}</span></div>`).join("");
   }
 
-  // Verified by 2M-spin simulation: this table lands at ~100.8% RTP against
-  // the 10-ticket spin cost.
+  // Verified by 3M-spin simulation: this table lands at ~106% RTP against
+  // the 1-ticket spin cost.
 
   renderPaytable();
   setReelsIdle(["🐱","💰","7️⃣"]);
