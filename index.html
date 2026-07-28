@@ -70,37 +70,6 @@
       "image": "https://YOUR-USERNAME.github.io/meowfriend/og-image.png",
       "isPartOf": { "@id": "https://YOUR-USERNAME.github.io/meowfriend/#website" },
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-    },
-    {
-      "@type": "FAQPage",
-      "@id": "https://YOUR-USERNAME.github.io/meowfriend/#faq",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "What is Meowcoin (MEWC)?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Meowcoin is a cat-themed, proof-of-work cryptocurrency that launched in 2022 with a fair launch and no premine or ICO. It runs on MeowPow, a GPU-mineable algorithm in the ProgPow family, and sends a share of block rewards to animal shelters." }
-        },
-        {
-          "@type": "Question",
-          "name": "How much MEWC do I get, and how often?",
-          "acceptedAnswer": { "@type": "Answer", "text": "10 MEWC per boop, once every 24 hours. The RECHARGE screen counts down to your next claim." }
-        },
-        {
-          "@type": "Question",
-          "name": "Do I need to sign up or connect a wallet?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No. There's no account and nothing to connect. Paste a Meowcoin address that starts with M and boop." }
-        },
-        {
-          "@type": "Question",
-          "name": "Is MeowFriend affiliated with the official Meowcoin project?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No. MeowFriend is an independent, community-built faucet and isn't affiliated with or endorsed by the Meowcoin core team." }
-        },
-        {
-          "@type": "Question",
-          "name": "How does the drip actually get paid out?",
-          "acceptedAnswer": { "@type": "Answer", "text": "This build simulates the drip locally in your browser so the full flow can be tested end to end. Wiring it up to a live Meowcoin node and hot wallet is the next step before a public launch." }
-        }
-      ]
     }
   ]
 }
@@ -205,69 +174,40 @@
     color: var(--neon-red);
     text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
   }
-  .led-value.large{
-    font-size: 20px;
+  .section-nav{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
   }
-
-  .test-spin-btn{
-    background: transparent;
-    border: 2px dashed #4a2a30;
-    color: #9a5a62;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 8px;
-    padding: 6px 14px;
-    letter-spacing: 1px;
-    cursor: pointer;
-  }
-  .test-spin-btn:hover{
-    border-color: var(--neon-red);
-    color: var(--neon-red);
-  }
-
-  .slots-nav-card{
+  .section-nav-card{
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 8px;
     background: linear-gradient(180deg, #2a2a30, #17171a);
     border: 3px solid var(--neon-red);
     box-shadow: 0 0 14px rgba(255,30,67,0.3), inset 0 0 10px rgba(255,30,67,0.1);
-    padding: 14px 16px;
+    padding: 16px 8px;
     text-decoration: none;
     transition: filter 0.15s ease, transform 0.08s ease;
   }
-  .slots-nav-card:hover{
+  .section-nav-card:hover{
     filter: brightness(1.15);
   }
-  .slots-nav-card:active{
+  .section-nav-card:active{
     transform: translateY(2px);
   }
-  .slots-nav-icon{
-    font-size: 34px;
+  .section-nav-icon{
+    font-size: 32px;
     line-height: 1;
     filter: drop-shadow(0 0 8px var(--neon-red-bright));
   }
-  .slots-nav-title{
-    font-size: 12px;
+  .section-nav-label{
+    font-size: 9px;
     color: var(--neon-red);
     text-shadow: 0 0 6px var(--neon-red);
-  }
-  .slots-nav-sub{
-    font-family: 'VT323', monospace;
-    font-size: 15px;
-    color: #ffc7cf;
-    margin-top: 4px;
-  }
-  .slots-nav-arrow{
-    margin-left: auto;
-    font-size: 22px;
-    color: var(--neon-red);
-    text-shadow: 0 0 8px var(--neon-red);
-  }
-
-  .draft-warning{
-    border: 2px dashed #ffb347;
-    background: rgba(255,179,71,0.06);
-    padding: 12px 14px;
+    text-align: center;
+    letter-spacing: 0.5px;
   }
 
   .boop-btn{
@@ -358,85 +298,6 @@
   /* ---- Content panels (About / How it works / FAQ) ---- */
   .font-body{ font-family: 'VT323', monospace; }
 
-  .info-panel{
-    border: 2px solid #2a2a30;
-    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
-    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
-  }
-
-  .panel-eyebrow{
-    font-size: 9px;
-    color: var(--neon-red);
-    text-shadow: 0 0 6px var(--neon-red);
-    letter-spacing: 3px;
-  }
-
-  .panel-heading{
-    font-size: 15px;
-    line-height: 1.5;
-    color: var(--neon-red);
-    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
-  }
-
-  .body-copy{
-    font-family: 'VT323', monospace;
-    font-size: 19px;
-    line-height: 1.65;
-    color: #ffc7cf;
-  }
-
-  .step-badge{
-    width: 40px;
-    height: 40px;
-    border: 2px solid var(--neon-red);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--neon-red);
-    text-shadow: 0 0 6px var(--neon-red);
-    box-shadow: inset 0 0 8px rgba(255,30,67,0.25);
-    background: #0a0a0c;
-    font-size: 14px;
-  }
-
-  .step-label{
-    font-size: 9px;
-    letter-spacing: 1px;
-    color: #ff8b96;
-  }
-
-  details.faq-item{
-    border: 2px solid #2a2a30;
-    background: #0a0a0c;
-  }
-  details.faq-item[open]{
-    border-color: var(--neon-red);
-    box-shadow: 0 0 12px rgba(255,30,67,0.25);
-  }
-  details.faq-item summary{
-    cursor: pointer;
-    list-style: none;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 10.5px;
-    line-height: 1.6;
-    color: #ffb3bd;
-    padding: 14px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 14px;
-  }
-  details.faq-item summary::-webkit-details-marker{ display: none; }
-  details.faq-item summary::after{
-    content: "+";
-    color: var(--neon-red);
-    font-size: 18px;
-    flex-shrink: 0;
-    text-shadow: 0 0 6px var(--neon-red);
-  }
-  details.faq-item[open] summary::after{ content: "\2013"; }
-  details.faq-item .faq-answer{ padding: 0 16px 16px; }
-
   :focus-visible{
     outline: 2px solid var(--neon-red);
     outline-offset: 3px;
@@ -457,7 +318,7 @@
 
   <!-- Header -->
   <header class="flex flex-col items-center mb-8">
-    <div class="cat-emoji-logo cat-glow mb-3" role="img" aria-label="MeowFriend black cat logo with glowing red eyes">🐈‍⬛</div>
+    <div class="cat-emoji-logo cat-glow mb-5" role="img" aria-label="MeowFriend black cat logo with glowing red eyes">🐈‍⬛</div>
     <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">MEOWFRIEND</h1>
     <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">FREE MEOWCOIN, ONE BOOP AT A TIME</p>
   </header>
@@ -527,145 +388,21 @@
     </div>
   </section>
 
-  <!-- Arcade -->
-  <section class="info-panel p-6 sm:p-8 mt-8" aria-labelledby="arcade-heading">
-    <p class="panel-eyebrow mb-3">PLAY</p>
-    <h2 id="arcade-heading" class="panel-heading mb-4">ARCADE</h2>
-    <p class="body-copy mb-5">
-      Tickets can be spent on the slot machine and future minigames — plus cosmetic items, collectibles,
-      and other fun extras down the line. They're a for-fun score only, not redeemable for MEWC, cash,
-      or anything of value.
-    </p>
-
-    <div class="led-screen mb-5 text-center">
-      <div class="led-label">YOUR TICKETS</div>
-      <div class="led-value large" id="ticketsTotalArcade">0 🎟️</div>
-    </div>
-
-    <a href="slots.html" class="slots-nav-card" aria-label="Go to the MeowFriend slot machine arcade page">
-      <span class="slots-nav-icon" aria-hidden="true">🎰</span>
-      <span class="flex flex-col items-start">
-        <span class="slots-nav-title">ARCADE SLOTS</span>
-        <span class="slots-nav-sub">Spin with tickets — for fun, no MEWC on the line</span>
-      </span>
-      <span class="slots-nav-arrow" aria-hidden="true">&rarr;</span>
+  <!-- Section navigation -->
+  <nav class="section-nav mt-8" aria-label="MeowFriend sections">
+    <a href="slots.html" class="section-nav-card" aria-label="Go to the Arcade page">
+      <span class="section-nav-icon" aria-hidden="true">🎰</span>
+      <span class="section-nav-label">ARCADE</span>
     </a>
-  </section>
-
-  <!-- Donate MEWC for tickets (DRAFT — see note) -->
-  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="donate-heading">
-    <p class="panel-eyebrow mb-3">SUPPORT THE FAUCET</p>
-    <h2 id="donate-heading" class="panel-heading mb-4">DONATE MEWC, GET TICKETS</h2>
-    <p class="body-copy mb-5">
-      Send MEWC to the faucet address below, then paste your transaction ID (TXID) to receive
-      10 tickets per 100 MEWC donated. Tickets are for-fun score only — not redeemable for MEWC,
-      cash, or anything of value.
-    </p>
-
-    <div class="led-screen mb-5 text-center">
-      <div class="led-label">YOUR TICKETS</div>
-      <div class="led-value large" id="ticketsTotalDonate">0 🎟️</div>
-    </div>
-
-    <div class="led-screen mb-5">
-      <div class="led-label">FAUCET DONATION ADDRESS</div>
-      <div class="led-value break-all" id="donationAddress">M... (set this to your real faucet wallet address)</div>
-    </div>
-
-    <label for="donationTxid" class="block led-label mb-2">YOUR TRANSACTION ID (TXID)</label>
-    <input
-      type="text"
-      id="donationTxid"
-      class="addr-input w-full mb-3"
-      placeholder="Paste your TXID here"
-      autocomplete="off"
-      spellcheck="false"
-    >
-    <div class="flex justify-center mb-3">
-      <button type="button" id="claimDonationBtn" class="test-spin-btn" style="border-style:solid;">SUBMIT TXID FOR TICKETS</button>
-    </div>
-    <p id="donationStatus" class="text-[8px] text-center leading-relaxed" style="color:#9a5a62;"></p>
-
-    <div class="draft-warning mt-5">
-      <p class="led-label mb-2" style="color:#ffb347;">⚠ DRAFT — NOT VERIFIED YET</p>
-      <p class="body-copy text-base leading-snug">
-        This form currently accepts any TXID-shaped text and grants tickets immediately — it does
-        <strong>not</strong> check the Meowcoin blockchain to confirm the transaction happened, that
-        it paid the right amount, or that the same TXID hasn't been reused. Before this goes live,
-        it needs a backend endpoint that calls <code>gettransaction</code> on your node and keeps a
-        record of already-claimed TXIDs, the same way the faucet's own anti-duplicate system works.
-      </p>
-    </div>
-  </section>
-
-  <!-- Info & FAQ -->
-  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="info-heading">
-    <p class="panel-eyebrow mb-3">INFO</p>
-    <h2 id="info-heading" class="panel-heading mb-7">HOW IT WORKS &amp; FAQ</h2>
-
-    <ol class="grid grid-cols-2 sm:grid-cols-4 gap-6 list-none p-0 m-0 mb-8">
-      <li class="flex flex-col items-center text-center gap-3">
-        <span class="step-badge" aria-hidden="true">1</span>
-        <span class="step-label">PASTE ADDRESS</span>
-        <p class="body-copy text-base leading-snug">Enter a Meowcoin address starting with M.</p>
-      </li>
-      <li class="flex flex-col items-center text-center gap-3">
-        <span class="step-badge" aria-hidden="true">2</span>
-        <span class="step-label">BOOP</span>
-        <p class="body-copy text-base leading-snug">Click BOOP FOR MEOWCOIN to start the drip.</p>
-      </li>
-      <li class="flex flex-col items-center text-center gap-3">
-        <span class="step-badge" aria-hidden="true">3</span>
-        <span class="step-label">GET MEWC</span>
-        <p class="body-copy text-base leading-snug">Watch the success banner confirm your drip.</p>
-      </li>
-      <li class="flex flex-col items-center text-center gap-3">
-        <span class="step-badge" aria-hidden="true">4</span>
-        <span class="step-label">COME BACK</span>
-        <p class="body-copy text-base leading-snug">The RECHARGE timer unlocks the button in 24h.</p>
-      </li>
-    </ol>
-
-    <p class="panel-eyebrow mb-3">ABOUT</p>
-    <h3 class="panel-heading mb-4" style="font-size:13px;">WHAT IS MEOWCOIN?</h3>
-    <p class="body-copy mb-8">
-      Meowcoin (MEWC) is a proof-of-work cryptocurrency built around one idea: mining that also helps animals.
-      Miners secure the network with MeowPow, an energy-conscious algorithm in the ProgPow family that's friendly
-      to ordinary GPUs, and every block sends a portion of its reward to animal shelters and pet-welfare causes.
-      The project launched in 2022 with a fair distribution — no premine, no ICO, no insider allocation — so new
-      holders start on the same footing as everyone else. MeowFriend exists to make that first step easier: claim
-      a small starter balance, and go explore the network.
-    </p>
-
-    <p class="panel-eyebrow mb-3">FAQ</p>
-    <h3 class="panel-heading mb-4" style="font-size:13px;">FREQUENTLY ASKED QUESTIONS</h3>
-    <div class="flex flex-col gap-3">
-      <details class="faq-item">
-        <summary>What is Meowcoin (MEWC)?</summary>
-        <div class="faq-answer body-copy">Meowcoin is a cat-themed, proof-of-work cryptocurrency that launched in 2022 with a fair launch — no premine, no ICO. It runs on MeowPow, a GPU-mineable algorithm in the ProgPow family, and sends a share of block rewards to animal shelters.</div>
-      </details>
-      <details class="faq-item">
-        <summary>How much MEWC do I get, and how often?</summary>
-        <div class="faq-answer body-copy">10 MEWC per boop, once every 24 hours. The RECHARGE screen counts down to your next claim.</div>
-      </details>
-      <details class="faq-item">
-        <summary>Do I need to sign up or connect a wallet?</summary>
-        <div class="faq-answer body-copy">No. There's no account and nothing to connect. Paste a Meowcoin address that starts with M and boop.</div>
-      </details>
-      <details class="faq-item">
-        <summary>Is MeowFriend affiliated with the official Meowcoin project?</summary>
-        <div class="faq-answer body-copy">No. MeowFriend is an independent, community-built faucet and isn't affiliated with or endorsed by the Meowcoin core team.</div>
-      </details>
-      <details class="faq-item">
-        <summary>How does the drip actually get paid out?</summary>
-        <div class="faq-answer body-copy">This build simulates the drip locally in your browser so the full flow can be tested end to end. Wiring it up to a live Meowcoin node and hot wallet is the next step before a public launch.</div>
-      </details>
-      <details class="faq-item">
-        <summary>What are tickets, and what can I do with them?</summary>
-        <div class="faq-answer body-copy">Tickets are a for-fun score you can spend on the slot machine and future minigames, plus cosmetic items, collectibles, and other extras as they're added. They have no real-world value and can't be redeemed for MEWC, cash, or anything else.</div>
-      </details>
-    </div>
-  </section>
+    <a href="donate.html" class="section-nav-card" aria-label="Go to the Donations page">
+      <span class="section-nav-icon" aria-hidden="true">💸</span>
+      <span class="section-nav-label">DONATE</span>
+    </a>
+    <a href="info.html" class="section-nav-card" aria-label="Go to the Info and FAQ page">
+      <span class="section-nav-icon" aria-hidden="true">📖</span>
+      <span class="section-nav-label">INFO &amp; FAQ</span>
+    </a>
+  </nav>
 
   <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
     <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
@@ -683,15 +420,6 @@
   const API_URL = "https://YOUR_TUNNEL_URL.trycloudflare.com/api/boop";
   const BALANCE_URL = "https://YOUR_TUNNEL_URL.trycloudflare.com/api/balance";
   const balanceDisplay = document.getElementById("balanceDisplay");
-  const ticketsTotalArcade = document.getElementById("ticketsTotalArcade");
-  const ticketsTotalDonate = document.getElementById("ticketsTotalDonate");
-
-  function updateTicketTotals(){
-    const label = `${getTickets()} 🎟️`;
-    if(ticketsTotalArcade) ticketsTotalArcade.textContent = label;
-    if(ticketsTotalDonate) ticketsTotalDonate.textContent = label;
-  }
-  document.addEventListener("tickets:changed", updateTicketTotals);
 
   const boopBtn = document.getElementById("boopBtn");
   const addrInput = document.getElementById("mewcAddress");
@@ -809,43 +537,7 @@
     }
   });
 
-  // --- Donation-for-tickets (DRAFT) ---
-  // NOT VERIFIED: accepts any TXID-shaped string and grants tickets
-  // immediately. Needs a backend that calls gettransaction on the node and
-  // tracks already-claimed TXIDs before this is safe to launch publicly.
-  const donationTxidInput = document.getElementById("donationTxid");
-  const claimDonationBtn = document.getElementById("claimDonationBtn");
-  const donationStatus = document.getElementById("donationStatus");
-  const TICKETS_PER_100_MEWC = 10;
-  const claimedTxids = new Set(JSON.parse(localStorage.getItem("meowfriend_claimed_txids") || "[]"));
-
-  function looksLikeTxid(v){
-    return typeof v === "string" && /^[a-fA-F0-9]{16,64}$/.test(v.trim());
-  }
-
-  claimDonationBtn.addEventListener("click", () => {
-    const txid = donationTxidInput.value.trim();
-    if(!looksLikeTxid(txid)){
-      donationStatus.textContent = "That doesn't look like a valid TXID.";
-      donationStatus.style.color = "#ff8b96";
-      return;
-    }
-    if(claimedTxids.has(txid)){
-      donationStatus.textContent = "This TXID has already been claimed on this device.";
-      donationStatus.style.color = "#ff8b96";
-      return;
-    }
-    // DRAFT: no on-chain verification yet — see warning panel above.
-    claimedTxids.add(txid);
-    localStorage.setItem("meowfriend_claimed_txids", JSON.stringify([...claimedTxids]));
-    addTickets(TICKETS_PER_100_MEWC);
-    donationStatus.textContent = `+${TICKETS_PER_100_MEWC} tickets added (draft mode — not yet verified on-chain).`;
-    donationStatus.style.color = "#29ff8a";
-    donationTxidInput.value = "";
-  });
-
   updateCooldownUI();
-  updateTicketTotals();
   refreshBalance();
   setInterval(refreshBalance, 60000);
 </script>

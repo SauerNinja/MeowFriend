@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MeowFriend — Donate MEWC, Get Tickets</title>
+<meta name="description" content="Support the MeowFriend faucet by donating MEWC and receive for-fun arcade tickets in return.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://YOUR-USERNAME.github.io/meowfriend/donate.html">
+
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<script src="shared-tickets.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root{
+    --neon-red: #ff1e43;
+    --neon-red-bright: #ff0033;
+    --chassis-dark: #1a1a1e;
+    --chassis-mid: #222228;
+    --led-bg: #0a0a0c;
+  }
+  * { box-sizing: border-box; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, #14090b 0%, #000000 55%);
+    font-family: 'Press Start 2P', monospace;
+    color: #ffb3bd;
+    min-height: 100vh;
+  }
+
+  .scanlines::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 3px);
+    z-index: 50;
+  }
+
+  .neon-text{
+    color: var(--neon-red);
+    text-shadow: 0 0 2px var(--neon-red-bright), 0 0 8px var(--neon-red), 0 0 18px var(--neon-red);
+  }
+
+  .back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: #ff8b96;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+  .back-link:hover{ color: var(--neon-red); }
+
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+
+  .body-copy{
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.65;
+    color: #ffc7cf;
+  }
+
+  .led-screen{
+    background: var(--led-bg);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 12px rgba(255,30,67,0.25), inset 0 0 0 2px #000;
+    padding: 10px 8px;
+  }
+  .led-label{ font-size: 8px; color: #7a3038; letter-spacing: 1px; margin-bottom: 6px; }
+  .led-value{
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+  .led-value.large{ font-size: 20px; }
+
+  .addr-input{
+    background: #0a0a0c;
+    border: 3px solid #3a3a42;
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    padding: 12px 10px;
+    letter-spacing: 1px;
+    box-shadow: inset 0 0 10px rgba(255,30,67,0.15);
+  }
+  .addr-input::placeholder{ color: #5c2a30; }
+  .addr-input:focus{ outline: none; box-shadow: 0 0 0 2px var(--neon-red), inset 0 0 10px rgba(255,30,67,0.25); }
+
+  .submit-btn{
+    background: transparent;
+    border: 2px solid var(--neon-red);
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 10px 18px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-shadow: 0 0 6px var(--neon-red);
+    box-shadow: 0 0 8px rgba(255,30,67,0.3);
+  }
+  .submit-btn:hover{
+    filter: brightness(1.2);
+  }
+
+  .draft-warning{
+    border: 2px dashed #ffb347;
+    background: rgba(255,179,71,0.06);
+    padding: 12px 14px;
+  }
+</style>
+</head>
+<body class="scanlines flex items-center justify-center px-4 py-10">
+
+<main class="w-full max-w-xl">
+
+  <header class="flex flex-col items-center mb-6">
+    <a href="index.html" class="back-link mb-4">&larr; BACK TO FAUCET</a>
+    <div class="text-5xl mb-5" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">💸</div>
+    <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">DONATE</h1>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">SUPPORT THE FAUCET, EARN TICKETS</p>
+  </header>
+
+  <section class="info-panel p-6 sm:p-8" aria-labelledby="donate-heading">
+    <h2 id="donate-heading" class="sr-only">Donate MEWC, Get Tickets</h2>
+    <p class="body-copy mb-5">
+      Send MEWC to the faucet address below, then paste your transaction ID (TXID) to receive
+      10 tickets per 100 MEWC donated. Tickets are a for-fun score only — not redeemable for MEWC,
+      cash, or anything of value.
+    </p>
+
+    <div class="led-screen mb-5 text-center">
+      <div class="led-label">YOUR TICKETS</div>
+      <div class="led-value large" id="ticketsTotalDonate">0 🎟️</div>
+    </div>
+
+    <div class="led-screen mb-5">
+      <div class="led-label">FAUCET DONATION ADDRESS</div>
+      <div class="led-value break-all" id="donationAddress">M... (set this to your real faucet wallet address)</div>
+    </div>
+
+    <label for="donationTxid" class="block led-label mb-2">YOUR TRANSACTION ID (TXID)</label>
+    <input
+      type="text"
+      id="donationTxid"
+      class="addr-input w-full mb-3"
+      placeholder="Paste your TXID here"
+      autocomplete="off"
+      spellcheck="false"
+    >
+    <div class="flex justify-center mb-3">
+      <button type="button" id="claimDonationBtn" class="submit-btn">SUBMIT TXID FOR TICKETS</button>
+    </div>
+    <p id="donationStatus" class="text-[8px] text-center leading-relaxed" style="color:#9a5a62;"></p>
+
+    <div class="draft-warning mt-5">
+      <p class="led-label mb-2" style="color:#ffb347;">⚠ DRAFT — NOT VERIFIED YET</p>
+      <p class="body-copy text-base leading-snug">
+        This form currently accepts any TXID-shaped text and grants tickets immediately — it does
+        <strong>not</strong> check the Meowcoin blockchain to confirm the transaction happened, that
+        it paid the right amount, or that the same TXID hasn't been reused. Before this goes live,
+        it needs a backend endpoint that calls <code>gettransaction</code> on your node and keeps a
+        record of already-claimed TXIDs, the same way the faucet's own anti-duplicate system works.
+      </p>
+    </div>
+  </section>
+
+  <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
+    <p>TICKETS HAVE NO REAL-WORLD VALUE AND CANNOT BE REDEEMED FOR MEWC, CASH, OR ANY OTHER ASSET.</p>
+    <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
+  </footer>
+
+</main>
+
+<script>
+  const ticketsTotalDonate = document.getElementById("ticketsTotalDonate");
+
+  function updateTicketDisplay(){
+    ticketsTotalDonate.textContent = `${getTickets()} 🎟️`;
+  }
+  document.addEventListener("tickets:changed", updateTicketDisplay);
+
+  // --- Donation-for-tickets (DRAFT) ---
+  // NOT VERIFIED: accepts any TXID-shaped string and grants tickets
+  // immediately. Needs a backend that calls gettransaction on the node and
+  // tracks already-claimed TXIDs before this is safe to launch publicly.
+  const donationTxidInput = document.getElementById("donationTxid");
+  const claimDonationBtn = document.getElementById("claimDonationBtn");
+  const donationStatus = document.getElementById("donationStatus");
+  const TICKETS_PER_100_MEWC = 10;
+  const claimedTxids = new Set(JSON.parse(localStorage.getItem("meowfriend_claimed_txids") || "[]"));
+
+  function looksLikeTxid(v){
+    return typeof v === "string" && /^[a-fA-F0-9]{16,64}$/.test(v.trim());
+  }
+
+  claimDonationBtn.addEventListener("click", () => {
+    const txid = donationTxidInput.value.trim();
+    if(!looksLikeTxid(txid)){
+      donationStatus.textContent = "That doesn't look like a valid TXID.";
+      donationStatus.style.color = "#ff8b96";
+      return;
+    }
+    if(claimedTxids.has(txid)){
+      donationStatus.textContent = "This TXID has already been claimed on this device.";
+      donationStatus.style.color = "#ff8b96";
+      return;
+    }
+    // DRAFT: no on-chain verification yet — see warning panel above.
+    claimedTxids.add(txid);
+    localStorage.setItem("meowfriend_claimed_txids", JSON.stringify([...claimedTxids]));
+    addTickets(TICKETS_PER_100_MEWC);
+    donationStatus.textContent = `+${TICKETS_PER_100_MEWC} tickets added (draft mode — not yet verified on-chain).`;
+    donationStatus.style.color = "#29ff8a";
+    donationTxidInput.value = "";
+  });
+
+  updateTicketDisplay();
+</script>
+
+</body>
+</html>
