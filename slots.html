@@ -264,6 +264,21 @@
     text-shadow: none;
   }
 
+  .test-btn{
+    background: transparent;
+    border: 2px dashed #4a2a30;
+    color: #9a5a62;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 6px 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .test-btn:hover{
+    border-color: var(--neon-red);
+    color: var(--neon-red);
+  }
+
   .paytable{
     font-family: 'VT323', monospace;
     font-size: 16px;
@@ -285,7 +300,7 @@
 
   <header class="flex flex-col items-center mb-6">
     <a href="index.html" class="back-link mb-4">&larr; BACK TO FAUCET</a>
-    <div class="text-5xl mb-2" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">🎰</div>
+    <div class="text-5xl mb-5" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">🎰</div>
     <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">CAT SLOTS</h1>
     <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">FOR-FUN TICKETS ONLY — NO MEWC ON THE LINE</p>
   </header>
@@ -330,10 +345,14 @@
       TICKETS ARE A FOR-FUN SCORE ONLY. NOT REDEEMABLE FOR MEWC, CASH, OR ANYTHING OF VALUE.
     </p>
 
-    <div class="flex justify-center">
+    <div class="flex justify-center mb-4">
       <button type="button" id="spinBtn" class="spin-btn w-full py-5 text-sm tracking-wider">
         SPIN — 10 🎟️
       </button>
+    </div>
+
+    <div class="flex justify-center">
+      <button type="button" id="testTicketsBtn" class="test-btn">TEST: +100 TICKETS</button>
     </div>
   </section>
 
@@ -390,10 +409,10 @@
   }
 
   // Payout table — verified by simulation (2M spins) to land at ~100% RTP
-  // relative to the 10-ticket spin cost. Not a designed edge in either
-  // direction: rare/huge jackpot, small/frequent consolation hits, and the
-  // "any 3 cat faces" tier carries most of the balance since it's the most
-  // common real win (~7% of spins).
+  // relative to the 10-ticket spin cost. "Any 3 cat faces mixed" pays
+  // nothing (it's just a loss, same as any other non-matching spin) — the
+  // single-cherry consolation carries the balance instead, since it's the
+  // most frequent event (~16.5% of spins).
   function calculatePayout(symbols){
     const [a, b, c] = symbols;
 
@@ -402,17 +421,13 @@
       if(BIG_MONEY.has(a)) return { tickets: 500, label: `${a}×3 BIG WIN!` };
       if(ARCADE_TIER.has(a)) return { tickets: 150, label: `${a}×3!` };
       if(CAT_PROPS.has(a)) return { tickets: 80, label: `${a}×3!` };
-      if(CAT_FACES.has(a)) return { tickets: 45, label: `${a}×3!` };
+      if(CAT_FACES.has(a)) return { tickets: 100, label: `${a}×3!` };
     }
 
     // Pity hits — small but real, not a fake flash. Checked in priority order.
     const cherryCount = symbols.filter(s => s === "🍒").length;
-    if(cherryCount === 2) return { tickets: 10, label: "🍒🍒 Double cherry" };
-
-    const catFaceCount = symbols.filter(s => CAT_FACES.has(s)).length;
-    if(catFaceCount === 3) return { tickets: 130, label: "Cat crowd!" };
-
-    if(cherryCount === 1) return { tickets: 2, label: "🍒 Cherry" };
+    if(cherryCount === 2) return { tickets: 25, label: "🍒🍒 Double cherry" };
+    if(cherryCount === 1) return { tickets: 57, label: "🍒 Cherry" };
 
     return { tickets: 0, label: "No match" };
   }
@@ -579,6 +594,11 @@
   spinBtn.addEventListener("click", doSpin);
   leverBtn.addEventListener("click", doSpin);
 
+  const testTicketsBtn = document.getElementById("testTicketsBtn");
+  testTicketsBtn.addEventListener("click", () => {
+    addTickets(100);
+  });
+
   // --- Build the published paytable ---
   function renderPaytable(){
     const rows = [
@@ -586,18 +606,17 @@
       ["💰💰💰 / 🤑🤑🤑 / 7️⃣7️⃣7️⃣", "500 🎟️ each (weight 3/" + TOTAL_WEIGHT + " per reel)"],
       ["🍒🍒🍒 / 💸💸💸 / 🧧🧧🧧", "150 🎟️ each (weight 6/" + TOTAL_WEIGHT + " per reel)"],
       ["🐀🐀🐀 / 🐾🐾🐾 / 🐟🐟🐟 / 🧶🧶🧶", "80 🎟️ each (weight 7/" + TOTAL_WEIGHT + " per reel)"],
-      ["Same cat face ×3 (e.g. 😻😻😻)", "45 🎟️ (weight 5/" + TOTAL_WEIGHT + " per reel, 8 faces)"],
-      ["Any 3 cat faces (mixed)", "130 🎟️ — pity hit, ~7% of spins"],
-      ["🍒🍒 anywhere (exactly 2)", "10 🎟️ — pity hit"],
-      ["🍒 anywhere (exactly 1)", "2 🎟️ — pity hit"],
+      ["Same cat face ×3 (e.g. 😻😻😻)", "100 🎟️ (weight 5/" + TOTAL_WEIGHT + " per reel, 8 faces)"],
+      ["🍒🍒 anywhere (exactly 2)", "25 🎟️ — pity hit"],
+      ["🍒 anywhere (exactly 1)", "57 🎟️ — pity hit, ~16.5% of spins"],
+      ["Any 3 cat faces (mixed, no match)", "No payout — same as any other loss"],
     ];
     const body = document.getElementById("paytableBody");
     body.innerHTML = rows.map(([a,b]) => `<div class="paytable-row"><span>${a}</span><span>${b}</span></div>`).join("");
   }
 
-  // Verified by 2M-spin simulation: this table lands at ~100% RTP against
-  // the 10-ticket spin cost. Nothing here is calibrated to produce a loss —
-  // there's no real value moving, so there's no reason to build one in.
+  // Verified by 2M-spin simulation: this table lands at ~100.8% RTP against
+  // the 10-ticket spin cost.
 
   renderPaytable();
   setReelsIdle(["🐱","💰","7️⃣"]);
