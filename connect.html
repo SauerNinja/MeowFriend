@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MeowFriend — Connect (Meowcoin Links)</title>
+<meta name="description" content="Official and community links for Meowcoin (MEWC): website, wallets, explorers, mining pools, exchanges, and social channels.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sauerninja.github.io/MeowFriend/connect.html">
+
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="MeowFriend — Connect (Meowcoin Links)">
+<meta property="og:description" content="Official and community links for Meowcoin (MEWC): website, wallets, explorers, mining pools, exchanges, and social channels.">
+<meta property="og:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="MeowFriend logo: a glowing black cat face beside the MEOWFRIEND wordmark on a dark neon-red arcade console background">
+<meta property="og:url" content="https://sauerninja.github.io/MeowFriend/connect.html">
+<meta property="og:site_name" content="MeowFriend">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MeowFriend — Connect (Meowcoin Links)">
+<meta name="twitter:description" content="Official and community links for Meowcoin (MEWC): website, wallets, explorers, mining pools, exchanges, and social channels.">
+<meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
+
+<script src="shared-tickets.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root{
+    --neon-red: #ff1e43;
+    --neon-red-bright: #ff0033;
+    --led-bg: #0a0a0c;
+  }
+  * { box-sizing: border-box; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, #14090b 0%, #000000 55%);
+    font-family: 'Press Start 2P', monospace;
+    color: #ffb3bd;
+    min-height: 100vh;
+  }
+
+  .scanlines::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 3px);
+    z-index: 50;
+  }
+
+  .neon-text{
+    color: var(--neon-red);
+    text-shadow: 0 0 2px var(--neon-red-bright), 0 0 8px var(--neon-red), 0 0 18px var(--neon-red);
+  }
+
+  .back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: #ff8b96;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+  .back-link:hover{ color: var(--neon-red); }
+
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+
+  .body-copy{
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.65;
+    color: #ffc7cf;
+  }
+
+  .draft-warning{
+    border: 2px dashed #ffb347;
+    background: rgba(255,179,71,0.06);
+    padding: 12px 14px;
+  }
+
+  .link-list{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .link-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 2px solid #2a2a30;
+    background: #0a0a0c;
+    padding: 12px 14px;
+    text-decoration: none;
+    transition: border-color 0.12s ease, background 0.12s ease;
+  }
+  .link-row:hover{
+    border-color: var(--neon-red);
+    background: #12080a;
+  }
+  .link-row-label{
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    color: #ffc7cf;
+  }
+  .link-row-url{
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: #7a3038;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .link-row-arrow{
+    color: var(--neon-red);
+    font-size: 14px;
+    flex-shrink: 0;
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+
+  :focus-visible{
+    outline: 2px solid var(--neon-red);
+    outline-offset: 3px;
+  }
+</style>
+</head>
+<body class="scanlines flex items-center justify-center px-4 py-10">
+
+<main class="w-full max-w-xl">
+
+  <header class="flex flex-col items-center mb-6">
+    <a href="index.html" class="back-link mb-4">&larr; BACK TO FAUCET</a>
+    <div class="text-5xl mb-5" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">🐈</div>
+    <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">CONNECT</h1>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">OFFICIAL &amp; COMMUNITY MEOWCOIN LINKS</p>
+  </header>
+
+  <div class="draft-warning mb-6">
+    <p class="panel-eyebrow mb-2" style="color:#ffb347; text-shadow:none;">⚠ COMMUNITY-SOURCED, UNVERIFIED</p>
+    <p class="body-copy text-base leading-snug">
+      This list was compiled from public sources and hasn't been individually verified against the
+      official Meowcoin project. MeowFriend is an independent fan project, not affiliated with or
+      endorsed by the Meowcoin team. Always double-check a URL before entering a seed phrase or
+      sending funds anywhere, especially wallets and exchanges.
+    </p>
+  </div>
+
+  <section class="info-panel p-6 sm:p-8" aria-labelledby="official-heading">
+    <p class="panel-eyebrow mb-3">OFFICIAL</p>
+    <h2 id="official-heading" class="panel-heading mb-4">PROJECT SITES</h2>
+    <div class="link-list">
+      <a class="link-row" href="https://www.mewccrypto.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Website</span>
+        <span class="link-row-url">mewccrypto.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://docs.mewccrypto.com/whitepaper" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Documentation &amp; Whitepaper</span>
+        <span class="link-row-url">docs.mewccrypto.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://apex-webwallet.mewccrypto.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Apex Web Wallet</span>
+        <span class="link-row-url">apex-webwallet.mewccrypto.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="dev-heading">
+    <p class="panel-eyebrow mb-3">DEVELOPMENT</p>
+    <h2 id="dev-heading" class="panel-heading mb-4">SOURCE CODE</h2>
+    <div class="link-list">
+      <a class="link-row" href="https://github.com/Meowcoin-Foundation" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">GitHub Organization</span>
+        <span class="link-row-url">github.com/Meowcoin-Foundation</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://github.com/Meowcoin-Foundation/Meowcoin" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Meowcoin Core Repository</span>
+        <span class="link-row-url">github.com/.../Meowcoin</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://sauerninja.github.io" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">This Project (MeowFriend)</span>
+        <span class="link-row-url">sauerninja.github.io</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="explorers-heading">
+    <p class="panel-eyebrow mb-3">INFRASTRUCTURE</p>
+    <h2 id="explorers-heading" class="panel-heading mb-4">EXPLORERS &amp; NODES</h2>
+    <div class="link-list">
+      <a class="link-row" href="https://explorer.mewccrypto.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Block Explorer (Official)</span>
+        <span class="link-row-url">explorer.mewccrypto.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://mewc.cryptoscope.io" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Block Explorer (Cryptoscope)</span>
+        <span class="link-row-url">mewc.cryptoscope.io</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://electrs.mewccrypto.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Electrs Server 1</span>
+        <span class="link-row-url">electrs.mewccrypto.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://electrs2.mewccrypto.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Electrs Server 2</span>
+        <span class="link-row-url">electrs2.mewccrypto.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://electrs3.meowcoin.org" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Electrs Server 3</span>
+        <span class="link-row-url">electrs3.meowcoin.org</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://electrs4.meowcoin.org" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Electrs Server 4</span>
+        <span class="link-row-url">electrs4.meowcoin.org</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="community-heading">
+    <p class="panel-eyebrow mb-3">COMMUNITY</p>
+    <h2 id="community-heading" class="panel-heading mb-4">SOCIAL &amp; CHAT</h2>
+    <div class="link-list">
+      <a class="link-row" href="https://discord.com/invite/meowcoin" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Discord</span>
+        <span class="link-row-url">discord.com/invite/meowcoin</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://x.com/MeowcoinProject" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">X (Twitter)</span>
+        <span class="link-row-url">x.com/MeowcoinProject</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://bitcointalk.org" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">BitcoinTalk Forum</span>
+        <span class="link-row-url">bitcointalk.org</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+    </div>
+    <p class="body-copy text-base leading-snug mt-4">
+      Telegram is available via links shared in the official Discord/website rather than a single
+      fixed URL — check there for the current invite.
+    </p>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="mining-heading">
+    <p class="panel-eyebrow mb-3">MINING</p>
+    <h2 id="mining-heading" class="panel-heading mb-4">ACTIVE POOLS (MEOWPOW)</h2>
+    <div class="link-list">
+      <a class="link-row" href="https://woolypooly.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">WoolyPooly</span>
+        <span class="link-row-url">woolypooly.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://rplant.xyz" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Rplant</span>
+        <span class="link-row-url">rplant.xyz</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://zpool.ca" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Zpool</span>
+        <span class="link-row-url">zpool.ca</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://fastpool.xyz" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Fastpool</span>
+        <span class="link-row-url">fastpool.xyz</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://cedric-crispin.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Cedric-Crispin</span>
+        <span class="link-row-url">cedric-crispin.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://solopool.site" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Solopool</span>
+        <span class="link-row-url">solopool.site</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://bowserlab.ddns.net" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Bowserlab</span>
+        <span class="link-row-url">bowserlab.ddns.net</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="miningdata-heading">
+    <p class="panel-eyebrow mb-3">MINING DATA</p>
+    <h2 id="miningdata-heading" class="panel-heading mb-4">TRACKERS</h2>
+    <div class="link-list">
+      <a class="link-row" href="https://miningpoolstats.stream/meowcoin-meowpow" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">MiningPoolStats</span>
+        <span class="link-row-url">miningpoolstats.stream</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://whattomine.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">WhatToMine</span>
+        <span class="link-row-url">whattomine.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://cryptunit.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">CryptUnit</span>
+        <span class="link-row-url">cryptunit.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="exchanges-heading">
+    <p class="panel-eyebrow mb-3">TRADING</p>
+    <h2 id="exchanges-heading" class="panel-heading mb-4">ACTIVE MEWC EXCHANGES</h2>
+    <div class="link-list">
+      <a class="link-row" href="https://nonkyc.io" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Nonkyc.io</span>
+        <span class="link-row-url">nonkyc.io</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://trade.exbitron.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Exbitron</span>
+        <span class="link-row-url">trade.exbitron.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://emcd.io" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">EMCD</span>
+        <span class="link-row-url">emcd.io</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+    </div>
+    <p class="body-copy text-base leading-snug mt-4">
+      Not a recommendation or endorsement of any exchange — MeowFriend isn't affiliated with any of
+      these. Always do your own research before trading.
+    </p>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="marketdata-heading">
+    <p class="panel-eyebrow mb-3">MARKET DATA</p>
+    <h2 id="marketdata-heading" class="panel-heading mb-4">PRICE TRACKERS</h2>
+    <div class="link-list">
+      <a class="link-row" href="https://coingecko.com/en/coins/meowcoin" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">CoinGecko</span>
+        <span class="link-row-url">coingecko.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://livecoinwatch.com/price/MeowCoin-MEWC" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">LiveCoinWatch</span>
+        <span class="link-row-url">livecoinwatch.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://coinmarketcap.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">CoinMarketCap</span>
+        <span class="link-row-url">coinmarketcap.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://coin360.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">Coin360</span>
+        <span class="link-row-url">coin360.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="link-row" href="https://coinpaprika.com" target="_blank" rel="noopener noreferrer">
+        <span class="link-row-label">CoinPaprika</span>
+        <span class="link-row-url">coinpaprika.com</span>
+        <span class="link-row-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+    </div>
+  </section>
+
+  <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
+    <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
+    <p class="mt-2">NOT AFFILIATED WITH THE OFFICIAL MEOWCOIN TEAM. NOT FINANCIAL ADVICE.</p>
+    <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
+  </footer>
+
+</main>
+
+</body>
+</html>

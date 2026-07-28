@@ -176,8 +176,13 @@
   }
   .section-nav{
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
+  }
+  @media (min-width: 480px){
+    .section-nav{
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
   .section-nav-card{
     display: flex;
@@ -401,6 +406,14 @@
     <a href="info.html" class="section-nav-card" aria-label="Go to the Info and FAQ page">
       <span class="section-nav-icon" aria-hidden="true">📖</span>
       <span class="section-nav-label">INFO &amp; FAQ</span>
+    </a>
+    <a href="connect.html" class="section-nav-card" aria-label="Go to the Connect page for official Meowcoin links">
+      <span class="section-nav-icon" aria-hidden="true">🐈</span>
+      <span class="section-nav-label">CONNECT</span>
+    </a>
+    <a href="crossing.html" class="section-nav-card" aria-label="Go to the Cat Crossing minigame">
+      <span class="section-nav-icon" aria-hidden="true">🐈‍⬛</span>
+      <span class="section-nav-label">CROSSING</span>
     </a>
   </nav>
 

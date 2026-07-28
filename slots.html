@@ -192,33 +192,52 @@
     border-radius: 50%;
     background: #2a1518;
     box-shadow: inset 0 0 3px rgba(0,0,0,0.6), 0 0 0 2px #17171a;
-    transition: background 0.1s ease, box-shadow 0.1s ease;
   }
 
-  /* Bulbs light up in a chasing pattern, alternating colors, only while
-     .lit is toggled on by JS during a win. Off by default. */
-  .marquee-lights.active .bulb{
+  /* Three distinct result states, each with its own color language:
+     - .result-loss  : all bulbs solid dim red, no match
+     - .result-cherry: all bulbs solid green, cherry consolation payout
+     - .result-win   : bulbs chase through the full rainbow, a real match */
+
+  .marquee-lights.result-loss .bulb{
+    background: #ff1e43;
+    box-shadow: 0 0 6px 2px rgba(255,30,67,0.6), 0 0 0 2px #17171a;
+  }
+
+  .marquee-lights.result-cherry .bulb{
+    background: #29ff8a;
+    box-shadow: 0 0 8px 3px rgba(41,255,138,0.7), 0 0 0 2px #17171a;
+  }
+
+  .marquee-lights.result-win .bulb{
     animation: bulb-chase 0.6s steps(1) infinite;
   }
-  .marquee-lights.active .bulb:nth-child(3n+1){ animation-delay: 0s; }
-  .marquee-lights.active .bulb:nth-child(3n+2){ animation-delay: 0.15s; }
-  .marquee-lights.active .bulb:nth-child(3n+3){ animation-delay: 0.3s; }
+  .marquee-lights.result-win .bulb:nth-child(6n+1){ animation-delay: 0s; }
+  .marquee-lights.result-win .bulb:nth-child(6n+2){ animation-delay: 0.1s; }
+  .marquee-lights.result-win .bulb:nth-child(6n+3){ animation-delay: 0.2s; }
+  .marquee-lights.result-win .bulb:nth-child(6n+4){ animation-delay: 0.3s; }
+  .marquee-lights.result-win .bulb:nth-child(6n+5){ animation-delay: 0.4s; }
+  .marquee-lights.result-win .bulb:nth-child(6n+6){ animation-delay: 0.5s; }
 
   @keyframes bulb-chase{
-    0%   { background: #ffcc00; box-shadow: 0 0 8px 3px #ffcc00, 0 0 0 2px #17171a; }
-    33%  { background: #ff1e43; box-shadow: 0 0 8px 3px #ff1e43, 0 0 0 2px #17171a; }
-    66%  { background: #33e0ff; box-shadow: 0 0 8px 3px #33e0ff, 0 0 0 2px #17171a; }
-    100% { background: #ffcc00; box-shadow: 0 0 8px 3px #ffcc00, 0 0 0 2px #17171a; }
+    0%    { background: #ff1e43; box-shadow: 0 0 8px 3px #ff1e43, 0 0 0 2px #17171a; }
+    16.6% { background: #ffcc00; box-shadow: 0 0 8px 3px #ffcc00, 0 0 0 2px #17171a; }
+    33.3% { background: #33ff77; box-shadow: 0 0 8px 3px #33ff77, 0 0 0 2px #17171a; }
+    50%   { background: #33e0ff; box-shadow: 0 0 8px 3px #33e0ff, 0 0 0 2px #17171a; }
+    66.6% { background: #cc44ff; box-shadow: 0 0 8px 3px #cc44ff, 0 0 0 2px #17171a; }
+    83.3% { background: #ff44aa; box-shadow: 0 0 8px 3px #ff44aa, 0 0 0 2px #17171a; }
+    100%  { background: #ff1e43; box-shadow: 0 0 8px 3px #ff1e43, 0 0 0 2px #17171a; }
   }
 
   @media (prefers-reduced-motion: reduce){
-    .marquee-lights.active .bulb{
+    .marquee-lights.result-win .bulb{
       animation: none;
-      background: #ff1e43;
-      box-shadow: 0 0 8px 3px #ff1e43, 0 0 0 2px #17171a;
+      background: #cc44ff;
+      box-shadow: 0 0 8px 3px #cc44ff, 0 0 0 2px #17171a;
     }
   }
 
+  /* Chassis glow follows the same three states, matching the lights. */
   @keyframes rainbow-cycle{
     0%   { box-shadow: 0 0 24px 6px #ff1e43, inset 0 0 20px rgba(255,30,67,0.4); border-color: #ff1e43; }
     16%  { box-shadow: 0 0 24px 6px #ffcc00, inset 0 0 20px rgba(255,204,0,0.4); border-color: #ffcc00; }
@@ -232,7 +251,12 @@
     animation: rainbow-cycle 0.9s linear infinite;
   }
   @media (prefers-reduced-motion: reduce){
-    .casino-win-flash{ animation: none; border-color: #29ff8a; }
+    .casino-win-flash{ animation: none; border-color: #cc44ff; }
+  }
+
+  .casino-cherry-flash{
+    border-color: #29ff8a !important;
+    box-shadow: 0 0 20px 4px rgba(41,255,138,0.5), inset 0 0 16px rgba(41,255,138,0.3) !important;
   }
 
   .spin-btn{
@@ -409,19 +433,19 @@
     const [a, b, c] = symbols;
 
     if(a === b && b === c){
-      if(a === "💎") return { tickets: 500000, label: "💎 JACKPOT!" };
-      if(BIG_MONEY.has(a)) return { tickets: 20, label: `${a}×3 BIG WIN!` };
-      if(ARCADE_TIER.has(a)) return { tickets: 6, label: `${a}×3!` };
-      if(CAT_PROPS.has(a)) return { tickets: 3, label: `${a}×3!` };
-      if(CAT_FACES.has(a)) return { tickets: 5, label: `${a}×3!` };
+      if(a === "💎") return { tickets: 500000, label: "💎 JACKPOT!", type: "win" };
+      if(BIG_MONEY.has(a)) return { tickets: 20, label: `${a}×3 BIG WIN!`, type: "win" };
+      if(ARCADE_TIER.has(a)) return { tickets: 6, label: `${a}×3!`, type: "win" };
+      if(CAT_PROPS.has(a)) return { tickets: 3, label: `${a}×3!`, type: "win" };
+      if(CAT_FACES.has(a)) return { tickets: 5, label: `${a}×3!`, type: "win" };
     }
 
     // Consolation payouts for cherries — small but real, not a fake flash. Checked in priority order.
     const cherryCount = symbols.filter(s => s === "🍒").length;
-    if(cherryCount === 2) return { tickets: 3, label: "🍒🍒 Double cherry" };
-    if(cherryCount === 1) return { tickets: 1, label: "🍒 Cherry" };
+    if(cherryCount === 2) return { tickets: 3, label: "🍒🍒 Double cherry", type: "cherry" };
+    if(cherryCount === 1) return { tickets: 1, label: "🍒 Cherry", type: "cherry" };
 
-    return { tickets: 0, label: "No match" };
+    return { tickets: 0, label: "No match", type: "loss" };
   }
 
   // --- Reel visuals (spin + staggered ease-out landing) ---
@@ -521,14 +545,20 @@
 
   const marqueeLights = document.getElementById("marqueeLights");
 
-  function flashWin(durationMs){
-    machineChassis.classList.add("casino-win-flash");
-    ticketScreen.classList.add("casino-win-flash");
-    marqueeLights.classList.add("active");
+  function flashResult(type, durationMs){
+    const chassisClass = type === "cherry" ? "casino-cherry-flash" : "casino-win-flash";
+    const lightClass = type === "loss" ? "result-loss" : type === "cherry" ? "result-cherry" : "result-win";
+
+    if(type !== "loss"){
+      machineChassis.classList.add(chassisClass);
+      ticketScreen.classList.add(chassisClass);
+    }
+    marqueeLights.classList.add(lightClass);
+
     setTimeout(() => {
-      machineChassis.classList.remove("casino-win-flash");
-      ticketScreen.classList.remove("casino-win-flash");
-      marqueeLights.classList.remove("active");
+      machineChassis.classList.remove("casino-win-flash", "casino-cherry-flash");
+      ticketScreen.classList.remove("casino-win-flash", "casino-cherry-flash");
+      marqueeLights.classList.remove("result-loss", "result-cherry", "result-win");
     }, durationMs);
   }
 
@@ -579,22 +609,24 @@
 
     landReels((symbols) => {
       const payout = calculatePayout(symbols);
-      let holdMs = 0;
 
       if(payout.tickets > 0){
         const before = getTickets();
         addTickets(payout.tickets);
         tickUpTickets(before, getTickets(), 700);
         resultDisplay.textContent = `${payout.label} +${payout.tickets}`;
-        holdMs = 1400;
-        flashWin(holdMs);
       } else {
         resultDisplay.textContent = payout.label;
       }
 
-      // Controls stay locked until any win-flash animation has fully
-      // finished, not just when the reels stop — otherwise a win lets the
-      // next pull interrupt the lights/flash mid-animation.
+      // Hold longer for a real win so the rainbow chase has room to play;
+      // shorter, non-blocking flash for cherry/loss results.
+      const holdMs = payout.type === "win" ? 1400 : 700;
+      flashResult(payout.type, holdMs);
+
+      // Controls stay locked until the flash has fully finished, not just
+      // when the reels stop — otherwise the next pull could interrupt the
+      // lights mid-animation.
       setTimeout(() => {
         setControlsLocked(false);
       }, holdMs);

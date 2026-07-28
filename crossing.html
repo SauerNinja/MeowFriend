@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MeowFriend — Cat Crossing</title>
+<meta name="description" content="Cat Crossing: guide the orange cat safely across the road in MeowFriend's arcade minigame. Costs 10 tickets to play.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sauerninja.github.io/MeowFriend/crossing.html">
+
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="MeowFriend — Cat Crossing">
+<meta property="og:description" content="Guide the orange cat safely across the road. Costs 10 tickets to play, for-fun score only.">
+<meta property="og:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="MeowFriend logo: a glowing black cat face beside the MEOWFRIEND wordmark on a dark neon-red arcade console background">
+<meta property="og:url" content="https://sauerninja.github.io/MeowFriend/crossing.html">
+<meta property="og:site_name" content="MeowFriend">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MeowFriend — Cat Crossing">
+<meta name="twitter:description" content="Guide the orange cat safely across the road. Costs 10 tickets to play, for-fun score only.">
+<meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
+
+<script src="shared-tickets.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root{
+    --neon-red: #ff1e43;
+    --neon-red-bright: #ff0033;
+    --chassis-dark: #1a1a1e;
+    --chassis-mid: #222228;
+    --led-bg: #0a0a0c;
+  }
+  * { box-sizing: border-box; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, #14090b 0%, #000000 55%);
+    font-family: 'Press Start 2P', monospace;
+    color: #ffb3bd;
+    min-height: 100vh;
+  }
+
+  .scanlines::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 3px);
+    z-index: 50;
+  }
+
+  .neon-text{
+    color: var(--neon-red);
+    text-shadow: 0 0 2px var(--neon-red-bright), 0 0 8px var(--neon-red), 0 0 18px var(--neon-red);
+  }
+
+  .back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: #ff8b96;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+  .back-link:hover{ color: var(--neon-red); }
+
+  .chassis{
+    background: linear-gradient(180deg, var(--chassis-mid), var(--chassis-dark));
+    border: 4px solid #3a3a42;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,0.05),
+      inset 0 -2px 0 rgba(0,0,0,0.6),
+      0 0 0 2px #000,
+      0 0 30px rgba(255,30,67,0.12);
+    position: relative;
+  }
+
+  .rivet{
+    width: 8px; height: 8px;
+    background: #454550;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.6);
+  }
+
+  .led-screen{
+    background: var(--led-bg);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 12px rgba(255,30,67,0.25), inset 0 0 0 2px #000;
+    padding: 10px 8px;
+  }
+  .led-label{ font-size: 8px; color: #7a3038; letter-spacing: 1px; margin-bottom: 6px; }
+  .led-value{
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+  .led-value.large{ font-size: 18px; }
+
+  .game-frame{
+    background: linear-gradient(180deg, #2a2a30, #17171a);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 0 2px #000, 0 0 14px rgba(255,30,67,0.2);
+    padding: 8px;
+  }
+
+  #gameCanvas{
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #0a0a0c;
+    border: 3px solid #3a3a42;
+    touch-action: none;
+  }
+
+  .dpad{
+    display: grid;
+    grid-template-columns: repeat(3, 56px);
+    grid-template-rows: repeat(2, 44px);
+    gap: 6px;
+    justify-content: center;
+  }
+  .dpad-btn{
+    background: linear-gradient(180deg, #2a2a30, #17171a);
+    border: 2px solid #3a3a42;
+    color: var(--neon-red);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+  .dpad-btn:active{
+    filter: brightness(1.4);
+    transform: translateY(1px);
+  }
+
+  .play-btn{
+    background: linear-gradient(180deg, #ff2f4d 0%, #d80f2b 55%, #9c0a1f 100%);
+    border: 3px solid #7a0818;
+    box-shadow: 0 8px 0 #6e0716, 0 10px 14px rgba(0,0,0,0.6), 0 0 22px rgba(255,30,67,0.55), inset 0 2px 0 rgba(255,255,255,0.3);
+    color: #fff0f2;
+    text-shadow: 0 0 6px rgba(0,0,0,0.4);
+    transition: transform 0.08s ease, filter 0.15s ease;
+    cursor: pointer;
+  }
+  .play-btn:hover:not(:disabled){ filter: drop-shadow(0 0 14px var(--neon-red-bright)) brightness(1.12); }
+  .play-btn:active:not(:disabled){ transform: translateY(6px); }
+  .play-btn:disabled{
+    background: linear-gradient(180deg, #3a2226, #2a1518);
+    border-color: #401019;
+    box-shadow: 0 6px 0 #200a0d;
+    color: #6e4a4f;
+    cursor: not-allowed;
+    text-shadow: none;
+  }
+
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+  .body-copy{
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.65;
+    color: #ffc7cf;
+  }
+
+  .draft-warning{
+    border: 2px dashed #ffb347;
+    background: rgba(255,179,71,0.06);
+    padding: 12px 14px;
+  }
+
+  .score-table{
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    line-height: 1.6;
+    color: #ffc7cf;
+  }
+  .score-row{
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed #2a2a30;
+    padding: 4px 0;
+  }
+
+  :focus-visible{
+    outline: 2px solid var(--neon-red);
+    outline-offset: 3px;
+  }
+</style>
+</head>
+<body class="scanlines flex items-center justify-center px-4 py-10">
+
+<main class="w-full max-w-xl">
+
+  <header class="flex flex-col items-center mb-6">
+    <a href="index.html" class="back-link mb-4">&larr; BACK TO FAUCET</a>
+    <div class="text-5xl mb-5" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">🐈‍⬛</div>
+    <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">CAT CROSSING</h1>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">GET THE CAT ACROSS — FOR-FUN TICKETS ONLY</p>
+  </header>
+
+  <section class="chassis p-5 sm:p-7" id="gameChassis" aria-labelledby="game-heading">
+    <h2 id="game-heading" class="sr-only">Cat Crossing Game</h2>
+    <div class="rivet absolute top-2 left-2"></div>
+    <div class="rivet absolute top-2 right-2"></div>
+    <div class="rivet absolute bottom-2 left-2"></div>
+    <div class="rivet absolute bottom-2 right-2"></div>
+
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div class="led-screen">
+        <div class="led-label">TICKETS</div>
+        <div class="led-value large" id="ticketDisplay">0 🎟️</div>
+      </div>
+      <div class="led-screen text-right">
+        <div class="led-label">SCORE</div>
+        <div class="led-value large" id="scoreDisplay">0</div>
+      </div>
+    </div>
+
+    <div class="game-frame mb-4">
+      <canvas id="gameCanvas" width="340" height="420" aria-label="Cat Crossing game board"></canvas>
+    </div>
+
+    <p class="text-[8px] text-[#6e3a41] leading-relaxed mb-4 text-center">
+      TICKETS ARE A FOR-FUN SCORE ONLY. NOT REDEEMABLE FOR MEWC, CASH, OR ANYTHING OF VALUE.
+    </p>
+
+    <div class="flex justify-center mb-5">
+      <button type="button" id="playBtn" class="play-btn w-full py-5 text-sm tracking-wider">
+        PLAY — 10 🎟️
+      </button>
+    </div>
+
+    <div class="flex flex-col items-center gap-2">
+      <p class="text-[8px] text-[#7a3038] tracking-widest">ARROW KEYS / WASD, OR TAP</p>
+      <div class="dpad" aria-hidden="true">
+        <div></div>
+        <div class="dpad-btn" id="btnUp">▲</div>
+        <div></div>
+        <div class="dpad-btn" id="btnLeft">◀</div>
+        <div class="dpad-btn" id="btnDown">▼</div>
+        <div class="dpad-btn" id="btnRight">▶</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="scores-heading">
+    <p class="panel-eyebrow mb-3">LEADERBOARD</p>
+    <h2 id="scores-heading" class="panel-heading mb-4">LOCAL HIGH SCORES</h2>
+    <div class="score-table" id="scoreTable"></div>
+
+    <div class="draft-warning mt-5">
+      <p class="led-label mb-2" style="color:#ffb347;">⚠ LOCAL ONLY — NOT A REAL LEADERBOARD YET</p>
+      <p class="body-copy text-base leading-snug">
+        Scores above are stored only in <strong>your own browser</strong> — nobody else can see them, and
+        they don't sync anywhere. A real cross-player leaderboard needs people to register a Meowcoin
+        wallet address with the site first, so scores can be tied to an identity instead of just a
+        browser's local storage. That registration flow doesn't exist yet — this is a placeholder
+        until it does.
+      </p>
+    </div>
+  </section>
+
+  <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
+    <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
+    <p class="mt-2">NOT AFFILIATED WITH THE OFFICIAL MEOWCOIN TEAM. NOT FINANCIAL ADVICE.</p>
+    <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
+  </footer>
+
+</main>
+
+<script>
+  const PLAY_COST = 10;
+  const COLS = 8;
+  const ROWS = 10;
+  const CELL = 42;
+
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+  const ticketDisplay = document.getElementById("ticketDisplay");
+  const scoreDisplay = document.getElementById("scoreDisplay");
+  const playBtn = document.getElementById("playBtn");
+  const scoreTable = document.getElementById("scoreTable");
+
+  let gameRunning = false;
+
+  function updateTicketDisplay(){
+    ticketDisplay.textContent = `${getTickets()} 🎟️`;
+    if(!gameRunning){
+      playBtn.disabled = getTickets() < PLAY_COST;
+    }
+  }
+  document.addEventListener("tickets:changed", updateTicketDisplay);
+
+  // --- High scores (local only, see warning panel) ---
+  const SCORES_KEY = "meowfriend_crossing_scores";
+
+  function getScores(){
+    try {
+      return JSON.parse(localStorage.getItem(SCORES_KEY) || "[]");
+    } catch { return []; }
+  }
+
+  function saveScore(newScore){
+    const scores = getScores();
+    scores.push({ score: newScore, date: Date.now() });
+    scores.sort((a, b) => b.score - a.score);
+    localStorage.setItem(SCORES_KEY, JSON.stringify(scores.slice(0, 10)));
+    renderScores();
+  }
+
+  function renderScores(){
+    const scores = getScores();
+    if(scores.length === 0){
+      scoreTable.innerHTML = `<div class="score-row"><span>No runs yet</span><span>&mdash;</span></div>`;
+      return;
+    }
+    scoreTable.innerHTML = scores.map((s, i) => {
+      const d = new Date(s.date);
+      const dateStr = `${d.getMonth()+1}/${d.getDate()}`;
+      return `<div class="score-row"><span>#${i+1} &mdash; ${dateStr}</span><span>${s.score}</span></div>`;
+    }).join("");
+  }
+
+  // --- Game state ---
+  let player = { col: 0, row: 0 };
+  let lanes = [];
+  let score = 0;
+  let animFrame = null;
+  let lastTick = 0;
+
+  const LANE_TYPES = [
+    { type: "safe" },
+    { type: "road", emoji: "🚗", speed: 1.6, dir: 1, gap: 170 },
+    { type: "road", emoji: "🚙", speed: 2.1, dir: -1, gap: 150 },
+    { type: "safe" },
+    { type: "road", emoji: "🚕", speed: 1.3, dir: 1, gap: 190 },
+    { type: "road", emoji: "🚌", speed: 1.0, dir: -1, gap: 220 },
+    { type: "safe" },
+    { type: "road", emoji: "🚓", speed: 2.4, dir: 1, gap: 160 },
+    { type: "safe" },
+    { type: "safe" },
+  ];
+
+  function buildLanes(){
+    lanes = LANE_TYPES.map((def) => {
+      if(def.type !== "road") return { ...def, obstacles: [] };
+      const obstacles = [];
+      const count = Math.ceil(canvas.width / def.gap) + 1;
+      for(let i = 0; i < count; i++){
+        obstacles.push({ x: i * def.gap });
+      }
+      return { ...def, obstacles };
+    });
+  }
+
+  function resetPlayer(){
+    player = { col: Math.floor(COLS / 2), row: ROWS - 1 };
+  }
+
+  function startGame(){
+    if(gameRunning) return;
+    if(getTickets() < PLAY_COST) return;
+    addTickets(-PLAY_COST);
+    score = 0;
+    scoreDisplay.textContent = "0";
+    playBtn.disabled = true;
+    playBtn.textContent = "PLAYING...";
+    buildLanes();
+    resetPlayer();
+    gameRunning = true;
+    lastTick = performance.now();
+    animFrame = requestAnimationFrame(loop);
+  }
+
+  function endGame(){
+    gameRunning = false;
+    if(animFrame) cancelAnimationFrame(animFrame);
+    playBtn.textContent = "PLAY — 10 🎟️";
+    updateTicketDisplay();
+    saveScore(score);
+  }
+
+  function tryMove(dCol, dRow){
+    if(!gameRunning) return;
+    const nextCol = player.col + dCol;
+    const nextRow = player.row + dRow;
+    if(nextCol < 0 || nextCol >= COLS || nextRow < 0 || nextRow >= ROWS) return;
+    player.col = nextCol;
+    player.row = nextRow;
+    if(dRow < 0){
+      const newScore = (ROWS - 1 - player.row) * 10;
+      if(newScore > score){
+        score = newScore;
+        scoreDisplay.textContent = String(score);
+      }
+    }
+    if(player.row === 0){
+      score += 50;
+      scoreDisplay.textContent = String(score);
+      resetPlayer();
+    }
+  }
+
+  function checkCollision(){
+    const lane = lanes[player.row];
+    if(!lane || lane.type !== "road") return false;
+    const playerX = player.col * CELL + CELL / 2;
+    for(const obs of lane.obstacles){
+      const dx = Math.abs(obs.x - playerX);
+      if(dx < CELL * 0.7) return true;
+    }
+    return false;
+  }
+
+  function loop(now){
+    const dt = Math.min(now - lastTick, 48);
+    lastTick = now;
+
+    lanes.forEach(lane => {
+      if(lane.type !== "road") return;
+      lane.obstacles.forEach(obs => {
+        obs.x += lane.speed * lane.dir * (dt / 16.7);
+        if(lane.dir > 0 && obs.x > canvas.width + CELL) obs.x = -CELL;
+        if(lane.dir < 0 && obs.x < -CELL) obs.x = canvas.width + CELL;
+      });
+    });
+
+    if(checkCollision()){
+      draw();
+      endGame();
+      return;
+    }
+
+    draw();
+    if(gameRunning) animFrame = requestAnimationFrame(loop);
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    lanes.forEach((lane, i) => {
+      const y = i * CELL;
+      ctx.fillStyle = lane.type === "safe" ? "#131a12" : "#141416";
+      ctx.fillRect(0, y, canvas.width, CELL);
+      if(lane.type === "safe"){
+        ctx.strokeStyle = "rgba(41,255,138,0.15)";
+        ctx.strokeRect(0, y, canvas.width, CELL);
+      }
+    });
+
+    lanes.forEach((lane, i) => {
+      if(lane.type !== "road") return;
+      const y = i * CELL + CELL / 2;
+      ctx.strokeStyle = "rgba(255,30,67,0.25)";
+      ctx.setLineDash([10, 8]);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    ctx.font = "26px 'Noto Color Emoji', 'Apple Color Emoji', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    lanes.forEach((lane, i) => {
+      if(lane.type !== "road") return;
+      const y = i * CELL + CELL / 2;
+      lane.obstacles.forEach(obs => {
+        ctx.save();
+        if(lane.dir < 0){
+          ctx.translate(obs.x, y);
+          ctx.scale(-1, 1);
+          ctx.fillText(lane.emoji, 0, 2);
+        } else {
+          ctx.fillText(lane.emoji, obs.x, y + 2);
+        }
+        ctx.restore();
+      });
+    });
+
+    const px = player.col * CELL + CELL / 2;
+    const py = player.row * CELL + CELL / 2;
+    ctx.font = "28px 'Noto Color Emoji', 'Apple Color Emoji', sans-serif";
+    ctx.fillText("🐈", px, py + 2);
+  }
+
+  function drawIdle(){
+    buildLanes();
+    resetPlayer();
+    draw();
+  }
+
+  function handleKey(e){
+    const map = {
+      ArrowUp: [0, -1], w: [0, -1], W: [0, -1],
+      ArrowDown: [0, 1], s: [0, 1], S: [0, 1],
+      ArrowLeft: [-1, 0], a: [-1, 0], A: [-1, 0],
+      ArrowRight: [1, 0], d: [1, 0], D: [1, 0],
+    };
+    if(map[e.key]){
+      e.preventDefault();
+      tryMove(...map[e.key]);
+    }
+  }
+  document.addEventListener("keydown", handleKey);
+
+  document.getElementById("btnUp").addEventListener("click", () => tryMove(0, -1));
+  document.getElementById("btnDown").addEventListener("click", () => tryMove(0, 1));
+  document.getElementById("btnLeft").addEventListener("click", () => tryMove(-1, 0));
+  document.getElementById("btnRight").addEventListener("click", () => tryMove(1, 0));
+
+  playBtn.addEventListener("click", startGame);
+
+  updateTicketDisplay();
+  renderScores();
+  drawIdle();
+</script>
+
+</body>
+</html>
