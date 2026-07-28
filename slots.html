@@ -491,13 +491,19 @@
     spinRAF = requestAnimationFrame(tick);
   }
 
+  // All reels free-spin for at least this long before any of them starts
+  // easing into its final symbol — without this, the first reel could lock
+  // in almost immediately after the button press.
+  const MIN_FREE_SPIN_MS = 1200;
+  const REEL_STAGGER_MS = 450;
+
   function landReels(onComplete){
     const symbols = pendingSymbols || [weightedRandomSymbol(), weightedRandomSymbol(), weightedRandomSymbol()];
     reels.forEach((reel, i) => {
       const strip = reel.querySelector(".reel-strip");
       const finalIndex = strip.children.length - 1;
       const target = finalIndex * CELL_H;
-      const delay = i * 450;
+      const delay = MIN_FREE_SPIN_MS + i * REEL_STAGGER_MS;
       const duration = 900 + i * 150;
       setTimeout(() => {
         stoppedReels.add(i);
@@ -505,7 +511,7 @@
         strip.style.transform = `translateY(-${target}px)`;
       }, delay);
     });
-    const totalDelay = (reels.length - 1) * 450 + (900 + (reels.length - 1) * 150);
+    const totalDelay = MIN_FREE_SPIN_MS + (reels.length - 1) * REEL_STAGGER_MS + (900 + (reels.length - 1) * 150);
     setTimeout(() => onComplete && onComplete(symbols), totalDelay);
   }
 
