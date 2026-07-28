@@ -109,6 +109,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="shared-tickets.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
@@ -230,67 +231,51 @@
     padding: 6px 22px;
   }
 
-  .slot-frame{
+  .slots-nav-card{
+    display: flex;
+    align-items: center;
+    gap: 14px;
     background: linear-gradient(180deg, #2a2a30, #17171a);
-    border: 3px solid #3a3a42;
-    box-shadow: inset 0 0 0 2px #000, 0 0 14px rgba(255,30,67,0.2);
-    padding: 10px;
+    border: 3px solid var(--neon-red);
+    box-shadow: 0 0 14px rgba(255,30,67,0.3), inset 0 0 10px rgba(255,30,67,0.1);
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: filter 0.15s ease, transform 0.08s ease;
   }
-
-  .slot-window{
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    background: var(--led-bg);
-    border: 3px solid #3a3a42;
-    box-shadow: inset 0 0 14px rgba(255,30,67,0.3), inset 0 0 0 2px #000;
-    padding: 10px 6px;
+  .slots-nav-card:hover{
+    filter: brightness(1.15);
   }
-
-  /* The window is a fixed-height viewport; only one symbol's worth of
-     height is visible at a time. A faint top/bottom vignette sells the
-     illusion of a physical reel disappearing into the housing. */
-  .slot-reel{
-    height: 52px;
-    overflow: hidden;
-    border-right: 2px solid #1e1e22;
-    position: relative;
-    background:
-      linear-gradient(var(--led-bg), transparent 22%, transparent 78%, var(--led-bg)) ;
+  .slots-nav-card:active{
+    transform: translateY(2px);
   }
-  .slot-reel:last-child{ border-right: none; }
-
-  /* The strip is a tall column of stacked symbol cells. Spinning moves it
-     upward continuously; landing hands off to a CSS transition that eases
-     out, like a real mechanical reel losing momentum. */
-  .reel-strip{
-    display: flex;
-    flex-direction: column;
-    will-change: transform;
-  }
-
-  .reel-cell{
-    height: 52px;
-    flex: 0 0 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .reel-cell .glyph{
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
+  .slots-nav-icon{
+    font-size: 34px;
     line-height: 1;
-    font-size: 24px;
-    font-family: "Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif;
-    filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 12px rgba(255,30,67,0.6));
+    filter: drop-shadow(0 0 8px var(--neon-red-bright));
+  }
+  .slots-nav-title{
+    font-size: 12px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+  .slots-nav-sub{
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: #ffc7cf;
+    margin-top: 4px;
+  }
+  .slots-nav-tickets{
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    white-space: nowrap;
   }
 
-  @media (prefers-reduced-motion: reduce){
-    .reel-strip{ transition: none !important; }
+  .draft-warning{
+    border: 2px dashed #ffb347;
+    background: rgba(255,179,71,0.06);
+    padding: 12px 14px;
   }
 
   .boop-btn{
@@ -498,17 +483,15 @@
     <div class="rivet absolute bottom-2 left-2"></div>
     <div class="rivet absolute bottom-2 right-2"></div>
 
-    <!-- Slot machine strip -->
-    <div class="slot-frame mb-3">
-      <div class="slot-window" aria-hidden="true">
-        <div class="slot-reel" id="reel1"><div class="reel-strip"></div></div>
-        <div class="slot-reel" id="reel2"><div class="reel-strip"></div></div>
-        <div class="slot-reel" id="reel3"><div class="reel-strip"></div></div>
-      </div>
-    </div>
-    <div class="flex justify-center mb-6">
-      <button type="button" id="testSpinBtn" class="test-spin-btn">TEST SPIN (no boop)</button>
-    </div>
+    <!-- Slots nav card -->
+    <a href="slots.html" class="slots-nav-card mb-6" aria-label="Go to the MeowFriend slot machine arcade page">
+      <span class="slots-nav-icon" aria-hidden="true">🎰</span>
+      <span class="flex flex-col items-start">
+        <span class="slots-nav-title">ARCADE SLOTS</span>
+        <span class="slots-nav-sub">Spin with tickets — for fun, no MEWC on the line</span>
+      </span>
+      <span class="slots-nav-tickets" id="navTicketDisplay">0 🎟️</span>
+    </a>
 
     <!-- LED screens -->
     <div class="grid grid-cols-2 gap-4 mb-4">
@@ -559,6 +542,47 @@
         <div class="vent-switch"></div>
         <div class="vent-switch"></div>
       </div>
+    </div>
+  </section>
+
+  <!-- Donate MEWC for tickets (DRAFT — see note) -->
+  <section class="info-panel p-6 sm:p-8 mt-8" aria-labelledby="donate-heading">
+    <p class="panel-eyebrow mb-3">SUPPORT THE FAUCET</p>
+    <h2 id="donate-heading" class="panel-heading mb-4">DONATE MEWC, GET TICKETS</h2>
+    <p class="body-copy mb-5">
+      Send MEWC to the faucet address below, then paste your transaction ID (TXID) to receive
+      10 tickets per 100 MEWC donated. Tickets are for-fun arcade score only — not redeemable
+      for MEWC, cash, or anything of value.
+    </p>
+
+    <div class="led-screen mb-5">
+      <div class="led-label">FAUCET DONATION ADDRESS</div>
+      <div class="led-value break-all" id="donationAddress">M... (set this to your real faucet wallet address)</div>
+    </div>
+
+    <label for="donationTxid" class="block led-label mb-2">YOUR TRANSACTION ID (TXID)</label>
+    <input
+      type="text"
+      id="donationTxid"
+      class="addr-input w-full mb-3"
+      placeholder="Paste your TXID here"
+      autocomplete="off"
+      spellcheck="false"
+    >
+    <div class="flex justify-center mb-3">
+      <button type="button" id="claimDonationBtn" class="test-spin-btn" style="border-style:solid;">SUBMIT TXID FOR TICKETS</button>
+    </div>
+    <p id="donationStatus" class="text-[8px] text-center leading-relaxed" style="color:#9a5a62;"></p>
+
+    <div class="draft-warning mt-5">
+      <p class="led-label mb-2" style="color:#ffb347;">⚠ DRAFT — NOT VERIFIED YET</p>
+      <p class="body-copy text-base leading-snug">
+        This form currently accepts any TXID-shaped text and grants tickets immediately — it does
+        <strong>not</strong> check the Meowcoin blockchain to confirm the transaction happened, that
+        it paid the right amount, or that the same TXID hasn't been reused. Before this goes live,
+        it needs a backend endpoint that calls <code>gettransaction</code> on your node and keeps a
+        record of already-claimed TXIDs, the same way the faucet's own anti-duplicate system works.
+      </p>
     </div>
   </section>
 
@@ -648,118 +672,12 @@
   const API_URL = "https://YOUR_TUNNEL_URL.trycloudflare.com/api/boop";
   const BALANCE_URL = "https://YOUR_TUNNEL_URL.trycloudflare.com/api/balance";
   const balanceDisplay = document.getElementById("balanceDisplay");
-  const reels = [document.getElementById("reel1"), document.getElementById("reel2"), document.getElementById("reel3")];
-  const testSpinBtn = document.getElementById("testSpinBtn");
+  const navTicketDisplay = document.getElementById("navTicketDisplay");
 
-  const SLOT_SYMBOLS = [
-    "🐱","🐀",
-    "😹","😻","😼","😽","🙀","😿","😾",
-    "7️⃣","💎","💰","💸","🤑","🧧"
-  ];
-  const CELL_H = 52;
-
-  function randomSymbol(){
-    return SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
+  function updateNavTicketDisplay(){
+    if(navTicketDisplay) navTicketDisplay.textContent = `${getTickets()} \ud83c\udf9f\ufe0f`;
   }
-
-  function makeCell(symbol){
-    const cell = document.createElement("div");
-    cell.className = "reel-cell";
-    const g = document.createElement("span");
-    g.className = "glyph";
-    g.textContent = symbol;
-    cell.appendChild(g);
-    return cell;
-  }
-
-  // Build a long strip per reel: enough repeated symbols that spinning fast
-  // for ~1.5s+ never visibly runs out, followed by a final resting symbol.
-  function buildStrip(reel, finalSymbol, strideCount){
-    const strip = reel.querySelector(".reel-strip");
-    strip.style.transition = "none";
-    strip.style.transform = "translateY(0px)";
-    strip.innerHTML = "";
-    for(let i = 0; i < strideCount; i++){
-      strip.appendChild(makeCell(randomSymbol()));
-    }
-    strip.appendChild(makeCell(finalSymbol));
-    return strip;
-  }
-
-  let spinRAF = null;
-  let spinning = false;
-  let stoppedReels = new Set();
-
-  function startReels(){
-    if(spinning) return;
-    spinning = true;
-    stoppedReels = new Set();
-    reels.forEach(reel => {
-      buildStrip(reel, randomSymbol(), 60);
-    });
-
-    let offset = 0;
-    const speed = 38; // px per frame-ish, fast continuous scroll
-    let last = performance.now();
-
-    function tick(now){
-      const dt = Math.min(now - last, 48);
-      last = now;
-      offset += speed * (dt / 16.7);
-      reels.forEach((reel, i) => {
-        if(stoppedReels.has(i)) return;
-        const strip = reel.querySelector(".reel-strip");
-        const wrapped = offset % (CELL_H * 60);
-        strip.style.transform = `translateY(-${wrapped}px)`;
-      });
-      if(spinning && stoppedReels.size < reels.length){
-        spinRAF = requestAnimationFrame(tick);
-      } else {
-        spinning = false;
-        spinRAF = null;
-      }
-    }
-    spinRAF = requestAnimationFrame(tick);
-  }
-
-  function stopReels(){
-    spinning = false;
-    if(spinRAF) cancelAnimationFrame(spinRAF);
-    spinRAF = null;
-  }
-
-  // Lands each reel by easing its strip to rest on the pre-appended final
-  // cell, staggered left-to-right, so each reel "clunks" to a stop in turn
-  // like a physical machine rather than all three freezing at once. Each
-  // reel keeps actively spinning right up until its own stagger point.
-  function landReels(){
-    reels.forEach((reel, i) => {
-      const strip = reel.querySelector(".reel-strip");
-      const finalIndex = strip.children.length - 1;
-      const target = finalIndex * CELL_H;
-      const delay = i * 450;             // stagger: each reel stops a bit after the last
-      const duration = 900 + i * 150;    // and takes a moment to ease to a stop
-
-      setTimeout(() => {
-        stoppedReels.add(i);
-        strip.style.transition = `transform ${duration}ms cubic-bezier(0.12, 0.85, 0.2, 1)`;
-        strip.style.transform = `translateY(-${target}px)`;
-      }, delay);
-    });
-  }
-
-  function setReelsIdle(symbols){
-    reels.forEach((reel, i) => {
-      const strip = buildStrip(reel, symbols[i], 0);
-      strip.style.transform = "translateY(0px)";
-    });
-  }
-
-  function waitOutMinimumSpin(startedAt, minMs){
-    const elapsed = Date.now() - startedAt;
-    const remaining = Math.max(0, minMs - elapsed);
-    return new Promise(resolve => setTimeout(resolve, remaining));
-  }
+  document.addEventListener("tickets:changed", updateNavTicketDisplay);
 
   const boopBtn = document.getElementById("boopBtn");
   const addrInput = document.getElementById("mewcAddress");
@@ -858,36 +776,62 @@
     addrInput.removeAttribute("aria-invalid");
     addrError.classList.add("hidden");
 
+    // Recharge timer starts the instant boop is pressed — win, lose, or
+    // error, the wait is the same. Set this before anything else so a
+    // failed/blocked request still costs the cooldown.
+    localStorage.setItem(STORAGE_KEY, String(Date.now()));
+    updateCooldownUI();
+
     boopBtn.disabled = true;
     boopBtn.textContent = "BOOPING...";
     showBanner("BOOPING THE BLOCKCHAIN...", "pending");
-    const spinStarted = Date.now();
-    const MIN_SPIN_MS = 1400;
-    startReels();
 
     try {
       const data = await requestBoop(addr);
-      await waitOutMinimumSpin(spinStarted, MIN_SPIN_MS);
-      landReels();
       showBanner(`SUCCESS! ${data.amount || 10} MEWC DRIPPED.\nTXID: ${data.txid}`, "success");
-      localStorage.setItem(STORAGE_KEY, String(Date.now()));
       refreshBalance();
     } catch (err) {
-      await waitOutMinimumSpin(spinStarted, MIN_SPIN_MS);
-      landReels();
       showBanner(`ERROR: ${String(err.message || err).toUpperCase()}`, "error");
-    } finally {
-      updateCooldownUI();
     }
   });
 
-  testSpinBtn.addEventListener("click", () => {
-    startReels();
-    setTimeout(landReels, 1400);
+  // --- Donation-for-tickets (DRAFT) ---
+  // NOT VERIFIED: accepts any TXID-shaped string and grants tickets
+  // immediately. Needs a backend that calls gettransaction on the node and
+  // tracks already-claimed TXIDs before this is safe to launch publicly.
+  const donationTxidInput = document.getElementById("donationTxid");
+  const claimDonationBtn = document.getElementById("claimDonationBtn");
+  const donationStatus = document.getElementById("donationStatus");
+  const TICKETS_PER_100_MEWC = 10;
+  const claimedTxids = new Set(JSON.parse(localStorage.getItem("meowfriend_claimed_txids") || "[]"));
+
+  function looksLikeTxid(v){
+    return typeof v === "string" && /^[a-fA-F0-9]{16,64}$/.test(v.trim());
+  }
+
+  claimDonationBtn.addEventListener("click", () => {
+    const txid = donationTxidInput.value.trim();
+    if(!looksLikeTxid(txid)){
+      donationStatus.textContent = "That doesn't look like a valid TXID.";
+      donationStatus.style.color = "#ff8b96";
+      return;
+    }
+    if(claimedTxids.has(txid)){
+      donationStatus.textContent = "This TXID has already been claimed on this device.";
+      donationStatus.style.color = "#ff8b96";
+      return;
+    }
+    // DRAFT: no on-chain verification yet — see warning panel above.
+    claimedTxids.add(txid);
+    localStorage.setItem("meowfriend_claimed_txids", JSON.stringify([...claimedTxids]));
+    addTickets(TICKETS_PER_100_MEWC);
+    donationStatus.textContent = `+${TICKETS_PER_100_MEWC} tickets added (draft mode — not yet verified on-chain).`;
+    donationStatus.style.color = "#29ff8a";
+    donationTxidInput.value = "";
   });
 
   updateCooldownUI();
-  setReelsIdle(["🐱","💰","7️⃣"]);
+  updateNavTicketDisplay();
   refreshBalance();
   setInterval(refreshBalance, 60000);
 </script>
