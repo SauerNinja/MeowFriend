@@ -7,7 +7,7 @@
 <title>MeowFriend Arcade — Cat Slots (For-Fun Tickets)</title>
 <meta name="description" content="MeowFriend's arcade slot machine. Spin with free for-fun tickets — no MEWC, no cash, no real value on the line.">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://YOUR-USERNAME.github.io/meowfriend/slots.html">
+<link rel="canonical" href="https://sauerninja.github.io/MeowFriend/slots.html">
 
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -15,6 +15,26 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="MeowFriend Arcade — Cat Slots">
+<meta property="og:description" content="Spin with free for-fun tickets — no MEWC, no cash, no real value on the line. Weighted odds and full paytable published on the page.">
+<meta property="og:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="MeowFriend logo: a glowing black cat face beside the MEOWFRIEND wordmark on a dark neon-red arcade console background">
+<meta property="og:url" content="https://sauerninja.github.io/MeowFriend/slots.html">
+<meta property="og:site_name" content="MeowFriend">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MeowFriend Arcade — Cat Slots">
+<meta name="twitter:description" content="Spin with free for-fun tickets — no MEWC, no cash, no real value on the line.">
+<meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
 
 <script src="shared-tickets.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -180,11 +200,26 @@
     border: 2px solid #1e1e22;
     border-radius: 4px;
     position: relative;
+    overflow: hidden;
   }
 
-  /* The arm is a short stub anchored at the top of the track — visually
-     just a connector between the housing and the knob, since the knob
-     itself does all the moving. */
+  /* The red fill starts at zero height (nothing showing below the resting
+     knob) and grows to fill the full track as the knob is pulled down —
+     so the red visibly "extends" with the pull instead of always being
+     lit up the whole way, which is what made the travel hard to read. */
+  .lever-arm::before{
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 8px;
+    height: 0%;
+    background: linear-gradient(180deg, #ff2f4d, #7a0818);
+    transform: translateX(-50%);
+    box-shadow: 0 0 8px rgba(255,30,67,0.5);
+    transition: height 0.16s cubic-bezier(0.34, 1.4, 0.44, 1);
+  }
+
   .lever-arm{
     position: absolute;
     left: 50%;
@@ -194,21 +229,12 @@
     transform: translateX(-50%);
   }
 
-  .lever-arm::before{
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 0;
-    width: 8px;
+  .lever-arm.pulled::before{
     height: 100%;
-    background: linear-gradient(90deg, #7a0818, #ff2f4d, #7a0818);
-    border-radius: 4px;
-    transform: translateX(-50%);
-    box-shadow: 0 0 8px rgba(255,30,67,0.5);
   }
 
-  /* The knob rides on top of the arm and physically slides down the track
-     when pulled — this is what actually reads as "pulling down". */
+  /* The knob rides on top of the track and physically slides all the way
+     down when pulled — this is what actually reads as "pulling down". */
   .lever-knob{
     position: absolute;
     left: 50%;
@@ -224,11 +250,10 @@
     z-index: 2;
   }
 
-  /* Pulled: knob slides most of the way down the track. A slight overshoot
-     past the rest position on release (via the spring easing above) sells
-     the physical snap-back instead of a flat linear return. */
+  /* Pulled: knob travels the full length of the track, all the way to the
+     bottom, rather than stopping partway. */
   .lever-knob.pulled{
-    transform: translate(-50%, calc(100% - 10px));
+    transform: translate(-50%, calc(100% + 4px));
   }
 
   .lever-btn{
@@ -249,6 +274,47 @@
   }
 
   /* --- Rainbow win flash --- */
+  /* --- Marquee lights --- */
+  .marquee-lights{
+    display: flex;
+    justify-content: space-between;
+    padding: 0 4px;
+    margin-bottom: 14px;
+  }
+
+  .marquee-lights .bulb{
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #2a1518;
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.6), 0 0 0 2px #17171a;
+    transition: background 0.1s ease, box-shadow 0.1s ease;
+  }
+
+  /* Bulbs light up in a chasing pattern, alternating colors, only while
+     .lit is toggled on by JS during a win. Off by default. */
+  .marquee-lights.active .bulb{
+    animation: bulb-chase 0.6s steps(1) infinite;
+  }
+  .marquee-lights.active .bulb:nth-child(3n+1){ animation-delay: 0s; }
+  .marquee-lights.active .bulb:nth-child(3n+2){ animation-delay: 0.15s; }
+  .marquee-lights.active .bulb:nth-child(3n+3){ animation-delay: 0.3s; }
+
+  @keyframes bulb-chase{
+    0%   { background: #ffcc00; box-shadow: 0 0 8px 3px #ffcc00, 0 0 0 2px #17171a; }
+    33%  { background: #ff1e43; box-shadow: 0 0 8px 3px #ff1e43, 0 0 0 2px #17171a; }
+    66%  { background: #33e0ff; box-shadow: 0 0 8px 3px #33e0ff, 0 0 0 2px #17171a; }
+    100% { background: #ffcc00; box-shadow: 0 0 8px 3px #ffcc00, 0 0 0 2px #17171a; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .marquee-lights.active .bulb{
+      animation: none;
+      background: #ff1e43;
+      box-shadow: 0 0 8px 3px #ff1e43, 0 0 0 2px #17171a;
+    }
+  }
+
   @keyframes rainbow-cycle{
     0%   { box-shadow: 0 0 24px 6px #ff1e43, inset 0 0 20px rgba(255,30,67,0.4); border-color: #ff1e43; }
     16%  { box-shadow: 0 0 24px 6px #ffcc00, inset 0 0 20px rgba(255,204,0,0.4); border-color: #ffcc00; }
@@ -333,6 +399,13 @@
     <div class="rivet absolute bottom-2 left-2"></div>
     <div class="rivet absolute bottom-2 right-2"></div>
 
+    <div class="marquee-lights" id="marqueeLights" aria-hidden="true">
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+    </div>
+
     <div class="machine-row mb-5">
       <div class="slot-frame">
         <div class="slot-window" aria-hidden="true">
@@ -343,7 +416,7 @@
       </div>
       <div class="lever-housing">
         <div class="lever-track">
-          <div class="lever-arm"></div>
+          <div class="lever-arm" id="leverArm"></div>
           <div class="lever-knob" id="leverKnob"></div>
         </div>
         <button type="button" id="leverBtn" class="lever-btn" aria-label="Pull lever to spin"></button>
@@ -539,23 +612,32 @@
 
   // --- Lever animation ---
   const leverKnob = document.getElementById("leverKnob");
+  const leverArmEl = document.getElementById("leverArm");
   const leverBtn = document.getElementById("leverBtn");
 
   function pullLever(){
     leverKnob.classList.add("pulled");
-    setTimeout(() => leverKnob.classList.remove("pulled"), 450);
+    leverArmEl.classList.add("pulled");
+    setTimeout(() => {
+      leverKnob.classList.remove("pulled");
+      leverArmEl.classList.remove("pulled");
+    }, 450);
   }
 
   // --- Win flash ---
   const machineChassis = document.getElementById("machineChassis");
   const ticketScreen = document.getElementById("ticketScreen");
 
+  const marqueeLights = document.getElementById("marqueeLights");
+
   function flashWin(durationMs){
     machineChassis.classList.add("casino-win-flash");
     ticketScreen.classList.add("casino-win-flash");
+    marqueeLights.classList.add("active");
     setTimeout(() => {
       machineChassis.classList.remove("casino-win-flash");
       ticketScreen.classList.remove("casino-win-flash");
+      marqueeLights.classList.remove("active");
     }, durationMs);
   }
 
@@ -577,14 +659,24 @@
   const resultDisplay = document.getElementById("resultDisplay");
   const spinBtn = document.getElementById("spinBtn");
 
+  let controlsLocked = false;
+
   function updateTicketDisplay(){
     ticketDisplay.textContent = `${getTickets()} 🎟️`;
-    spinBtn.disabled = getTickets() < SPIN_COST;
+    if(!controlsLocked){
+      spinBtn.disabled = getTickets() < SPIN_COST;
+    }
   }
   document.addEventListener("tickets:changed", updateTicketDisplay);
 
+  function setControlsLocked(locked){
+    controlsLocked = locked;
+    spinBtn.disabled = locked || getTickets() < SPIN_COST;
+    leverBtn.disabled = locked;
+  }
+
   function doSpin(){
-    if(spinning) return;
+    if(controlsLocked) return;
     if(getTickets() < SPIN_COST){
       resultDisplay.textContent = "NOT ENOUGH TICKETS";
       return;
@@ -592,22 +684,31 @@
 
     addTickets(-SPIN_COST);
     pullLever();
-    spinBtn.disabled = true;
+    setControlsLocked(true);
     resultDisplay.textContent = "SPINNING...";
     startReels();
 
     landReels((symbols) => {
       const payout = calculatePayout(symbols);
+      let holdMs = 0;
+
       if(payout.tickets > 0){
         const before = getTickets();
         addTickets(payout.tickets);
         tickUpTickets(before, getTickets(), 700);
         resultDisplay.textContent = `${payout.label} +${payout.tickets}`;
-        flashWin(1400);
+        holdMs = 1400;
+        flashWin(holdMs);
       } else {
         resultDisplay.textContent = payout.label;
       }
-      updateTicketDisplay();
+
+      // Controls stay locked until any win-flash animation has fully
+      // finished, not just when the reels stop — otherwise a win lets the
+      // next pull interrupt the lights/flash mid-animation.
+      setTimeout(() => {
+        setControlsLocked(false);
+      }, holdMs);
     });
   }
 
