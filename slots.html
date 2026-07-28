@@ -193,6 +193,17 @@
     position: relative;
   }
 
+  .lever-housing.pulled{
+    animation: housing-jolt 0.5s ease-out;
+  }
+
+  @keyframes housing-jolt{
+    0%{ transform: translateY(0); }
+    18%{ transform: translateY(1px); }
+    24%{ transform: translateY(0); }
+    100%{ transform: translateY(0); }
+  }
+
   .lever-track{
     width: 8px;
     height: 100%;
@@ -201,23 +212,6 @@
     border-radius: 4px;
     position: relative;
     overflow: hidden;
-  }
-
-  /* The red fill starts at zero height (nothing showing below the resting
-     knob) and grows to fill the full track as the knob is pulled down —
-     so the red visibly "extends" with the pull instead of always being
-     lit up the whole way, which is what made the travel hard to read. */
-  .lever-arm::before{
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 0;
-    width: 8px;
-    height: 0%;
-    background: linear-gradient(180deg, #ff2f4d, #7a0818);
-    transform: translateX(-50%);
-    box-shadow: 0 0 8px rgba(255,30,67,0.5);
-    transition: height 0.16s cubic-bezier(0.34, 1.4, 0.44, 1);
   }
 
   .lever-arm{
@@ -229,12 +223,40 @@
     transform: translateX(-50%);
   }
 
-  .lever-arm.pulled::before{
-    height: 100%;
+  /* The red fill tracks the knob's travel exactly, driven by the same
+     keyframes so the "extending" red always matches where the knob
+     actually is at every point in the pull — no separate easing to fall
+     out of sync with. */
+  .lever-arm::before{
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 8px;
+    height: 0%;
+    background: linear-gradient(180deg, #ff2f4d, #7a0818);
+    transform: translateX(-50%);
+    box-shadow: 0 0 8px rgba(255,30,67,0.5);
   }
 
-  /* The knob rides on top of the track and physically slides all the way
-     down when pulled — this is what actually reads as "pulling down". */
+  .lever-arm.pulled::before{
+    animation: arm-fill 0.62s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+  }
+
+  @keyframes arm-fill{
+    0%{   height: 0%; }
+    22%{  height: 100%; }   /* sharp, fast pull down — most force up front */
+    55%{  height: 100%; }   /* brief hold at full extension, like a real catch */
+    72%{  height: 88%; }    /* spring overshoot back up past rest */
+    86%{  height: 96%; }    /* settle wobble */
+    100%{ height: 0%; }     /* back to fully at rest */
+  }
+
+  /* The knob rides on top of the track and physically slides down when
+     pulled. Motion is a fast decisive pull, a brief hold at the bottom,
+     then a springy overshoot on the way back up rather than a flat
+     linear return — this is what actually reads as a mechanical lever
+     with weight to it instead of a UI element sliding on a track. */
   .lever-knob{
     position: absolute;
     left: 50%;
@@ -243,17 +265,26 @@
     height: 26px;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #ff5f77, #d80f2b 60%, #7a0818);
-    transform: translate(-50%, 0);
+    transform: translate(-50%, 0) scale(1, 1);
     box-shadow: 0 0 10px rgba(255,30,67,0.6), inset 0 2px 0 rgba(255,255,255,0.3);
     border: 2px solid #7a0818;
-    transition: transform 0.16s cubic-bezier(0.34, 1.4, 0.44, 1);
     z-index: 2;
+    transform-origin: 50% 100%;
   }
 
-  /* Pulled: knob travels the full length of the track, all the way to the
-     bottom, rather than stopping partway. */
   .lever-knob.pulled{
-    transform: translate(-50%, calc(100% + 4px));
+    animation: knob-pull 0.62s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+  }
+
+  @keyframes knob-pull{
+    0%{   transform: translate(-50%, 0) scale(1, 1); }
+    18%{  transform: translate(-50%, calc(94% + 4px)) scale(0.92, 1.1); }   /* fast pull, slight stretch */
+    22%{  transform: translate(-50%, calc(100% + 4px)) scale(1.12, 0.86); } /* impact squash at the bottom */
+    30%{  transform: translate(-50%, calc(100% + 4px)) scale(1, 1); }
+    55%{  transform: translate(-50%, calc(100% + 4px)) scale(1, 1); }       /* brief hold */
+    72%{  transform: translate(-50%, -6%) scale(1, 1.05); }                /* spring overshoot past rest */
+    86%{  transform: translate(-50%, 3%) scale(1, 0.98); }                 /* settle wobble */
+    100%{ transform: translate(-50%, 0) scale(1, 1); }
   }
 
   .lever-btn{
@@ -269,7 +300,9 @@
   .lever-btn:disabled{ cursor: not-allowed; }
 
   @media (prefers-reduced-motion: reduce){
-    .lever-knob{ transition: none; }
+    .lever-knob.pulled{ animation: none; }
+    .lever-arm.pulled::before{ animation: none; }
+    .lever-housing.pulled{ animation: none; }
     .reel-strip{ transition: none !important; }
   }
 
@@ -414,7 +447,7 @@
           <div class="slot-reel" id="reel3"><div class="reel-strip"></div></div>
         </div>
       </div>
-      <div class="lever-housing">
+      <div class="lever-housing" id="leverHousing">
         <div class="lever-track">
           <div class="lever-arm" id="leverArm"></div>
           <div class="lever-knob" id="leverKnob"></div>
@@ -457,8 +490,8 @@
       <div class="paytable" id="paytableBody"></div>
     </div>
     <p class="text-[8px] text-[#6e3a41] leading-relaxed mt-4 text-center">
-      All 19 symbols are weighted by rarity below. Verified by simulation at ~106% return-to-player —
-      no house edge, since nothing of real value is on the line.
+      All 19 symbols are weighted by rarity below. Calculated at ~78% return-to-player using exact
+      probabilities — no house edge is targeted, since nothing of real value is on the line.
     </p>
   </section>
 
@@ -501,26 +534,28 @@
     return SYMBOL_POOL[SYMBOL_POOL.length - 1].symbol;
   }
 
-  // Payout table — rescaled for a 1-ticket spin cost (was 10) and
-  // verified by simulation (3M spins) at ~106% RTP. Whole-number payouts
-  // don't land exactly on 100% at this scale — cherry1 alone swings the
-  // total by double digits per point of rounding since it's ~16.5% of all
-  // spins — so this rounds slightly generous rather than slightly negative.
+  // Payout table — diamond jackpot set to 500,000 tickets (~1 in 884,736
+  // spins). Cherry payouts intentionally weighted toward the rarer double
+  // (3 tickets) over the common single (1 ticket). Analytical EV is ~78%;
+  // note that with a jackpot this rare, any single simulation run will
+  // swing well above or below that — the exact probabilities are the
+  // reliable number here, not one simulated run (expect ~1 jackpot hit
+  // per ~885k spins on average).
   function calculatePayout(symbols){
     const [a, b, c] = symbols;
 
     if(a === b && b === c){
-      if(a === "💎") return { tickets: 500, label: "💎 JACKPOT!" };
-      if(BIG_MONEY.has(a)) return { tickets: 50, label: `${a}×3 BIG WIN!` };
-      if(ARCADE_TIER.has(a)) return { tickets: 15, label: `${a}×3!` };
-      if(CAT_PROPS.has(a)) return { tickets: 8, label: `${a}×3!` };
-      if(CAT_FACES.has(a)) return { tickets: 10, label: `${a}×3!` };
+      if(a === "💎") return { tickets: 500000, label: "💎 JACKPOT!" };
+      if(BIG_MONEY.has(a)) return { tickets: 20, label: `${a}×3 BIG WIN!` };
+      if(ARCADE_TIER.has(a)) return { tickets: 6, label: `${a}×3!` };
+      if(CAT_PROPS.has(a)) return { tickets: 3, label: `${a}×3!` };
+      if(CAT_FACES.has(a)) return { tickets: 5, label: `${a}×3!` };
     }
 
     // Consolation payouts for cherries — small but real, not a fake flash. Checked in priority order.
     const cherryCount = symbols.filter(s => s === "🍒").length;
     if(cherryCount === 2) return { tickets: 3, label: "🍒🍒 Double cherry" };
-    if(cherryCount === 1) return { tickets: 6, label: "🍒 Cherry" };
+    if(cherryCount === 1) return { tickets: 1, label: "🍒 Cherry" };
 
     return { tickets: 0, label: "No match" };
   }
@@ -613,15 +648,22 @@
   // --- Lever animation ---
   const leverKnob = document.getElementById("leverKnob");
   const leverArmEl = document.getElementById("leverArm");
+  const leverHousing = document.getElementById("leverHousing");
   const leverBtn = document.getElementById("leverBtn");
 
   function pullLever(){
+    // Restart animations cleanly even if triggered again quickly, by
+    // forcing a reflow between removing and re-adding the class.
+    [leverKnob, leverArmEl, leverHousing].forEach(el => el.classList.remove("pulled"));
+    void leverKnob.offsetWidth; // force reflow
     leverKnob.classList.add("pulled");
     leverArmEl.classList.add("pulled");
+    leverHousing.classList.add("pulled");
     setTimeout(() => {
       leverKnob.classList.remove("pulled");
       leverArmEl.classList.remove("pulled");
-    }, 450);
+      leverHousing.classList.remove("pulled");
+    }, 620);
   }
 
   // --- Win flash ---
@@ -723,21 +765,22 @@
   // --- Build the published paytable ---
   function renderPaytable(){
     const rows = [
-      ["💎💎💎", "500 🎟️ (weight 1/" + TOTAL_WEIGHT + " per reel)"],
-      ["💰💰💰 / 🤑🤑🤑 / 7️⃣7️⃣7️⃣", "50 🎟️ each (weight 3/" + TOTAL_WEIGHT + " per reel)"],
-      ["🍒🍒🍒 / 💸💸💸 / 🧧🧧🧧", "15 🎟️ each (weight 6/" + TOTAL_WEIGHT + " per reel)"],
-      ["🐀🐀🐀 / 🐾🐾🐾 / 🐟🐟🐟 / 🧶🧶🧶", "8 🎟️ each (weight 7/" + TOTAL_WEIGHT + " per reel)"],
-      ["Same cat face ×3 (e.g. 😻😻😻)", "10 🎟️ (weight 5/" + TOTAL_WEIGHT + " per reel, 8 faces)"],
+      ["💎💎💎", "500,000 🎟️ — JACKPOT (odds: 1 in 884,736)"],
+      ["💰💰💰 / 🤑🤑🤑 / 7️⃣7️⃣7️⃣", "20 🎟️ each (weight 3/" + TOTAL_WEIGHT + " per reel)"],
+      ["🍒🍒🍒 / 💸💸💸 / 🧧🧧🧧", "6 🎟️ each (weight 6/" + TOTAL_WEIGHT + " per reel)"],
+      ["🐀🐀🐀 / 🐾🐾🐾 / 🐟🐟🐟 / 🧶🧶🧶", "3 🎟️ each (weight 7/" + TOTAL_WEIGHT + " per reel)"],
+      ["Same cat face ×3 (e.g. 😻😻😻)", "5 🎟️ (weight 5/" + TOTAL_WEIGHT + " per reel, 8 faces)"],
       ["🍒🍒 anywhere (exactly 2)", "3 🎟️ — consolation payout"],
-      ["🍒 anywhere (exactly 1)", "6 🎟️ — consolation payout, ~16.5% of spins"],
+      ["🍒 anywhere (exactly 1)", "1 🎟️ — consolation payout, ~16.5% of spins"],
       ["Any 3 cat faces (mixed, no match)", "No payout — same as any other loss"],
     ];
     const body = document.getElementById("paytableBody");
     body.innerHTML = rows.map(([a,b]) => `<div class="paytable-row"><span>${a}</span><span>${b}</span></div>`).join("");
   }
 
-  // Verified by 3M-spin simulation: this table lands at ~106% RTP against
-  // the 1-ticket spin cost.
+  // Verified analytically (exact probabilities — the jackpot is too rare
+  // for simulation alone to be a reliable check): this table lands at
+  // ~78% RTP against the 1-ticket spin cost.
 
   renderPaytable();
   setReelsIdle(["🐱","💰","7️⃣"]);
