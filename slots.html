@@ -118,13 +118,7 @@
   }
   .led-value.large{ font-size: 18px; }
 
-  /* --- Slot machine chassis with lever --- */
-  .machine-row{
-    display: flex;
-    align-items: stretch;
-    gap: 14px;
-  }
-
+  /* --- Slot machine chassis --- */
   .slot-frame{
     flex: 1;
     background: linear-gradient(180deg, #2a2a30, #17171a);
@@ -145,7 +139,7 @@
   }
 
   .slot-reel{
-    height: 60px;
+    height: 72px;
     overflow: hidden;
     border-right: 2px solid #1e1e22;
     position: relative;
@@ -160,8 +154,8 @@
   }
 
   .reel-cell{
-    height: 60px;
-    flex: 0 0 60px;
+    height: 72px;
+    flex: 0 0 72px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -171,138 +165,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
+    width: 46px;
+    height: 46px;
     line-height: 1;
-    font-size: 28px;
+    font-size: 34px;
     font-family: "Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif;
     filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 12px rgba(255,30,67,0.6));
   }
 
-  /* --- The lever --- */
-  .lever-housing{
-    width: 46px;
-    background: linear-gradient(180deg, #2a2a30, #17171a);
-    border: 3px solid #3a3a42;
-    box-shadow: inset 0 0 0 2px #000;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    position: relative;
-  }
-
-  .lever-housing.pulled{
-    animation: housing-jolt 0.5s ease-out;
-  }
-
-  @keyframes housing-jolt{
-    0%{ transform: translateY(0); }
-    18%{ transform: translateY(1px); }
-    24%{ transform: translateY(0); }
-    100%{ transform: translateY(0); }
-  }
-
-  .lever-track{
-    width: 8px;
-    height: 100%;
-    background: #0e0e10;
-    border: 2px solid #1e1e22;
-    border-radius: 4px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .lever-arm{
-    position: absolute;
-    left: 50%;
-    top: 0;
-    width: 8px;
-    height: 100%;
-    transform: translateX(-50%);
-  }
-
-  /* The red fill tracks the knob's travel exactly, driven by the same
-     keyframes so the "extending" red always matches where the knob
-     actually is at every point in the pull — no separate easing to fall
-     out of sync with. */
-  .lever-arm::before{
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 0;
-    width: 8px;
-    height: 0%;
-    background: linear-gradient(180deg, #ff2f4d, #7a0818);
-    transform: translateX(-50%);
-    box-shadow: 0 0 8px rgba(255,30,67,0.5);
-  }
-
-  .lever-arm.pulled::before{
-    animation: arm-fill 0.62s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
-  }
-
-  @keyframes arm-fill{
-    0%{   height: 0%; }
-    22%{  height: 100%; }   /* sharp, fast pull down — most force up front */
-    55%{  height: 100%; }   /* brief hold at full extension, like a real catch */
-    72%{  height: 88%; }    /* spring overshoot back up past rest */
-    86%{  height: 96%; }    /* settle wobble */
-    100%{ height: 0%; }     /* back to fully at rest */
-  }
-
-  /* The knob rides on top of the track and physically slides down when
-     pulled. Motion is a fast decisive pull, a brief hold at the bottom,
-     then a springy overshoot on the way back up rather than a flat
-     linear return — this is what actually reads as a mechanical lever
-     with weight to it instead of a UI element sliding on a track. */
-  .lever-knob{
-    position: absolute;
-    left: 50%;
-    top: -6px;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #ff5f77, #d80f2b 60%, #7a0818);
-    transform: translate(-50%, 0) scale(1, 1);
-    box-shadow: 0 0 10px rgba(255,30,67,0.6), inset 0 2px 0 rgba(255,255,255,0.3);
-    border: 2px solid #7a0818;
-    z-index: 2;
-    transform-origin: 50% 100%;
-  }
-
-  .lever-knob.pulled{
-    animation: knob-pull 0.62s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
-  }
-
-  @keyframes knob-pull{
-    0%{   transform: translate(-50%, 0) scale(1, 1); }
-    18%{  transform: translate(-50%, calc(94% + 4px)) scale(0.92, 1.1); }   /* fast pull, slight stretch */
-    22%{  transform: translate(-50%, calc(100% + 4px)) scale(1.12, 0.86); } /* impact squash at the bottom */
-    30%{  transform: translate(-50%, calc(100% + 4px)) scale(1, 1); }
-    55%{  transform: translate(-50%, calc(100% + 4px)) scale(1, 1); }       /* brief hold */
-    72%{  transform: translate(-50%, -6%) scale(1, 1.05); }                /* spring overshoot past rest */
-    86%{  transform: translate(-50%, 3%) scale(1, 0.98); }                 /* settle wobble */
-    100%{ transform: translate(-50%, 0) scale(1, 1); }
-  }
-
-  .lever-btn{
-    position: absolute;
-    inset: 0;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
-    z-index: 3;
-  }
-  .lever-btn:disabled{ cursor: not-allowed; }
-
   @media (prefers-reduced-motion: reduce){
-    .lever-knob.pulled{ animation: none; }
-    .lever-arm.pulled::before{ animation: none; }
-    .lever-housing.pulled{ animation: none; }
     .reel-strip{ transition: none !important; }
   }
 
@@ -439,20 +310,13 @@
       <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
     </div>
 
-    <div class="machine-row mb-5">
+    <div class="mb-5">
       <div class="slot-frame">
         <div class="slot-window" aria-hidden="true">
           <div class="slot-reel" id="reel1"><div class="reel-strip"></div></div>
           <div class="slot-reel" id="reel2"><div class="reel-strip"></div></div>
           <div class="slot-reel" id="reel3"><div class="reel-strip"></div></div>
         </div>
-      </div>
-      <div class="lever-housing" id="leverHousing">
-        <div class="lever-track">
-          <div class="lever-arm" id="leverArm"></div>
-          <div class="lever-knob" id="leverKnob"></div>
-        </div>
-        <button type="button" id="leverBtn" class="lever-btn" aria-label="Pull lever to spin"></button>
       </div>
     </div>
 
@@ -523,7 +387,7 @@
   const BIG_MONEY = new Set(["💰","🤑","7️⃣"]);
 
   const SPIN_COST = 1;
-  const CELL_H = 60;
+  const CELL_H = 72;
 
   function weightedRandomSymbol(){
     let r = Math.random() * TOTAL_WEIGHT;
@@ -645,27 +509,6 @@
     setTimeout(() => onComplete && onComplete(symbols), totalDelay);
   }
 
-  // --- Lever animation ---
-  const leverKnob = document.getElementById("leverKnob");
-  const leverArmEl = document.getElementById("leverArm");
-  const leverHousing = document.getElementById("leverHousing");
-  const leverBtn = document.getElementById("leverBtn");
-
-  function pullLever(){
-    // Restart animations cleanly even if triggered again quickly, by
-    // forcing a reflow between removing and re-adding the class.
-    [leverKnob, leverArmEl, leverHousing].forEach(el => el.classList.remove("pulled"));
-    void leverKnob.offsetWidth; // force reflow
-    leverKnob.classList.add("pulled");
-    leverArmEl.classList.add("pulled");
-    leverHousing.classList.add("pulled");
-    setTimeout(() => {
-      leverKnob.classList.remove("pulled");
-      leverArmEl.classList.remove("pulled");
-      leverHousing.classList.remove("pulled");
-    }, 620);
-  }
-
   // --- Win flash ---
   const machineChassis = document.getElementById("machineChassis");
   const ticketScreen = document.getElementById("ticketScreen");
@@ -714,7 +557,6 @@
   function setControlsLocked(locked){
     controlsLocked = locked;
     spinBtn.disabled = locked || getTickets() < SPIN_COST;
-    leverBtn.disabled = locked;
   }
 
   function doSpin(){
@@ -725,7 +567,6 @@
     }
 
     addTickets(-SPIN_COST);
-    pullLever();
     setControlsLocked(true);
     resultDisplay.textContent = "SPINNING...";
     startReels();
@@ -755,7 +596,6 @@
   }
 
   spinBtn.addEventListener("click", doSpin);
-  leverBtn.addEventListener("click", doSpin);
 
   const testTicketsBtn = document.getElementById("testTicketsBtn");
   testTicketsBtn.addEventListener("click", () => {
