@@ -258,3 +258,43 @@ if(document.body){
   document.addEventListener("DOMContentLoaded", initWinNotificationUI);
 }
 
+// --- Cemetery / permadeath ---
+// Called when a pet dies in Cat Hack. Archives its final stats to the
+// cemetery record and permanently clears the active pet — there is no
+// undo. Every caller of this function is expected to have already gotten
+// explicit, unambiguous confirmation from the player before this fires.
+const CEMETERY_KEY = "meowfriend_cemetery";
+
+function killGotchyaPet(cause){
+  const pet = getGotchyaPet();
+  if(!pet) return null;
+
+  let cemetery = [];
+  try {
+    cemetery = JSON.parse(localStorage.getItem(CEMETERY_KEY) || "[]");
+  } catch {}
+
+  const record = {
+    name: pet.name,
+    species: pet.species,
+    glowColor: pet.glowColor || "red",
+    finalWeight: pet.weight || 0,
+    finalIq: pet.iq || 0,
+    birthDate: pet.adoptedAt || Date.now(),
+    deathDate: Date.now(),
+    cause: cause || "Died in Cat Hack",
+  };
+  cemetery.push(record);
+  localStorage.setItem(CEMETERY_KEY, JSON.stringify(cemetery));
+
+  localStorage.removeItem(GOTCHYA_PET_KEY);
+  document.dispatchEvent(new CustomEvent("gotchya:pet-died", { detail: { record } }));
+  return record;
+}
+
+function getCemetery(){
+  try {
+    return JSON.parse(localStorage.getItem(CEMETERY_KEY) || "[]");
+  } catch { return []; }
+}
+

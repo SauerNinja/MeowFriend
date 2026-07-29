@@ -147,6 +147,24 @@
     position: relative;
   }
 
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+
   .rivet{
     width: 8px;
     height: 8px;
@@ -287,6 +305,29 @@
   .addr-input:focus{ outline: none; box-shadow: 0 0 0 2px var(--neon-red), inset 0 0 10px rgba(255,30,67,0.25); }
   .addr-input.invalid{ border-color: #ff5566; box-shadow: 0 0 0 2px #ff5566; }
 
+  .challenge-textarea{
+    background: transparent;
+    border: none;
+    color: var(--neon-red);
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    resize: none;
+    word-break: break-all;
+  }
+  .challenge-textarea:focus{ outline: none; }
+
+  .test-btn{
+    background: transparent;
+    border: 2px dashed #4a2a30;
+    color: #9a5a62;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 0 16px;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .test-btn:hover{ border-color: var(--neon-red); color: var(--neon-red); }
+
   .status-banner{
     font-size: 9px;
     line-height: 1.7;
@@ -341,49 +382,93 @@
     <div class="rivet absolute bottom-2 left-2"></div>
     <div class="rivet absolute bottom-2 right-2"></div>
 
-    <!-- LED screens -->
-    <div class="grid grid-cols-2 gap-4 mb-4">
-      <div class="led-screen">
-        <div class="led-label">DAILY DRIP</div>
-        <div class="led-value">10 MEWC</div>
+    <!-- Registration gate: shown until this device has a verified address.
+         Boop UI stays hidden until this completes. -->
+    <div id="regGate">
+      <p class="text-[9px] text-center mb-4" style="color:var(--neon-red); text-shadow:0 0 6px var(--neon-red);">
+        REGISTER TO BOOP
+      </p>
+      <p class="body-copy text-base leading-snug text-center mb-5" style="color:#ffc7cf;">
+        Prove you control a Meowcoin address by signing a message with your wallet. This never asks
+        for your seed phrase or private key — only your wallet's built-in "sign message" feature.
+      </p>
+
+      <!-- Step 1: enter address -->
+      <div id="regStep1">
+        <label for="regAddrInput" class="block led-label mb-2 text-center">STEP 1 — YOUR MEOWCOIN ADDRESS</label>
+        <input
+          type="text"
+          id="regAddrInput"
+          class="addr-input w-full mb-3"
+          placeholder="M....................."
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <div class="flex justify-center mb-3">
+          <button type="button" id="regContinueBtn" class="boop-btn w-full py-4 text-sm tracking-wider">CONTINUE</button>
+        </div>
       </div>
-      <div class="led-screen text-right">
-        <div class="led-label">RECHARGE</div>
-        <div class="led-value" id="rechargeDisplay">24h</div>
+
+      <!-- Step 2: sign the challenge -->
+      <div id="regStep2" class="hidden">
+        <div class="led-screen mb-4">
+          <div class="led-label">STEP 2 — SIGN THIS EXACT MESSAGE IN YOUR WALLET</div>
+          <textarea id="regChallengeMessage" class="challenge-textarea w-full mt-2" rows="2" readonly></textarea>
+        </div>
+        <label for="regSigInput" class="block led-label mb-2 text-center">SIGNATURE FROM YOUR WALLET</label>
+        <input
+          type="text"
+          id="regSigInput"
+          class="addr-input w-full mb-3"
+          placeholder="Paste the signature your wallet produced"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <div class="flex justify-center gap-2 mb-3">
+          <button type="button" id="regBackBtn" class="test-btn">&larr; BACK</button>
+          <button type="button" id="regVerifyBtn" class="boop-btn flex-1 py-4 text-sm tracking-wider">VERIFY &amp; REGISTER</button>
+        </div>
       </div>
-    </div>
-    <div class="led-screen mb-6 text-center">
-      <div class="led-label">FAUCET BALANCE</div>
-      <div class="led-value" id="balanceDisplay">-- MEWC</div>
+
+      <div id="regStatusBanner" class="status-banner hidden mb-2" role="status" aria-live="polite" aria-atomic="true"></div>
     </div>
 
-    <!-- Address input -->
-    <div class="mb-5">
-      <label for="mewcAddress" class="block led-label mb-2 text-center">YOUR MEOWCOIN ADDRESS</label>
-      <input
-        type="text"
-        id="mewcAddress"
-        class="addr-input w-full"
-        placeholder="M....................."
-        autocomplete="off"
-        spellcheck="false"
-        aria-describedby="addrError"
-      >
-      <p id="addrError" class="hidden text-[8px] text-[#ff8b96] mt-2 tracking-wide">ADDRESS MUST START WITH "M"</p>
-    </div>
+    <!-- Boop console: hidden until registration completes -->
+    <div id="boopConsole" class="hidden">
+      <div class="led-screen mb-4 text-center">
+        <div class="led-label">REGISTERED ADDRESS</div>
+        <div class="led-value break-all" id="registeredAddrDisplay">—</div>
+      </div>
 
-    <!-- Boop button -->
-    <div class="flex justify-center mb-6">
-      <button id="boopBtn" class="boop-btn w-full py-6 text-base sm:text-lg tracking-wider">
-        BOOP FOR MEOWCOIN
-      </button>
-    </div>
+      <!-- LED screens -->
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="led-screen">
+          <div class="led-label">DAILY DRIP</div>
+          <div class="led-value">10 MEWC</div>
+        </div>
+        <div class="led-screen text-right">
+          <div class="led-label">RECHARGE</div>
+          <div class="led-value" id="rechargeDisplay">24h</div>
+        </div>
+      </div>
+      <div class="led-screen mb-6 text-center">
+        <div class="led-label">FAUCET BALANCE</div>
+        <div class="led-value" id="balanceDisplay">-- MEWC</div>
+      </div>
 
-    <!-- Status banner -->
-    <div id="statusBanner" class="status-banner hidden mb-6" role="status" aria-live="polite" aria-atomic="true"></div>
+      <!-- Boop button -->
+      <div class="flex justify-center mb-6">
+        <button id="boopBtn" class="boop-btn w-full py-6 text-base sm:text-lg tracking-wider">
+          BOOP FOR MEOWCOIN
+        </button>
+      </div>
+
+      <!-- Status banner -->
+      <div id="statusBanner" class="status-banner hidden mb-6" role="status" aria-live="polite" aria-atomic="true"></div>
+    </div>
 
     <!-- Bottom details -->
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between mt-4">
       <div class="floppy-slot"></div>
       <div class="flex gap-2">
         <div class="vent-switch"></div>
@@ -431,7 +516,33 @@
       <span class="section-nav-icon" aria-hidden="true">🎒</span>
       <span class="section-nav-label">BACKPACK</span>
     </a>
+    <a href="cathack.html" class="section-nav-card" aria-label="Go to Cat Hack, a permadeath roguelike dungeon crawl">
+      <span class="section-nav-icon" aria-hidden="true">💀</span>
+      <span class="section-nav-label">CAT HACK</span>
+    </a>
   </nav>
+
+  <section class="info-panel p-6 sm:p-8 mt-8" aria-labelledby="readme-heading">
+    <p class="panel-eyebrow mb-3">ABOUT THIS PROJECT</p>
+    <h2 id="readme-heading" class="panel-heading mb-4">README</h2>
+    <p class="body-copy mb-4">
+      MeowFriend is a retro arcade faucet site for Meowcoin (MEWC) — a collection of minigames, a
+      virtual pet system, and an optional Meowcoin-node-integrated backend, wrapped in a neon
+      CRT-arcade look. It includes a small MEWC drip faucet, arcade minigames sharing an in-game
+      ticket economy, a persistent virtual pet (Gotchya) with its own shop and backpack, and a
+      turn-based permadeath dungeon crawl (Cat Hack). Donations and wallet registration are verified
+      against a real Meowcoin node via cryptographic message signing, not trusted client-side.
+    </p>
+    <p class="body-copy mb-4">
+      The frontend is plain HTML/CSS/JS with no build step, using Tailwind via CDN for styling. A
+      small Node.js/Express bridge server handles anything that needs to talk to a real Meowcoin
+      node's RPC interface.
+    </p>
+    <p class="body-copy">
+      This project is open for anyone to use, fork, modify, and build on — released under the
+      <strong>MIT License</strong>. Contributions and reuse are welcome.
+    </p>
+  </section>
 
   <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
     <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
@@ -445,20 +556,139 @@
   const STORAGE_KEY = "meowfriend_last_boop";
   const COOLDOWN_MS = 24 * 60 * 60 * 1000;
   // Point this at your Cloudflare Tunnel URL, e.g.
-  // "https://your-tunnel-name.trycloudflare.com/api/boop"
-  const API_URL = "https://YOUR_TUNNEL_URL.trycloudflare.com/api/boop";
-  const BALANCE_URL = "https://YOUR_TUNNEL_URL.trycloudflare.com/api/balance";
+  // "https://your-tunnel-name.trycloudflare.com"
+  const API_BASE = "https://YOUR_TUNNEL_URL.trycloudflare.com";
   const balanceDisplay = document.getElementById("balanceDisplay");
 
-  const boopBtn = document.getElementById("boopBtn");
-  const addrInput = document.getElementById("mewcAddress");
-  const addrError = document.getElementById("addrError");
-  const statusBanner = document.getElementById("statusBanner");
-  const rechargeDisplay = document.getElementById("rechargeDisplay");
+  // --- Registration gate ---
+  const regGate = document.getElementById("regGate");
+  const regStep1 = document.getElementById("regStep1");
+  const regStep2 = document.getElementById("regStep2");
+  const regAddrInput = document.getElementById("regAddrInput");
+  const regContinueBtn = document.getElementById("regContinueBtn");
+  const regChallengeMessage = document.getElementById("regChallengeMessage");
+  const regSigInput = document.getElementById("regSigInput");
+  const regBackBtn = document.getElementById("regBackBtn");
+  const regVerifyBtn = document.getElementById("regVerifyBtn");
+  const regStatusBanner = document.getElementById("regStatusBanner");
+  const boopConsole = document.getElementById("boopConsole");
+  const registeredAddrDisplay = document.getElementById("registeredAddrDisplay");
+
+  let registeredAddress = null;
 
   function isValidAddress(addr){
     return typeof addr === "string" && addr.trim().length >= 6 && addr.trim().startsWith("M");
   }
+
+  function showRegBanner(text, type){
+    regStatusBanner.textContent = text;
+    regStatusBanner.className = "status-banner mb-2 " + type;
+  }
+
+  function unlockBoopConsole(address){
+    registeredAddress = address;
+    registeredAddrDisplay.textContent = address;
+    regGate.classList.add("hidden");
+    boopConsole.classList.remove("hidden");
+    updateCooldownUI();
+    refreshBalance();
+  }
+
+  // Checked on every page load — a device that already registered skips
+  // straight to the boop console instead of re-doing the sign flow.
+  async function checkRegistrationStatus(){
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/status`, { credentials: "include" });
+      if(!response.ok) return;
+      const data = await response.json();
+      if(data.registered && data.address){
+        unlockBoopConsole(data.address);
+      }
+    } catch {
+      // Bridge not reachable (e.g. placeholder URL still in place) — leave
+      // the registration gate showing as normal.
+    }
+  }
+
+  regContinueBtn.addEventListener("click", async () => {
+    const address = regAddrInput.value.trim();
+    if(!isValidAddress(address)){
+      showRegBanner("ERROR: ENTER A VALID MEOWCOIN ADDRESS", "error");
+      return;
+    }
+
+    regContinueBtn.disabled = true;
+    showRegBanner("REQUESTING CHALLENGE...", "pending");
+
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/challenge`, { credentials: "include" });
+      const data = await response.json().catch(() => ({}));
+      if(!response.ok){
+        showRegBanner(`ERROR: ${String(data.error || "COULD NOT GET A CHALLENGE").toUpperCase()}`, "error");
+        return;
+      }
+      regChallengeMessage.value = data.message;
+      regStep1.classList.add("hidden");
+      regStep2.classList.remove("hidden");
+      showRegBanner("SIGN THE MESSAGE ABOVE IN YOUR WALLET, THEN PASTE THE SIGNATURE.", "pending");
+    } catch {
+      showRegBanner("ERROR: COULD NOT REACH THE FAUCET SERVER", "error");
+    } finally {
+      regContinueBtn.disabled = false;
+    }
+  });
+
+  regBackBtn.addEventListener("click", () => {
+    regStep2.classList.add("hidden");
+    regStep1.classList.remove("hidden");
+    regSigInput.value = "";
+    showRegBanner("", "");
+    regStatusBanner.classList.add("hidden");
+  });
+
+  regVerifyBtn.addEventListener("click", async () => {
+    const address = regAddrInput.value.trim();
+    const signature = regSigInput.value.trim();
+
+    if(!isValidAddress(address)){
+      showRegBanner("ERROR: ENTER A VALID MEOWCOIN ADDRESS", "error");
+      return;
+    }
+    if(!signature){
+      showRegBanner("ERROR: PASTE THE SIGNATURE YOUR WALLET PRODUCED", "error");
+      return;
+    }
+
+    regVerifyBtn.disabled = true;
+    showRegBanner("VERIFYING SIGNATURE...", "pending");
+
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ address, signature }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if(!response.ok || !data.success){
+        showRegBanner(`ERROR: ${String(data.error || "VERIFICATION FAILED").toUpperCase()}`, "error");
+        return;
+      }
+
+      showRegBanner("ADDRESS VERIFIED! UNLOCKING FAUCET...", "success");
+      setTimeout(() => unlockBoopConsole(data.address), 800);
+    } catch {
+      showRegBanner("ERROR: COULD NOT REACH THE FAUCET SERVER", "error");
+    } finally {
+      regVerifyBtn.disabled = false;
+    }
+  });
+
+  // --- Boop console (unlocked only after registration) ---
+  const boopBtn = document.getElementById("boopBtn");
+  const statusBanner = document.getElementById("statusBanner");
+  const rechargeDisplay = document.getElementById("rechargeDisplay");
 
   function formatCountdown(ms){
     const totalSec = Math.max(0, Math.floor(ms / 1000));
@@ -474,7 +704,7 @@
   }
 
   async function requestBoop(address){
-    const response = await fetch(API_URL, {
+    const response = await fetch(`${API_BASE}/api/boop`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -489,7 +719,7 @@
 
   async function refreshBalance(){
     try {
-      const response = await fetch(BALANCE_URL, { credentials: "include" });
+      const response = await fetch(`${API_BASE}/api/balance`, { credentials: "include" });
       const data = await response.json();
       if(response.ok && typeof data.balance === "number"){
         balanceDisplay.textContent = `${data.balance} MEWC`;
@@ -526,26 +756,11 @@
     }
   }
 
-  addrInput.addEventListener("input", () => {
-    addrInput.classList.remove("invalid");
-    addrInput.removeAttribute("aria-invalid");
-    addrError.classList.add("hidden");
-  });
-
   boopBtn.addEventListener("click", async () => {
-    const addr = addrInput.value.trim();
-
-    if(!isValidAddress(addr)){
-      addrInput.classList.add("invalid");
-      addrInput.setAttribute("aria-invalid", "true");
-      addrError.classList.remove("hidden");
-      showBanner("ERROR: ENTER A VALID MEOWCOIN ADDRESS", "error");
+    if(!registeredAddress){
+      showBanner("ERROR: NO REGISTERED ADDRESS FOUND", "error");
       return;
     }
-
-    addrInput.classList.remove("invalid");
-    addrInput.removeAttribute("aria-invalid");
-    addrError.classList.add("hidden");
 
     // Recharge timer starts the instant boop is pressed — win, lose, or
     // error, the wait is the same. Set this before anything else so a
@@ -558,7 +773,7 @@
     showBanner("BOOPING THE BLOCKCHAIN...", "pending");
 
     try {
-      const data = await requestBoop(addr);
+      const data = await requestBoop(registeredAddress);
       showBanner(`SUCCESS! ${data.amount || 10} MEWC DRIPPED.\nTXID: ${data.txid}`, "success");
       refreshBalance();
     } catch (err) {
@@ -566,8 +781,7 @@
     }
   });
 
-  updateCooldownUI();
-  refreshBalance();
+  checkRegistrationStatus();
   setInterval(refreshBalance, 60000);
 </script>
 

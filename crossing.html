@@ -139,9 +139,9 @@
   #gameCanvas{
     display: block;
     width: 100%;
-    max-width: 340px;
+    max-width: 400px;
     height: auto;
-    aspect-ratio: 340 / 420;
+    aspect-ratio: 400 / 500;
     background: #0a0a0c;
     border: 3px solid #3a3a42;
     touch-action: none;
@@ -292,7 +292,7 @@
     </div>
 
     <div class="game-frame mb-4">
-      <canvas id="gameCanvas" width="340" height="420" aria-label="Cat Crossing game board"></canvas>
+      <canvas id="gameCanvas" width="400" height="500" aria-label="Cat Crossing game board"></canvas>
     </div>
 
     <p class="text-[8px] text-[#6e3a41] leading-relaxed mb-4 text-center">
@@ -352,7 +352,7 @@
   const LIFE_COST = 5; // extra lives bought mid-run, on top of the 9 free lives included in PLAY_COST
   const COLS = 8;
   const ROWS = 10;
-  const CELL = 42;
+  const CELL = 50; // bumped up from 42 so the board fills its frame better
 
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d");
@@ -366,10 +366,11 @@
 
   // High-DPI canvas setup: the backing buffer is scaled up by the device
   // pixel ratio so rendering stays crisp on retina/high-density screens
-  // instead of the browser stretching a low-res buffer to fit. CSS size
-  // (340x420) stays the same — only the internal resolution increases.
-  const LOGICAL_WIDTH = 340;
-  const LOGICAL_HEIGHT = 420;
+  // instead of the browser stretching a low-res buffer to fit. Logical
+  // size is derived directly from the grid (CELL x COLS/ROWS) so it can
+  // never drift out of sync with the actual game board dimensions.
+  const LOGICAL_WIDTH = CELL * COLS;
+  const LOGICAL_HEIGHT = CELL * ROWS;
   const DPR = Math.min(window.devicePixelRatio || 1, 3);
   canvas.width = LOGICAL_WIDTH * DPR;
   canvas.height = LOGICAL_HEIGHT * DPR;
@@ -676,7 +677,7 @@
 
     lanes.forEach((lane, i) => {
       const y = i * CELL;
-      ctx.fillStyle = lane.type === "safe" ? "#131a12" : "#18181c";
+      ctx.fillStyle = lane.type === "safe" ? "#1a2418" : "#202024";
       ctx.fillRect(0, y, LOGICAL_WIDTH, CELL);
       if(lane.type === "safe"){
         ctx.strokeStyle = "rgba(41,255,138,0.15)";

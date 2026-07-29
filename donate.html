@@ -155,11 +155,43 @@
     filter: brightness(1.2);
   }
 
+  .copy-btn{
+    background: transparent;
+    border: 2px solid var(--neon-red);
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 8px 10px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .copy-btn:hover{ filter: brightness(1.2); }
+  .copy-btn.copied{
+    border-color: #29ff8a;
+    color: #29ff8a;
+  }
+
   .draft-warning{
     border: 2px dashed #ffb347;
     background: rgba(255,179,71,0.06);
     padding: 12px 14px;
   }
+
+  .challenge-textarea{
+    background: transparent;
+    border: none;
+    color: var(--neon-red);
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    resize: none;
+    word-break: break-all;
+  }
+  .challenge-textarea:focus{ outline: none; }
+
+  .hidden{ display: none; }
 </style>
 </head>
 <body class="scanlines flex items-center justify-center px-4 py-10">
@@ -188,7 +220,10 @@
 
     <div class="led-screen mb-5">
       <div class="led-label">FAUCET DONATION ADDRESS</div>
-      <div class="led-value break-all" id="donationAddress">M... (set this to your real faucet wallet address)</div>
+      <div class="flex items-center gap-2 mt-1">
+        <div class="led-value break-all flex-1" id="donationAddress">mewc1qklnr4rdvh9aq59p2r0dtyqr2q5rff2xjlkm7zw</div>
+        <button type="button" id="copyAddressBtn" class="copy-btn" aria-label="Copy donation address to clipboard">COPY</button>
+      </div>
     </div>
 
     <label for="donationTxid" class="block led-label mb-2">YOUR TRANSACTION ID (TXID)</label>
@@ -206,13 +241,75 @@
     <p id="donationStatus" class="text-[8px] text-center leading-relaxed" style="color:#9a5a62;"></p>
 
     <div class="draft-warning mt-5">
-      <p class="led-label mb-2" style="color:#ffb347;">⚠ DRAFT — NOT VERIFIED YET</p>
+      <p class="led-label mb-2" style="color:#ffb347;">⚠ REQUIRES THE BRIDGE SERVER</p>
       <p class="body-copy text-base leading-snug">
-        This form currently accepts any TXID-shaped text and grants tickets immediately — it does
-        <strong>not</strong> check the Meowcoin blockchain to confirm the transaction happened, that
-        it paid the right amount, or that the same TXID hasn't been reused. Before this goes live,
-        it needs a backend endpoint that calls <code>gettransaction</code> on your node and keeps a
-        record of already-claimed TXIDs, the same way the faucet's own anti-duplicate system works.
+        Every TXID is checked against the real Meowcoin blockchain via the faucet's bridge server —
+        it confirms the transaction actually paid this donation address, waits for
+        <strong>6 confirmations</strong>, and blocks the same TXID from being claimed twice. Update
+        <code>API_BASE</code> below to your real tunnel URL before this works.
+      </p>
+    </div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="register-heading">
+    <p class="panel-eyebrow mb-3">DONOR REGISTRATION</p>
+    <h2 id="register-heading" class="panel-heading mb-4">REGISTER YOUR ADDRESS</h2>
+    <p class="body-copy mb-5">
+      Prove you control a Meowcoin address by signing a one-time message with your wallet, so your
+      address is saved for donation credit. This never asks for your seed phrase or private key —
+      only your wallet's built-in "sign message" feature, which never leaves your wallet.
+    </p>
+
+    <div id="regAlreadyDone" class="led-screen mb-5 hidden">
+      <div class="led-label">REGISTERED ADDRESS</div>
+      <div class="led-value break-all" id="regSavedAddress">—</div>
+    </div>
+
+    <div id="regFlow">
+      <label for="regAddressInput" class="block led-label mb-2">YOUR MEOWCOIN ADDRESS</label>
+      <input
+        type="text"
+        id="regAddressInput"
+        class="addr-input w-full mb-3"
+        placeholder="M..."
+        autocomplete="off"
+        spellcheck="false"
+      >
+
+      <div class="flex justify-center mb-4">
+        <button type="button" id="getChallengeBtn" class="submit-btn">GENERATE CHALLENGE</button>
+      </div>
+
+      <div id="challengeBox" class="led-screen mb-4 hidden">
+        <div class="led-label">SIGN THIS EXACT MESSAGE IN YOUR WALLET</div>
+        <textarea id="challengeMessage" class="challenge-textarea w-full mt-2" rows="2" readonly></textarea>
+      </div>
+
+      <div id="signatureFlow" class="hidden">
+        <label for="regSignatureInput" class="block led-label mb-2">SIGNATURE FROM YOUR WALLET</label>
+        <input
+          type="text"
+          id="regSignatureInput"
+          class="addr-input w-full mb-3"
+          placeholder="Paste the signature your wallet produced"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <div class="flex justify-center mb-3">
+          <button type="button" id="verifyRegisterBtn" class="submit-btn">VERIFY &amp; REGISTER</button>
+        </div>
+      </div>
+
+      <p id="regStatus" class="text-[8px] text-center leading-relaxed" style="color:#9a5a62;"></p>
+    </div>
+
+    <div class="draft-warning mt-5">
+      <p class="led-label mb-2" style="color:#ffb347;">⚠ REQUIRES THE BRIDGE SERVER</p>
+      <p class="body-copy text-base leading-snug">
+        This calls the same faucet bridge server as the BOOP button on the homepage. Update
+        <code>API_BASE</code> below to your real tunnel URL before this works. Signature
+        verification happens via your node's own <code>verifymessage</code> RPC call — nothing here
+        can register an address unless that node genuinely confirms the signature is valid for it.
       </p>
     </div>
   </section>
@@ -232,41 +329,212 @@
   }
   document.addEventListener("tickets:changed", updateTicketDisplay);
 
-  // --- Donation-for-tickets (DRAFT) ---
-  // NOT VERIFIED: accepts any TXID-shaped string and grants tickets
-  // immediately. Needs a backend that calls gettransaction on the node and
-  // tracks already-claimed TXIDs before this is safe to launch publicly.
+  // Same bridge server as the homepage BOOP button and registration flow.
+  const API_BASE = "https://YOUR_TUNNEL_URL.trycloudflare.com";
+
+  // --- Copy donation address to clipboard ---
+  const donationAddress = document.getElementById("donationAddress");
+  const copyAddressBtn = document.getElementById("copyAddressBtn");
+
+  copyAddressBtn.addEventListener("click", async () => {
+    const address = donationAddress.textContent.trim();
+    try {
+      await navigator.clipboard.writeText(address);
+      copyAddressBtn.textContent = "COPIED!";
+      copyAddressBtn.classList.add("copied");
+    } catch {
+      // Clipboard API unavailable (e.g. insecure context) — fall back to
+      // a manual selection so the user can still copy it themselves.
+      const range = document.createRange();
+      range.selectNodeContents(donationAddress);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      copyAddressBtn.textContent = "SELECTED";
+    }
+    setTimeout(() => {
+      copyAddressBtn.textContent = "COPY";
+      copyAddressBtn.classList.remove("copied");
+    }, 2000);
+  });
+
+  // --- Donation-for-tickets (server-verified) ---
+  // The TXID is checked against the real blockchain via the bridge
+  // server's gettransaction RPC call — confirmations, the actual amount
+  // paid to the real donation address, and duplicate-claim prevention are
+  // all enforced server-side. This page never grants tickets on its own
+  // say-so.
   const donationTxidInput = document.getElementById("donationTxid");
   const claimDonationBtn = document.getElementById("claimDonationBtn");
   const donationStatus = document.getElementById("donationStatus");
-  const TICKETS_PER_100_MEWC = 10;
-  const claimedTxids = new Set(JSON.parse(localStorage.getItem("meowfriend_claimed_txids") || "[]"));
 
   function looksLikeTxid(v){
-    return typeof v === "string" && /^[a-fA-F0-9]{16,64}$/.test(v.trim());
+    return typeof v === "string" && /^[a-fA-F0-9]{64}$/.test(v.trim());
   }
 
-  claimDonationBtn.addEventListener("click", () => {
+  function setDonationStatus(text, color){
+    donationStatus.textContent = text;
+    donationStatus.style.color = color;
+  }
+
+  claimDonationBtn.addEventListener("click", async () => {
     const txid = donationTxidInput.value.trim();
     if(!looksLikeTxid(txid)){
-      donationStatus.textContent = "That doesn't look like a valid TXID.";
-      donationStatus.style.color = "#ff8b96";
+      setDonationStatus("That doesn't look like a valid TXID.", "#ff8b96");
       return;
     }
-    if(claimedTxids.has(txid)){
-      donationStatus.textContent = "This TXID has already been claimed on this device.";
-      donationStatus.style.color = "#ff8b96";
-      return;
+
+    claimDonationBtn.disabled = true;
+    setDonationStatus("Checking the blockchain...", "#9a5a62");
+
+    try {
+      const response = await fetch(`${API_BASE}/api/donation/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ txid }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if(response.status === 202 && data.pending){
+        setDonationStatus(
+          `Not enough confirmations yet: ${data.confirmations}/${data.required}. Try again in a bit.`,
+          "#ffb347"
+        );
+        return;
+      }
+
+      if(!response.ok || !data.success){
+        setDonationStatus(data.error || "Could not verify this transaction.", "#ff8b96");
+        return;
+      }
+
+      addTickets(data.tickets);
+      setDonationStatus(
+        `Verified! ${data.amount} MEWC confirmed on-chain — +${data.tickets} tickets added.`,
+        "#29ff8a"
+      );
+      donationTxidInput.value = "";
+    } catch {
+      setDonationStatus("Could not reach the faucet server. Try again later.", "#ff8b96");
+    } finally {
+      claimDonationBtn.disabled = false;
     }
-    // DRAFT: no on-chain verification yet — see warning panel above.
-    claimedTxids.add(txid);
-    localStorage.setItem("meowfriend_claimed_txids", JSON.stringify([...claimedTxids]));
-    addTickets(TICKETS_PER_100_MEWC);
-    donationStatus.textContent = `+${TICKETS_PER_100_MEWC} tickets added (draft mode — not yet verified on-chain).`;
-    donationStatus.style.color = "#29ff8a";
-    donationTxidInput.value = "";
   });
 
+  // --- Donor registration (sign-to-register) ---
+  // Same bridge server as the homepage BOOP button. Update this to your
+  // real tunnel URL — nothing here works until it points at a live node.
+
+  const regAlreadyDone = document.getElementById("regAlreadyDone");
+  const regSavedAddress = document.getElementById("regSavedAddress");
+  const regFlow = document.getElementById("regFlow");
+  const regAddressInput = document.getElementById("regAddressInput");
+  const getChallengeBtn = document.getElementById("getChallengeBtn");
+  const challengeBox = document.getElementById("challengeBox");
+  const challengeMessage = document.getElementById("challengeMessage");
+  const signatureFlow = document.getElementById("signatureFlow");
+  const regSignatureInput = document.getElementById("regSignatureInput");
+  const verifyRegisterBtn = document.getElementById("verifyRegisterBtn");
+  const regStatus = document.getElementById("regStatus");
+
+  function setRegStatus(message, color){
+    regStatus.textContent = message;
+    regStatus.style.color = color;
+  }
+
+  function looksLikeMeowcoinAddress(addr){
+    return typeof addr === "string" && /^M[a-zA-Z0-9]{25,39}$/.test(addr.trim());
+  }
+
+  // On load, check whether this device already has a registered address —
+  // if so, show it read-only instead of the registration form.
+  async function checkRegistrationStatus(){
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/status`, { credentials: "include" });
+      if(!response.ok) return;
+      const data = await response.json();
+      if(data.registered && data.address){
+        regSavedAddress.textContent = data.address;
+        regAlreadyDone.classList.remove("hidden");
+        regFlow.classList.add("hidden");
+      }
+    } catch {
+      // Bridge not reachable yet (e.g. placeholder URL still in place) —
+      // fail quietly and just show the registration form as normal.
+    }
+  }
+
+  getChallengeBtn.addEventListener("click", async () => {
+    const address = regAddressInput.value.trim();
+    if(!looksLikeMeowcoinAddress(address)){
+      setRegStatus("Enter a valid Meowcoin address first.", "#ff8b96");
+      return;
+    }
+
+    getChallengeBtn.disabled = true;
+    setRegStatus("Requesting challenge...", "#9a5a62");
+
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/challenge`, { credentials: "include" });
+      const data = await response.json();
+      if(!response.ok){
+        setRegStatus(data.error || "Could not get a challenge. Try again.", "#ff8b96");
+        return;
+      }
+      challengeMessage.value = data.message;
+      challengeBox.classList.remove("hidden");
+      signatureFlow.classList.remove("hidden");
+      setRegStatus("Sign the message above in your wallet, then paste the signature below.", "#7a3038");
+    } catch {
+      setRegStatus("Could not reach the faucet server. Try again later.", "#ff8b96");
+    } finally {
+      getChallengeBtn.disabled = false;
+    }
+  });
+
+  verifyRegisterBtn.addEventListener("click", async () => {
+    const address = regAddressInput.value.trim();
+    const signature = regSignatureInput.value.trim();
+
+    if(!looksLikeMeowcoinAddress(address)){
+      setRegStatus("Enter a valid Meowcoin address first.", "#ff8b96");
+      return;
+    }
+    if(!signature){
+      setRegStatus("Paste the signature your wallet produced.", "#ff8b96");
+      return;
+    }
+
+    verifyRegisterBtn.disabled = true;
+    setRegStatus("Verifying signature...", "#9a5a62");
+
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ address, signature }),
+      });
+      const data = await response.json();
+
+      if(!response.ok || !data.success){
+        setRegStatus(data.error || "Verification failed. Check the address and signature and try again.", "#ff8b96");
+        return;
+      }
+
+      setRegStatus("Address verified and registered!", "#29ff8a");
+      regSavedAddress.textContent = data.address;
+      regAlreadyDone.classList.remove("hidden");
+      regFlow.classList.add("hidden");
+    } catch {
+      setRegStatus("Could not reach the faucet server. Try again later.", "#ff8b96");
+    } finally {
+      verifyRegisterBtn.disabled = false;
+    }
+  });
+
+  checkRegistrationStatus();
   updateTicketDisplay();
 </script>
 

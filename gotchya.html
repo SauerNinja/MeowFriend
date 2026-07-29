@@ -990,6 +990,21 @@
 
   let pet = loadPet();
   if(pet){
+    // Backfill fields that didn't exist in earlier versions of this page,
+    // so a pet saved before a field was added doesn't silently reset that
+    // field's meaning (e.g. adoptedAt defaulting to "now" on every load,
+    // which would pin days-elapsed at 0 forever instead of ever counting
+    // up). This only fills in a genuinely missing value once — it never
+    // overwrites a real one.
+    let neededBackfill = false;
+    if(pet.adoptedAt === undefined){
+      pet.adoptedAt = Date.now();
+      neededBackfill = true;
+    }
+    if(neededBackfill){
+      savePet(pet);
+    }
+
     pet = applyDecay(pet);
     savePet(pet);
   }
