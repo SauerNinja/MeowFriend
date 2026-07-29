@@ -294,6 +294,69 @@
     color: var(--neon-red);
   }
 
+  .burst-panel{
+    border: 2px solid #2a2a30;
+    background: rgba(10,10,12,0.5);
+    padding: 12px 14px;
+  }
+  .burst-label{
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: #7a3038;
+    text-align: center;
+  }
+  .burst-size-row{
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+  }
+  .burst-size-btn{
+    background: #0a0a0c;
+    border: 2px solid #3a3a42;
+    color: #9a5a62;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  .burst-size-btn:hover{ border-color: var(--neon-red); color: var(--neon-red); }
+  .burst-size-btn.selected{
+    border-color: var(--neon-red);
+    color: var(--neon-red);
+    box-shadow: 0 0 8px rgba(255,30,67,0.4);
+  }
+  .burst-start-btn, .burst-stop-btn{
+    flex: 1;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    padding: 10px;
+    cursor: pointer;
+  }
+  .burst-start-btn{
+    background: transparent;
+    border: 2px solid var(--neon-red);
+    color: var(--neon-red);
+  }
+  .burst-start-btn:hover:not(:disabled){ filter: brightness(1.3); }
+  .burst-start-btn:disabled{
+    border-color: #401019;
+    color: #6e4a4f;
+    cursor: not-allowed;
+  }
+  .burst-stop-btn{
+    background: #3a1218;
+    border: 2px solid #ff1e43;
+    color: #ff8b96;
+  }
+  .burst-stop-btn:hover{ filter: brightness(1.3); }
+  .burst-progress{
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: #ffc7cf;
+    text-align: center;
+    margin-top: 8px;
+  }
+
   .paytable{
     font-family: 'VT323', monospace;
     font-size: 16px;
@@ -363,6 +426,20 @@
       <button type="button" id="spinBtn" class="spin-btn w-full py-5 text-sm tracking-wider">
         SPIN — 1 🎟️
       </button>
+    </div>
+
+    <div class="burst-panel mb-4">
+      <p class="burst-label mb-2">BURST SPIN — pick a batch, click once, watch it play</p>
+      <div class="burst-size-row mb-3">
+        <button type="button" class="burst-size-btn" data-size="5">5</button>
+        <button type="button" class="burst-size-btn" data-size="10">10</button>
+        <button type="button" class="burst-size-btn" data-size="25">25</button>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" id="burstStartBtn" class="burst-start-btn">SPIN BATCH</button>
+        <button type="button" id="burstStopBtn" class="burst-stop-btn hidden">STOP</button>
+      </div>
+      <p class="burst-progress hidden" id="burstProgress"></p>
     </div>
 
     <div class="flex justify-center">
@@ -596,55 +673,143 @@
   }
 
   function doSpin(){
-    if(controlsLocked) return;
-    if(getTickets() < SPIN_COST){
-      resultDisplay.textContent = "NOT ENOUGH TICKETS";
-      return;
-    }
-
-    addTickets(-SPIN_COST);
-    setControlsLocked(true);
-    resultDisplay.textContent = "SPINNING...";
-    startReels();
-
-    landReels((symbols) => {
-      const payout = calculatePayout(symbols);
-
-      if(payout.tickets > 0){
-        const before = getTickets();
-        addTickets(payout.tickets);
-        tickUpTickets(before, getTickets(), 700);
-        resultDisplay.textContent = `${payout.label} +${payout.tickets}`;
-      } else {
-        resultDisplay.textContent = payout.label;
+    return new Promise((resolve) => {
+      if(controlsLocked){ resolve(null); return; }
+      if(getTickets() < SPIN_COST){
+        resultDisplay.textContent = "NOT ENOUGH TICKETS";
+        resolve(null);
+        return;
       }
 
-      // Gotchya item drops: small chance on any real match win, guaranteed
-      // bonus item on the rare jackpot specifically. No-op if the player
-      // hasn't adopted a Gotchya pet yet.
-      if(payout.type === "win"){
-        if(payout.tickets >= 500000){
-          grantGotchyaMilestone();
+      addTickets(-SPIN_COST);
+      setControlsLocked(true);
+      resultDisplay.textContent = "SPINNING...";
+      startReels();
+
+      landReels((symbols) => {
+        const payout = calculatePayout(symbols);
+
+        if(payout.tickets > 0){
+          const before = getTickets();
+          addTickets(payout.tickets);
+          tickUpTickets(before, getTickets(), 700);
+          resultDisplay.textContent = `${payout.label} +${payout.tickets}`;
         } else {
-          rollGotchyaDrop(0.08);
+          resultDisplay.textContent = payout.label;
         }
-      }
 
-      // Hold longer for a real win so the rainbow chase has room to play;
-      // shorter, non-blocking flash for cherry/loss results.
-      const holdMs = payout.type === "win" ? 1400 : 700;
-      flashResult(payout.type, holdMs);
+        // Gotchya item drops: small chance on any real match win, guaranteed
+        // bonus item on the rare jackpot specifically. No-op if the player
+        // hasn't adopted a Gotchya pet yet.
+        if(payout.type === "win"){
+          if(payout.tickets >= 500000){
+            grantGotchyaMilestone();
+          } else {
+            rollGotchyaDrop(0.08);
+          }
+        }
 
-      // Controls stay locked until the flash has fully finished, not just
-      // when the reels stop — otherwise the next pull could interrupt the
-      // lights mid-animation.
-      setTimeout(() => {
-        setControlsLocked(false);
-      }, holdMs);
+        // Push-notification-style toast on any real win, queued so it
+        // still surfaces even if the player has navigated to another page
+        // by the time it fires (relevant during a burst run).
+        if(payout.type === "win"){
+          queueWinNotification(`${payout.label} +${payout.tickets} tickets!`);
+        }
+
+        // Hold longer for a real win so the rainbow chase has room to play;
+        // shorter, non-blocking flash for cherry/loss results.
+        const holdMs = payout.type === "win" ? 1400 : 700;
+        flashResult(payout.type, holdMs);
+
+        // Controls stay locked until the flash has fully finished, not just
+        // when the reels stop — otherwise the next pull could interrupt the
+        // lights mid-animation.
+        setTimeout(() => {
+          setControlsLocked(false);
+          resolve(payout);
+        }, holdMs);
+      });
     });
   }
 
   spinBtn.addEventListener("click", doSpin);
+
+  // --- Burst mode ---
+  // A fixed, player-chosen batch of spins that plays out automatically
+  // once triggered, then stops on its own — no unattended/no-cap looping.
+  // The batch SIZE choice persists across pages (so picking "10" once
+  // sticks), but a running burst itself does not survive navigation —
+  // leaving the page stops it, by design.
+  const BURST_SIZE_KEY = "meowfriend_burst_size";
+  const burstSizeBtns = document.querySelectorAll(".burst-size-btn");
+  const burstStartBtn = document.getElementById("burstStartBtn");
+  const burstStopBtn = document.getElementById("burstStopBtn");
+  const burstProgress = document.getElementById("burstProgress");
+
+  let burstSize = parseInt(localStorage.getItem(BURST_SIZE_KEY) || "5", 10);
+  let burstRunning = false;
+  let burstStopRequested = false;
+
+  function selectBurstSize(size){
+    burstSize = size;
+    localStorage.setItem(BURST_SIZE_KEY, String(size));
+    burstSizeBtns.forEach(btn => {
+      btn.classList.toggle("selected", parseInt(btn.dataset.size, 10) === size);
+    });
+  }
+
+  burstSizeBtns.forEach(btn => {
+    btn.addEventListener("click", () => selectBurstSize(parseInt(btn.dataset.size, 10)));
+  });
+  selectBurstSize(burstSize);
+
+  async function runBurst(){
+    if(burstRunning) return;
+    burstRunning = true;
+    burstStopRequested = false;
+    burstStartBtn.classList.add("hidden");
+    burstStopBtn.classList.remove("hidden");
+    burstProgress.classList.remove("hidden");
+
+    let spinsCompleted = 0;
+    let netTickets = 0;
+
+    for(let i = 0; i < burstSize; i++){
+      if(burstStopRequested) break;
+      if(getTickets() < SPIN_COST){
+        burstProgress.textContent = `STOPPED — OUT OF TICKETS (${spinsCompleted}/${burstSize})`;
+        break;
+      }
+
+      burstProgress.textContent = `SPIN ${i + 1} / ${burstSize}...`;
+      const before = getTickets();
+      const payout = await doSpin();
+      const after = getTickets();
+      netTickets += (after - before);
+      spinsCompleted++;
+
+      if(payout){
+        burstProgress.textContent = `SPIN ${spinsCompleted} / ${burstSize} — ${payout.label}`;
+      }
+    }
+
+    if(!burstStopRequested && spinsCompleted === burstSize){
+      const sign = netTickets >= 0 ? "+" : "";
+      burstProgress.textContent = `BATCH DONE — ${spinsCompleted} SPINS, NET ${sign}${netTickets} 🎟️`;
+    } else if(burstStopRequested){
+      const sign = netTickets >= 0 ? "+" : "";
+      burstProgress.textContent = `STOPPED — ${spinsCompleted} SPINS, NET ${sign}${netTickets} 🎟️`;
+    }
+
+    burstRunning = false;
+    burstStartBtn.classList.remove("hidden");
+    burstStopBtn.classList.add("hidden");
+  }
+
+  burstStartBtn.addEventListener("click", runBurst);
+  burstStopBtn.addEventListener("click", () => {
+    burstStopRequested = true;
+  });
 
   const testTicketsBtn = document.getElementById("testTicketsBtn");
   testTicketsBtn.addEventListener("click", () => {
