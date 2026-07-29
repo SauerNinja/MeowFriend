@@ -136,8 +136,9 @@
 
   #gameCanvas{
     display: block;
-    width: 100%;
+    max-width: 100%;
     height: auto;
+    aspect-ratio: 340 / 420;
     background: #0a0a0c;
     border: 3px solid #3a3a42;
     touch-action: none;
@@ -345,7 +346,7 @@
 
 <script>
   const PLAY_COST = 10;
-  const LIFE_COST = 5; // extra lives bought mid-run, on top of the 1 free life included in PLAY_COST
+  const LIFE_COST = 5; // extra lives bought mid-run, on top of the 9 free lives included in PLAY_COST
   const COLS = 8;
   const ROWS = 10;
   const CELL = 42;
@@ -385,7 +386,13 @@
   document.addEventListener("tickets:changed", updateTicketDisplay);
 
   function updateLivesDisplay(){
-    livesDisplay.textContent = "🐾".repeat(Math.max(0, lives)) || "—";
+    if(lives <= 0){
+      livesDisplay.textContent = "—";
+    } else if(lives <= 5){
+      livesDisplay.textContent = "🐾".repeat(lives);
+    } else {
+      livesDisplay.textContent = `🐾×${lives}`;
+    }
   }
 
   function flashHit(){
@@ -494,7 +501,7 @@
     if(getTickets() < PLAY_COST) return;
     addTickets(-PLAY_COST);
     score = 0;
-    lives = 1;
+    lives = 9;
     updateLivesDisplay();
     scoreDisplay.textContent = "0";
     playBtn.disabled = true;
