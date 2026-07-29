@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MeowFriend — Backpack</title>
+<meta name="description" content="See and use the food, books, and items your Gotchya pet has collected.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sauerninja.github.io/MeowFriend/backpack.html">
+
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="MeowFriend — Backpack">
+<meta property="og:description" content="See and use the food, books, and items your Gotchya pet has collected.">
+<meta property="og:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="MeowFriend logo: a glowing black cat face beside the MEOWFRIEND wordmark on a dark neon-red arcade console background">
+<meta property="og:url" content="https://sauerninja.github.io/MeowFriend/backpack.html">
+<meta property="og:site_name" content="MeowFriend">
+<meta property="og:locale" content="en_US">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MeowFriend — Backpack">
+<meta name="twitter:description" content="See and use the food, books, and items your Gotchya pet has collected.">
+<meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
+
+<script src="shared-tickets.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root{
+    --neon-red: #ff1e43;
+    --neon-red-bright: #ff0033;
+    --led-bg: #0a0a0c;
+  }
+  * { box-sizing: border-box; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, #14090b 0%, #000000 55%);
+    font-family: 'Press Start 2P', monospace;
+    color: #ffb3bd;
+    min-height: 100vh;
+  }
+
+  .scanlines::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 3px);
+    z-index: 50;
+  }
+
+  .neon-text{
+    color: var(--neon-red);
+    text-shadow: 0 0 2px var(--neon-red-bright), 0 0 8px var(--neon-red), 0 0 18px var(--neon-red);
+  }
+
+  .back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: #ff8b96;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+  .back-link:hover{ color: var(--neon-red); }
+
+  .led-screen{
+    background: var(--led-bg);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 12px rgba(255,30,67,0.25), inset 0 0 0 2px #000;
+    padding: 10px 8px;
+  }
+  .led-label{ font-size: 8px; color: #7a3038; letter-spacing: 1px; margin-bottom: 6px; }
+  .led-value{
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+  .body-copy{
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.65;
+    color: #ffc7cf;
+  }
+
+  .draft-warning{
+    border: 2px dashed #ffb347;
+    background: rgba(255,179,71,0.06);
+    padding: 12px 14px;
+  }
+
+  .shop-link-card{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(180deg, #2a2a30, #17171a);
+    border: 3px solid var(--neon-red);
+    box-shadow: 0 0 14px rgba(255,30,67,0.3), inset 0 0 10px rgba(255,30,67,0.1);
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: filter 0.15s ease, transform 0.08s ease;
+  }
+  .shop-link-card:hover{ filter: brightness(1.15); }
+  .shop-link-card:active{ transform: translateY(2px); }
+  .shop-link-icon{
+    font-size: 30px;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px var(--neon-red-bright));
+  }
+  .shop-link-title{
+    font-size: 11px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+  .shop-link-sub{
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: #ffc7cf;
+    margin-top: 4px;
+  }
+
+  .inventory-list{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .inventory-chip{
+    border: 1px solid #2a2a30;
+    padding: 10px 12px;
+    background: #0a0a0c;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: #ffc7cf;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+  }
+  button.inventory-chip.drop-use-btn{
+    cursor: pointer;
+    border-color: var(--neon-red);
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red);
+  }
+  button.inventory-chip.drop-use-btn:hover{
+    background: #12080a;
+    filter: brightness(1.2);
+  }
+  .chip-main{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .chip-desc{
+    color: #7a3038;
+    font-size: 13px;
+  }
+  .drop-use-hint{
+    color: var(--neon-red);
+    font-size: 11px;
+    border: 1px solid var(--neon-red);
+    padding: 3px 8px;
+    flex-shrink: 0;
+  }
+
+  :focus-visible{
+    outline: 2px solid var(--neon-red);
+    outline-offset: 3px;
+  }
+</style>
+</head>
+<body class="scanlines flex items-center justify-center px-4 py-10">
+
+<main class="w-full max-w-xl">
+
+  <header class="flex flex-col items-center mb-6">
+    <a href="index.html" class="back-link mb-4">&larr; BACK TO FAUCET</a>
+    <div class="text-5xl mb-5" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">🎒</div>
+    <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">BACKPACK</h1>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">YOUR ITEMS</p>
+  </header>
+
+  <div id="noPetWarning" class="draft-warning mb-6 hidden">
+    <p class="led-label mb-2" style="color:#ffb347;">⚠ NO PET ADOPTED YET</p>
+    <p class="body-copy text-base leading-snug">
+      Items are tied to your Gotchya pet. <a href="gotchya.html" style="color:#ffb347;">Adopt a pet</a>
+      first, then anything you buy or find will show up here.
+    </p>
+  </div>
+
+  <a href="shop.html" class="shop-link-card mb-6" aria-label="Go to the Shop to buy more items">
+    <span class="shop-link-icon" aria-hidden="true">🏪</span>
+    <span class="flex flex-col items-start">
+      <span class="shop-link-title">SHOP</span>
+      <span class="shop-link-sub">Buy more food, books, and furniture</span>
+    </span>
+  </a>
+
+  <section class="info-panel p-6 sm:p-8" aria-labelledby="items-heading">
+    <p class="panel-eyebrow mb-3">INVENTORY</p>
+    <h2 id="items-heading" class="panel-heading mb-4">YOUR ITEMS</h2>
+    <div class="inventory-list" id="inventoryList"></div>
+  </section>
+
+  <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
+    <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
+    <p class="mt-2">NOT AFFILIATED WITH THE OFFICIAL MEOWCOIN TEAM. NOT FINANCIAL ADVICE.</p>
+    <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
+  </footer>
+
+</main>
+
+<script>
+  const SHOP_ITEMS = [
+    { id: "kibble", name: "Kibble", icon: "🍚", desc: "+10 hunger", stat: "hunger" },
+    { id: "canned_food", name: "Canned Food", icon: "🥫", desc: "+18 hunger", stat: "hunger" },
+    { id: "fish", name: "Fish Treat", icon: "🐟", desc: "+28 hunger", stat: "hunger" },
+    { id: "chicken", name: "Roast Chicken", icon: "🍗", desc: "+40 hunger", stat: "hunger" },
+    { id: "feast_plate", name: "Feast Plate", icon: "🍱", desc: "+60 hunger", stat: "hunger" },
+    { id: "ball", name: "Yarn Ball", icon: "🧶", desc: "+12 happiness, -5 hunger", stat: "happiness" },
+    { id: "feather_wand", name: "Feather Wand", icon: "🪶", desc: "+22 happiness, -9 hunger", stat: "happiness" },
+    { id: "toy", name: "Squeaky Toy", icon: "🦴", desc: "+35 happiness, -14 hunger", stat: "happiness" },
+    { id: "laser_pointer", name: "Laser Pointer", icon: "🔴", desc: "+50 happiness, -20 hunger", stat: "happiness" },
+    { id: "playground", name: "Cat Playground", icon: "🏰", desc: "+70 happiness, -28 hunger", stat: "happiness" },
+    { id: "pillow", name: "Soft Pillow", icon: "🛏️", desc: "+25 energy", stat: "energy" },
+    { id: "blanket", name: "Warm Blanket", icon: "🧣", desc: "+40 energy", stat: "energy" },
+  ];
+
+  const DROP_ITEMS = [
+    { id: "kibble_bag", name: "Kibble Bag", icon: "🥫", desc: "+2 weight", stat: "weight", amount: 2 },
+    { id: "cat_burger", name: "Cat Burger", icon: "🍔", desc: "+5 weight", stat: "weight", amount: 5 },
+    { id: "feast", name: "Big Feast", icon: "🍗", desc: "+12 weight", stat: "weight", amount: 12 },
+    { id: "picture_book", name: "Picture Book", icon: "📗", desc: "+2 IQ", stat: "iq", amount: 2 },
+    { id: "novel", name: "Novel", icon: "📘", desc: "+5 IQ", stat: "iq", amount: 5 },
+    { id: "encyclopedia", name: "Encyclopedia", icon: "📚", desc: "+12 IQ", stat: "iq", amount: 12 },
+  ];
+
+  const ALL_ITEMS = [...SHOP_ITEMS, ...DROP_ITEMS];
+
+  const inventoryList = document.getElementById("inventoryList");
+  const noPetWarning = document.getElementById("noPetWarning");
+
+  function renderInventory(){
+    const pet = getGotchyaPet();
+    noPetWarning.classList.toggle("hidden", !!pet);
+
+    if(!pet){
+      inventoryList.innerHTML = "";
+      return;
+    }
+
+    const entries = Object.entries(pet.inventory || {}).filter(([, count]) => count > 0);
+    if(entries.length === 0){
+      inventoryList.innerHTML = `<span class="body-copy text-base">No items yet — visit the Shop, or play Slots, Crossing, and Runner for a chance at finding some.</span>`;
+      return;
+    }
+
+    inventoryList.innerHTML = entries.map(([id, count]) => {
+      const item = ALL_ITEMS.find(i => i.id === id);
+      if(!item) return "";
+      const isDropItem = DROP_ITEMS.some(d => d.id === id);
+      if(isDropItem){
+        return `<button type="button" class="inventory-chip drop-use-btn" data-item="${id}">
+          <span class="chip-main">${item.icon} ${item.name} &times;${count} <span class="chip-desc">(${item.desc})</span></span>
+          <span class="drop-use-hint">USE</span>
+        </button>`;
+      }
+      return `<span class="inventory-chip">
+        <span class="chip-main">${item.icon} ${item.name} &times;${count} <span class="chip-desc">(${item.desc})</span></span>
+      </span>`;
+    }).join("");
+
+    inventoryList.querySelectorAll(".drop-use-btn").forEach(btn => {
+      btn.addEventListener("click", () => useDropItem(btn.dataset.item));
+    });
+  }
+
+  function useDropItem(itemId){
+    const item = DROP_ITEMS.find(i => i.id === itemId);
+    if(!item) return;
+    const pet = getGotchyaPet();
+    if(!pet || !pet.inventory || !pet.inventory[itemId]) return;
+
+    pet.inventory[itemId] -= 1;
+    pet[item.stat] = Math.max(0, (pet[item.stat] || 0) + item.amount);
+    pet.lastSeen = Date.now();
+    saveGotchyaPet(pet);
+    renderInventory();
+  }
+
+  renderInventory();
+  document.addEventListener("gotchya:pet-updated", renderInventory);
+  document.addEventListener("gotchya:item-dropped", renderInventory);
+</script>
+
+</body>
+</html>

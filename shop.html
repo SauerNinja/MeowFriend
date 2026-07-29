@@ -179,6 +179,36 @@
     white-space: nowrap;
   }
 
+  .backpack-link-card{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(180deg, #2a2a30, #17171a);
+    border: 3px solid var(--neon-red);
+    box-shadow: 0 0 14px rgba(255,30,67,0.3), inset 0 0 10px rgba(255,30,67,0.1);
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: filter 0.15s ease, transform 0.08s ease;
+  }
+  .backpack-link-card:hover{ filter: brightness(1.15); }
+  .backpack-link-card:active{ transform: translateY(2px); }
+  .backpack-link-icon{
+    font-size: 30px;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px var(--neon-red-bright));
+  }
+  .backpack-link-title{
+    font-size: 11px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+  .backpack-link-sub{
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: #ffc7cf;
+    margin-top: 4px;
+  }
+
   .purchase-toast{
     display: flex;
     justify-content: center;
@@ -283,6 +313,14 @@
     <div class="led-label">YOUR TICKETS</div>
     <div class="led-value" id="ticketDisplay">0 🎟️</div>
   </div>
+
+  <a href="backpack.html" class="backpack-link-card mb-6" aria-label="Go to your Backpack to see and use your items">
+    <span class="backpack-link-icon" aria-hidden="true">🎒</span>
+    <span class="flex flex-col items-start">
+      <span class="backpack-link-title">BACKPACK</span>
+      <span class="backpack-link-sub">See and use what you've bought</span>
+    </span>
+  </a>
 
   <div id="purchaseToast" class="purchase-toast" aria-live="polite"></div>
 

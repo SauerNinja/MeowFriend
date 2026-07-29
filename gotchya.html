@@ -591,37 +591,33 @@
   .shop-link-card{
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
     background: linear-gradient(180deg, #2a2a30, #17171a);
     border: 3px solid var(--neon-red);
     box-shadow: 0 0 14px rgba(255,30,67,0.3), inset 0 0 10px rgba(255,30,67,0.1);
-    padding: 14px 16px;
+    padding: 12px;
     text-decoration: none;
     transition: filter 0.15s ease, transform 0.08s ease;
   }
   .shop-link-card:hover{ filter: brightness(1.15); }
   .shop-link-card:active{ transform: translateY(2px); }
   .shop-link-icon{
-    font-size: 32px;
+    font-size: 26px;
     line-height: 1;
+    flex-shrink: 0;
     filter: drop-shadow(0 0 8px var(--neon-red-bright));
   }
   .shop-link-title{
-    font-size: 12px;
+    font-size: 10px;
     color: var(--neon-red);
     text-shadow: 0 0 6px var(--neon-red);
   }
   .shop-link-sub{
     font-family: 'VT323', monospace;
-    font-size: 15px;
+    font-size: 13px;
     color: #ffc7cf;
     margin-top: 4px;
-  }
-  .shop-link-arrow{
-    margin-left: auto;
-    font-size: 22px;
-    color: var(--neon-red);
-    text-shadow: 0 0 8px var(--neon-red);
+    line-height: 1.3;
   }
 
   .feed-modal-backdrop{
@@ -834,20 +830,22 @@
     </p>
   </section>
 
-  <a href="shop.html" class="shop-link-card mt-6" aria-label="Go to the Shop for food, books, and furniture">
-    <span class="shop-link-icon" aria-hidden="true">🏪</span>
-    <span class="flex flex-col items-start">
-      <span class="shop-link-title">SHOP</span>
-      <span class="shop-link-sub">Buy food, books, and furniture with tickets</span>
-    </span>
-    <span class="shop-link-arrow" aria-hidden="true">&rarr;</span>
-  </a>
-
-  <section id="inventorySection" class="info-panel p-6 sm:p-8 mt-6 hidden" aria-labelledby="inventory-heading">
-    <p class="panel-eyebrow mb-3">BACKPACK</p>
-    <h2 id="inventory-heading" class="panel-heading mb-4">YOUR ITEMS</h2>
-    <div class="inventory-list" id="inventoryList"></div>
-  </section>
+  <div class="grid grid-cols-2 gap-3 mt-6">
+    <a href="shop.html" class="shop-link-card" aria-label="Go to the Shop for food, books, and furniture">
+      <span class="shop-link-icon" aria-hidden="true">🏪</span>
+      <span class="flex flex-col items-start">
+        <span class="shop-link-title">SHOP</span>
+        <span class="shop-link-sub">Buy food, books, and furniture</span>
+      </span>
+    </a>
+    <a href="backpack.html" class="shop-link-card" aria-label="Go to your Backpack to see and use your items">
+      <span class="shop-link-icon" aria-hidden="true">🎒</span>
+      <span class="flex flex-col items-start">
+        <span class="shop-link-title">BACKPACK</span>
+        <span class="shop-link-sub">See and use your items</span>
+      </span>
+    </a>
+  </div>
 
   <section id="furnitureSection" class="info-panel p-6 sm:p-8 mt-6 hidden" aria-labelledby="furniture-heading">
     <p class="panel-eyebrow mb-3">HOME</p>
@@ -998,7 +996,6 @@
 
   const adoptScreen = document.getElementById("adoptScreen");
   const careScreen = document.getElementById("careScreen");
-  const inventorySection = document.getElementById("inventorySection");
   const furnitureSection = document.getElementById("furnitureSection");
   const furnitureList = document.getElementById("furnitureList");
   const resetWrap = document.getElementById("resetWrap");
@@ -1034,7 +1031,6 @@
   const playBtn = document.getElementById("playBtn");
   const sleepBtn = document.getElementById("sleepBtn");
 
-  const inventoryList = document.getElementById("inventoryList");
   const resetBtn = document.getElementById("resetBtn");
 
   let selectedSpecies = null;
@@ -1223,45 +1219,21 @@
 
 
 
-  function renderInventory(){
-    const entries = Object.entries(pet.inventory || {}).filter(([, count]) => count > 0);
-    if(entries.length === 0){
-      inventoryList.innerHTML = `<span class="body-copy text-base">No items yet — visit the shop below, or play Slots, Crossing, and Runner for a chance at weight/IQ items.</span>`;
-      return;
-    }
-    inventoryList.innerHTML = entries.map(([id, count]) => {
-      const item = ALL_ITEMS.find(i => i.id === id);
-      if(!item) return "";
-      const isDropItem = DROP_ITEMS.some(d => d.id === id);
-      if(isDropItem){
-        return `<button type="button" class="inventory-chip drop-use-btn" data-item="${id}">${item.icon} ${item.name} &times;${count} <span class="chip-desc">(${item.desc})</span> <span class="drop-use-hint">USE</span></button>`;
-      }
-      return `<span class="inventory-chip">${item.icon} ${item.name} &times;${count} <span class="chip-desc">(${item.desc})</span></span>`;
-    }).join("");
-
-    inventoryList.querySelectorAll(".drop-use-btn").forEach(btn => {
-      btn.addEventListener("click", () => useDropItem(btn.dataset.item));
-    });
-  }
-
   function renderAll(){
     if(!pet){
       adoptScreen.classList.remove("hidden");
       careScreen.classList.add("hidden");
-      inventorySection.classList.add("hidden");
       furnitureSection.classList.add("hidden");
       resetWrap.classList.add("hidden");
       return;
     }
     adoptScreen.classList.add("hidden");
     careScreen.classList.remove("hidden");
-    inventorySection.classList.remove("hidden");
     furnitureSection.classList.remove("hidden");
     resetWrap.classList.remove("hidden");
 
     ticketDisplay.textContent = `${getTickets()} 🎟️`;
     renderStats();
-    renderInventory();
     renderFurniture();
     updateCareButtons();
   }
@@ -1682,22 +1654,6 @@
 
   playCancelBtn.addEventListener("click", closePlayPicker);
 
-  // Using a Weight or IQ drop item directly from the backpack — these are
-  // the bigger jumps found by playing the other games, uncapped like the
-  // stats themselves. Not cooldown-gated since they're a separate,
-  // limited-by-inventory resource rather than a repeatable free action.
-  function useDropItem(itemId){
-    const item = DROP_ITEMS.find(i => i.id === itemId);
-    if(!item) return;
-    if(!pet.inventory || !pet.inventory[itemId]) return;
-    pet.inventory[itemId] -= 1;
-    pet[item.stat] = Math.max(0, (pet[item.stat] || 0) + item.amount);
-    pet.lastSeen = Date.now();
-    savePet(pet);
-    renderAll();
-    playCareSuccess(STAT_LABELS[item.stat], item.amount);
-  }
-
   feedBtn.addEventListener("click", openFeedPicker);
   playBtn.addEventListener("click", openPlayPicker);
   sleepBtn.addEventListener("click", () => doCareAction("energy"));
@@ -1750,51 +1706,6 @@
     updateStatCountdown(happinessCountdown, clamp(pet.happiness - happinessRate * hoursSinceDecay, 0, 100), happinessRate);
     updateStatCountdown(energyCountdown, clamp(pet.energy - energyRate * hoursSinceDecay, 0, 100), energyRate);
   }, 1000);
-
-  // --- Idle wander: makes the pet feel alive even when no stat is
-  // critical or thriving. Picks a random spot within the stage, walks
-  // there over a couple seconds (steering the sprite to face the
-  // direction it's moving), pauses and bobs in place a while, repeats.
-  // Distress/thriving animations on the sprite itself still take
-  // priority visually since they're separate CSS classes layered on top.
-  let wanderTimer = null;
-
-  function startWander(){
-    if(wanderTimer) return;
-
-    function step(){
-      if(!pet){ wanderTimer = null; return; }
-
-      const stageWidth = petStage.clientWidth;
-      const spriteMargin = 40; // keep the sprite from walking into the walls
-      const currentLeftPx = petSprite.getBoundingClientRect().left - petStage.getBoundingClientRect().left;
-      const targetLeftPx = spriteMargin + Math.random() * Math.max(0, stageWidth - spriteMargin * 2);
-      const movingRight = targetLeftPx > currentLeftPx;
-
-      petSprite.classList.remove("idle-bob");
-      petSprite.classList.add("walking");
-      petSprite.classList.toggle("facing-left", !movingRight);
-      petSprite.style.left = `${(targetLeftPx / stageWidth) * 100}%`;
-
-      const walkDuration = 1800; // matches the CSS `left` transition time
-      const pauseDuration = 2000 + Math.random() * 3000; // idle a couple seconds between walks
-
-      wanderTimer = setTimeout(() => {
-        petSprite.classList.remove("walking");
-        petSprite.classList.add("idle-bob");
-        wanderTimer = setTimeout(step, pauseDuration);
-      }, walkDuration);
-    }
-
-    step();
-  }
-
-  function stopWander(){
-    if(wanderTimer){
-      clearTimeout(wanderTimer);
-      wanderTimer = null;
-    }
-  }
 
   renderAll();
   if(pet) startWander();

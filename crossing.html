@@ -121,6 +121,17 @@
     border: 3px solid #3a3a42;
     box-shadow: inset 0 0 0 2px #000, 0 0 14px rgba(255,30,67,0.2);
     padding: 8px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  @keyframes hit-flash{
+    0%   { border-color: #ff1e43; box-shadow: inset 0 0 0 2px #000, 0 0 26px rgba(255,30,67,0.9); }
+    100% { border-color: #3a3a42; box-shadow: inset 0 0 0 2px #000, 0 0 14px rgba(255,30,67,0.2); }
+  }
+  .game-frame.hit-flash{
+    animation: hit-flash 0.5s ease-out;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .game-frame.hit-flash{ animation: none; }
   }
 
   #gameCanvas{
@@ -171,6 +182,24 @@
     background: linear-gradient(180deg, #3a2226, #2a1518);
     border-color: #401019;
     box-shadow: 0 6px 0 #200a0d;
+    color: #6e4a4f;
+    cursor: not-allowed;
+    text-shadow: none;
+  }
+
+  .buy-life-btn{
+    background: transparent;
+    border: 2px solid var(--neon-red);
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 9px 16px;
+    text-shadow: 0 0 6px var(--neon-red);
+    cursor: pointer;
+  }
+  .buy-life-btn:hover:not(:disabled){ filter: brightness(1.3); }
+  .buy-life-btn:disabled{
+    border-color: #401019;
     color: #6e4a4f;
     cursor: not-allowed;
     text-shadow: none;
@@ -243,14 +272,18 @@
     <div class="rivet absolute bottom-2 left-2"></div>
     <div class="rivet absolute bottom-2 right-2"></div>
 
-    <div class="grid grid-cols-2 gap-4 mb-4">
+    <div class="grid grid-cols-3 gap-3 mb-4">
       <div class="led-screen">
         <div class="led-label">TICKETS</div>
-        <div class="led-value large" id="ticketDisplay">0 🎟️</div>
+        <div class="led-value" id="ticketDisplay">0 🎟️</div>
+      </div>
+      <div class="led-screen text-center">
+        <div class="led-label">SCORE</div>
+        <div class="led-value" id="scoreDisplay">0</div>
       </div>
       <div class="led-screen text-right">
-        <div class="led-label">SCORE</div>
-        <div class="led-value large" id="scoreDisplay">0</div>
+        <div class="led-label">LIVES</div>
+        <div class="led-value" id="livesDisplay">🐾</div>
       </div>
     </div>
 
@@ -262,10 +295,14 @@
       TICKETS ARE A FOR-FUN SCORE ONLY. NOT REDEEMABLE FOR MEWC, CASH, OR ANYTHING OF VALUE.
     </p>
 
-    <div class="flex justify-center mb-5">
+    <div class="flex justify-center mb-3">
       <button type="button" id="playBtn" class="play-btn w-full py-5 text-sm tracking-wider">
         PLAY — 10 🎟️
       </button>
+    </div>
+
+    <div class="flex justify-center mb-5">
+      <button type="button" id="buyLifeBtn" class="buy-life-btn" disabled>+1 LIFE — 5 🎟️</button>
     </div>
 
     <div class="flex flex-col items-center gap-2">
@@ -308,6 +345,7 @@
 
 <script>
   const PLAY_COST = 10;
+  const LIFE_COST = 5; // extra lives bought mid-run, on top of the 1 free life included in PLAY_COST
   const COLS = 8;
   const ROWS = 10;
   const CELL = 42;
@@ -318,6 +356,22 @@
   const scoreDisplay = document.getElementById("scoreDisplay");
   const playBtn = document.getElementById("playBtn");
   const scoreTable = document.getElementById("scoreTable");
+  const livesDisplay = document.getElementById("livesDisplay");
+  const buyLifeBtn = document.getElementById("buyLifeBtn");
+  const gameFrame = document.querySelector(".game-frame");
+
+  // High-DPI canvas setup: the backing buffer is scaled up by the device
+  // pixel ratio so rendering stays crisp on retina/high-density screens
+  // instead of the browser stretching a low-res buffer to fit. CSS size
+  // (340x420) stays the same — only the internal resolution increases.
+  const LOGICAL_WIDTH = 340;
+  const LOGICAL_HEIGHT = 420;
+  const DPR = Math.min(window.devicePixelRatio || 1, 3);
+  canvas.width = LOGICAL_WIDTH * DPR;
+  canvas.height = LOGICAL_HEIGHT * DPR;
+  canvas.style.width = LOGICAL_WIDTH + "px";
+  canvas.style.height = LOGICAL_HEIGHT + "px";
+  ctx.scale(DPR, DPR);
 
   let gameRunning = false;
 
@@ -326,8 +380,29 @@
     if(!gameRunning){
       playBtn.disabled = getTickets() < PLAY_COST;
     }
+    buyLifeBtn.disabled = !gameRunning || getTickets() < LIFE_COST;
   }
   document.addEventListener("tickets:changed", updateTicketDisplay);
+
+  function updateLivesDisplay(){
+    livesDisplay.textContent = "🐾".repeat(Math.max(0, lives)) || "—";
+  }
+
+  function flashHit(){
+    gameFrame.classList.remove("hit-flash");
+    void gameFrame.offsetWidth; // restart the animation cleanly if triggered again quickly
+    gameFrame.classList.add("hit-flash");
+    setTimeout(() => gameFrame.classList.remove("hit-flash"), 500);
+  }
+
+  buyLifeBtn.addEventListener("click", () => {
+    if(!gameRunning) return;
+    if(getTickets() < LIFE_COST) return;
+    addTickets(-LIFE_COST);
+    lives += 1;
+    updateLivesDisplay();
+    updateTicketDisplay();
+  });
 
   // --- High scores (local only, see warning panel) ---
   const SCORES_KEY = "meowfriend_crossing_scores";
@@ -365,6 +440,25 @@
   let score = 0;
   let animFrame = null;
   let lastTick = 0;
+  let chevronOffset = 0; // drives the slow animated lane-direction chevrons
+  let lives = 0;
+
+  // --- On-board item pickups ---
+  // Spawns a grabbable item on a random road lane cell every so often.
+  // Walking onto its cell claims it. If left alone, it visibly pulses,
+  // starts blinking around 20s, and fades out completely by 30s.
+  const PICKUP_LIFETIME_MS = 30000;
+  const PICKUP_BLINK_START_MS = 20000;
+  const PICKUP_SPAWN_MIN_MS = 8000;
+  const PICKUP_SPAWN_MAX_MS = 14000;
+
+  // Mostly food/generic items (common), permanent furniture only rarely.
+  // Weighted so a spawn is ~92% a GOTCHYA_DROP_TABLE item and ~8% a
+  // furniture piece the player doesn't already own yet.
+  const PICKUP_FURNITURE_CHANCE = 0.08;
+
+  let activePickup = null; // { col, row, itemId, isFurniture, spawnedAt }
+  let pickupSpawnTimer = 0;
 
   const LANE_TYPES = [
     { type: "safe" },
@@ -383,15 +477,13 @@
     lanes = LANE_TYPES.map((def) => {
       if(def.type !== "road") return { ...def, obstacles: [] };
       const obstacles = [];
-      const count = Math.ceil(canvas.width / def.gap) + 1;
+      const count = Math.ceil(LOGICAL_WIDTH / def.gap) + 1;
       for(let i = 0; i < count; i++){
         obstacles.push({ x: i * def.gap });
       }
       return { ...def, obstacles };
     });
   }
-
-  let crossingCount = 0;
 
   function resetPlayer(){
     player = { col: Math.floor(COLS / 2), row: ROWS - 1 };
@@ -402,12 +494,16 @@
     if(getTickets() < PLAY_COST) return;
     addTickets(-PLAY_COST);
     score = 0;
-    crossingCount = 0;
+    lives = 1;
+    updateLivesDisplay();
     scoreDisplay.textContent = "0";
     playBtn.disabled = true;
     playBtn.textContent = "PLAYING...";
+    buyLifeBtn.disabled = getTickets() < LIFE_COST;
     buildLanes();
     resetPlayer();
+    activePickup = null;
+    pickupSpawnTimer = 3000 + Math.random() * 3000; // first pickup a few seconds into the run
     gameRunning = true;
     lastTick = performance.now();
     animFrame = requestAnimationFrame(loop);
@@ -416,9 +512,76 @@
   function endGame(){
     gameRunning = false;
     if(animFrame) cancelAnimationFrame(animFrame);
+    activePickup = null;
     playBtn.textContent = "PLAY — 10 🎟️";
     updateTicketDisplay();
     saveScore(score);
+  }
+
+  // Spawns a new pickup on a random road-lane cell (not the player's
+  // current cell), replacing any pickup already on the board. Weighted
+  // mostly toward common food/generic items, rarely a permanent furniture
+  // piece — and only offers furniture the player doesn't already own.
+  function spawnPickup(){
+    const roadRows = lanes
+      .map((lane, i) => (lane.type === "road" ? i : -1))
+      .filter(i => i >= 0);
+    if(roadRows.length === 0) return;
+
+    const row = roadRows[Math.floor(Math.random() * roadRows.length)];
+    let col = Math.floor(Math.random() * COLS);
+    if(col === player.col && row === player.row){
+      col = (col + 1) % COLS;
+    }
+
+    const pet = typeof getGotchyaPet === "function" ? getGotchyaPet() : null;
+    const ownedFurniture = (pet && pet.furniture) || {};
+    const availableFurniture = GOTCHYA_FURNITURE.filter(f => !ownedFurniture[f.id]);
+
+    let itemId, isFurniture, icon;
+    if(availableFurniture.length > 0 && Math.random() < PICKUP_FURNITURE_CHANCE){
+      const item = availableFurniture[Math.floor(Math.random() * availableFurniture.length)];
+      itemId = item.id;
+      isFurniture = true;
+      icon = item.icon;
+    } else {
+      const total = GOTCHYA_DROP_TABLE.reduce((sum, e) => sum + e.weight, 0);
+      let r = Math.random() * total;
+      let chosen = GOTCHYA_DROP_TABLE[0];
+      for(const entry of GOTCHYA_DROP_TABLE){
+        if(r < entry.weight){ chosen = entry; break; }
+        r -= entry.weight;
+      }
+      itemId = chosen.id;
+      isFurniture = false;
+      icon = chosen.icon;
+    }
+
+    activePickup = { col, row, itemId, isFurniture, icon, spawnedAt: performance.now() };
+  }
+
+  // Called every frame the player's cell matches the pickup's cell.
+  // Furniture pickups only grant if a pet is adopted and doesn't already
+  // own that piece (checked again here in case state changed since spawn).
+  function tryClaimPickup(){
+    if(!activePickup) return;
+    if(player.col !== activePickup.col || player.row !== activePickup.row) return;
+
+    const pickup = activePickup;
+    activePickup = null;
+    pickupSpawnTimer = PICKUP_SPAWN_MIN_MS + Math.random() * (PICKUP_SPAWN_MAX_MS - PICKUP_SPAWN_MIN_MS);
+
+    if(pickup.isFurniture){
+      const pet = typeof getGotchyaPet === "function" ? getGotchyaPet() : null;
+      if(!pet || (pet.furniture && pet.furniture[pickup.itemId])) return; // no-op if no pet or already owned by now
+      pet.furniture = pet.furniture || {};
+      pet.furniture[pickup.itemId] = true;
+      saveGotchyaPet(pet);
+      const item = GOTCHYA_FURNITURE.find(f => f.id === pickup.itemId);
+      queueWinNotification(`${item ? item.icon : "🎁"} Found permanent item: ${item ? item.name : pickup.itemId}!`);
+    } else {
+      grantGotchyaItem(pickup.itemId); // this already queues its own "found X" notification
+    }
   }
 
   function tryMove(dCol, dRow){
@@ -438,14 +601,6 @@
     if(player.row === 0){
       score += 50;
       scoreDisplay.textContent = String(score);
-      crossingCount += 1;
-      // Small chance on every successful crossing; guaranteed bonus item
-      // every 3rd crossing in the same run. No-op if no Gotchya pet yet.
-      if(crossingCount % 3 === 0){
-        grantGotchyaMilestone();
-      } else {
-        rollGotchyaDrop(0.12);
-      }
       resetPlayer();
     }
   }
@@ -464,19 +619,41 @@
   function loop(now){
     const dt = Math.min(now - lastTick, 48);
     lastTick = now;
+    chevronOffset += 0.6 * (dt / 16.7);
 
     lanes.forEach(lane => {
       if(lane.type !== "road") return;
       lane.obstacles.forEach(obs => {
         obs.x += lane.speed * lane.dir * (dt / 16.7);
-        if(lane.dir > 0 && obs.x > canvas.width + CELL) obs.x = -CELL;
-        if(lane.dir < 0 && obs.x < -CELL) obs.x = canvas.width + CELL;
+        if(lane.dir > 0 && obs.x > LOGICAL_WIDTH + CELL) obs.x = -CELL;
+        if(lane.dir < 0 && obs.x < -CELL) obs.x = LOGICAL_WIDTH + CELL;
       });
     });
 
+    // Pickup spawn timer and expiry.
+    if(!activePickup){
+      pickupSpawnTimer -= dt;
+      if(pickupSpawnTimer <= 0) spawnPickup();
+    } else if(now - activePickup.spawnedAt > PICKUP_LIFETIME_MS){
+      activePickup = null;
+      pickupSpawnTimer = PICKUP_SPAWN_MIN_MS + Math.random() * (PICKUP_SPAWN_MAX_MS - PICKUP_SPAWN_MIN_MS);
+    }
+    tryClaimPickup();
+
     if(checkCollision()){
+      lives -= 1;
+      updateLivesDisplay();
+      if(lives <= 0){
+        draw();
+        endGame();
+        return;
+      }
+      // Life remaining: brief hit-flash, then respawn at the start rather
+      // than ending the run.
+      flashHit();
+      resetPlayer();
       draw();
-      endGame();
+      if(gameRunning) animFrame = requestAnimationFrame(loop);
       return;
     }
 
@@ -485,48 +662,125 @@
   }
 
   function draw(){
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
     lanes.forEach((lane, i) => {
       const y = i * CELL;
-      ctx.fillStyle = lane.type === "safe" ? "#131a12" : "#141416";
-      ctx.fillRect(0, y, canvas.width, CELL);
+      ctx.fillStyle = lane.type === "safe" ? "#131a12" : "#18181c";
+      ctx.fillRect(0, y, LOGICAL_WIDTH, CELL);
       if(lane.type === "safe"){
         ctx.strokeStyle = "rgba(41,255,138,0.15)";
-        ctx.strokeRect(0, y, canvas.width, CELL);
+        ctx.strokeRect(0, y, LOGICAL_WIDTH, CELL);
+      } else {
+        // Road shoulder edges — a darker stripe along the top/bottom of
+        // each road lane so it reads as pavement rather than a flat block.
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.fillRect(0, y, LOGICAL_WIDTH, 3);
+        ctx.fillRect(0, y + CELL - 3, LOGICAL_WIDTH, 3);
       }
     });
 
+    // Lane markings: dashed centerline plus small chevrons that point in
+    // the lane's actual direction of travel, so the road itself hints at
+    // which way traffic is going even before a car passes.
     lanes.forEach((lane, i) => {
       if(lane.type !== "road") return;
       const y = i * CELL + CELL / 2;
-      ctx.strokeStyle = "rgba(255,30,67,0.25)";
+      ctx.strokeStyle = "rgba(255,30,67,0.3)";
+      ctx.lineWidth = 2;
       ctx.setLineDash([10, 8]);
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
+      ctx.lineTo(LOGICAL_WIDTH, y);
       ctx.stroke();
       ctx.setLineDash([]);
+
+      // Chevrons every ~60px, offset by a slow scroll so they subtly
+      // animate in the lane's direction.
+      const chevronSpacing = 60;
+      const scrollOffset = (chevronOffset * lane.dir) % chevronSpacing;
+      ctx.fillStyle = "rgba(255,255,255,0.18)";
+      for(let cx = -chevronSpacing + scrollOffset; cx < LOGICAL_WIDTH + chevronSpacing; cx += chevronSpacing){
+        ctx.beginPath();
+        if(lane.dir > 0){
+          ctx.moveTo(cx - 4, y - 5);
+          ctx.lineTo(cx + 4, y);
+          ctx.lineTo(cx - 4, y + 5);
+        } else {
+          ctx.moveTo(cx + 4, y - 5);
+          ctx.lineTo(cx - 4, y);
+          ctx.lineTo(cx + 4, y + 5);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
     });
 
-    ctx.font = "26px 'Noto Color Emoji', 'Apple Color Emoji', sans-serif";
+    ctx.font = "28px 'Noto Color Emoji', 'Apple Color Emoji', sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     lanes.forEach((lane, i) => {
       if(lane.type !== "road") return;
       const y = i * CELL + CELL / 2;
       lane.obstacles.forEach(obs => {
+        // Soft drop shadow under each vehicle so it reads as sitting on
+        // the road surface rather than floating flat against it.
         ctx.save();
-        if(lane.dir < 0){
+        ctx.beginPath();
+        ctx.ellipse(obs.x, y + 13, 13, 4, 0, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0,0,0,0.4)";
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        // Vehicle emoji glyphs face left by default, so a lane driving
+        // right (dir > 0) needs to be flipped; a lane driving left
+        // (dir < 0) is already facing the correct way unflipped.
+        if(lane.dir > 0){
           ctx.translate(obs.x, y);
           ctx.scale(-1, 1);
-          ctx.fillText(lane.emoji, 0, 2);
+          ctx.fillText(lane.emoji, 0, 0);
         } else {
-          ctx.fillText(lane.emoji, obs.x, y + 2);
+          ctx.fillText(lane.emoji, obs.x, y);
         }
         ctx.restore();
       });
     });
+
+    // --- Pickup item: pulses gently while fresh, starts blinking once
+    // past 20s, and fades out completely by the 30s lifetime. ---
+    if(activePickup){
+      const age = performance.now() - activePickup.spawnedAt;
+      const remaining = PICKUP_LIFETIME_MS - age;
+      let alpha = 1;
+      let visible = true;
+
+      if(age > PICKUP_BLINK_START_MS){
+        // Blink faster as it gets closer to expiring.
+        const blinkProgress = (age - PICKUP_BLINK_START_MS) / (PICKUP_LIFETIME_MS - PICKUP_BLINK_START_MS);
+        const blinkRate = 220 - blinkProgress * 140; // ms per blink cycle, speeds up
+        visible = Math.floor(age / blinkRate) % 2 === 0;
+        alpha = Math.max(0.15, 1 - blinkProgress * 0.6);
+      }
+
+      if(visible && remaining > 0){
+        const px = activePickup.col * CELL + CELL / 2;
+        const py = activePickup.row * CELL + CELL / 2;
+        const pulse = 1 + Math.sin(age / 180) * 0.08;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(px, py, 16 * pulse, 0, Math.PI * 2);
+        ctx.fillStyle = activePickup.isFurniture ? "rgba(255,215,0,0.25)" : "rgba(41,255,138,0.22)";
+        ctx.fill();
+        ctx.font = "24px 'Noto Color Emoji', 'Apple Color Emoji', sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(activePickup.icon, px, py + 1);
+        ctx.restore();
+      }
+    }
 
     const px = player.col * CELL + CELL / 2;
     const py = player.row * CELL + CELL / 2;
@@ -562,6 +816,7 @@
   playBtn.addEventListener("click", startGame);
 
   updateTicketDisplay();
+  updateLivesDisplay();
   renderScores();
   drawIdle();
 </script>
