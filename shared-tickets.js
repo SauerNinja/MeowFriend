@@ -43,15 +43,21 @@ const GOTCHYA_PET_KEY = "meowfriend_gotchya_pet";
 
 // Weighted like a loot table: common small items far more likely than the
 // rare big ones. Kept in sync with the DROP_ITEMS list in gotchya.html —
-// if that list changes, update this one too.
+// if that list changes, update this one too. Names/icons included here
+// too so a notification can be shown without gotchya.html's page needing
+// to be open.
 const GOTCHYA_DROP_TABLE = [
-  { id: "kibble_bag", weight: 40 },
-  { id: "picture_book", weight: 40 },
-  { id: "cat_burger", weight: 12 },
-  { id: "novel", weight: 12 },
-  { id: "feast", weight: 3 },
-  { id: "encyclopedia", weight: 3 },
+  { id: "kibble_bag", weight: 40, name: "Kibble Bag", icon: "🥫" },
+  { id: "picture_book", weight: 40, name: "Picture Book", icon: "📗" },
+  { id: "cat_burger", weight: 12, name: "Cat Burger", icon: "🍔" },
+  { id: "novel", weight: 12, name: "Novel", icon: "📘" },
+  { id: "feast", weight: 3, name: "Big Feast", icon: "🍗" },
+  { id: "encyclopedia", weight: 3, name: "Encyclopedia", icon: "📚" },
 ];
+
+function getGotchyaDropItemInfo(itemId){
+  return GOTCHYA_DROP_TABLE.find(e => e.id === itemId) || { name: itemId, icon: "🎁" };
+}
 
 function grantGotchyaItem(itemId){
   let pet;
@@ -68,6 +74,13 @@ function grantGotchyaItem(itemId){
   pet.inventory[itemId] = (pet.inventory[itemId] || 0) + 1;
   localStorage.setItem(GOTCHYA_PET_KEY, JSON.stringify(pet));
   document.dispatchEvent(new CustomEvent("gotchya:item-dropped", { detail: { itemId } }));
+
+  // Push-notification-style toast for any item found, same mechanism as
+  // slot wins — queued so it still shows even if the player has since
+  // navigated to another page.
+  const info = getGotchyaDropItemInfo(itemId);
+  queueWinNotification(`${info.icon} Found ${info.name} for ${pet.name || "your pet"}!`);
+
   return true;
 }
 

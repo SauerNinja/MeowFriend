@@ -140,8 +140,8 @@
   }
 
   .room-world{
-    width: calc(var(--cell-px) * 10);
-    height: calc(var(--cell-px) * 10);
+    width: calc(var(--cell-px) * 12);
+    height: calc(var(--cell-px) * 12);
     position: relative;
     background-image:
       linear-gradient(rgba(255,30,67,0.06) 1px, transparent 1px),
@@ -174,7 +174,9 @@
     left: 0;
     top: 0;
     transform: translate(-50%, -50%);
-    filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));
+    --pet-glow: var(--neon-red);
+    --pet-glow-bright: var(--neon-red-bright);
+    filter: drop-shadow(0 0 6px var(--pet-glow-bright)) drop-shadow(0 0 16px var(--pet-glow));
     transition: left 2.6s linear, top 2.6s linear;
     z-index: 2;
   }
@@ -305,6 +307,15 @@
     border: 2px solid #3a3a42;
     overflow: hidden;
   }
+  .stat-countdown{
+    font-family: 'VT323', monospace;
+    font-size: 12px;
+    color: #7a3038;
+    text-align: right;
+  }
+  .stat-countdown.critical{
+    color: #ff1e43;
+  }
   .stat-bar-fill{
     height: 100%;
     transition: width 0.3s ease;
@@ -323,7 +334,7 @@
   .fixed-stat-row{
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
     border: 2px solid #2a2a30;
     background: #0a0a0c;
     padding: 8px 12px;
@@ -333,6 +344,12 @@
     font-size: 8px;
     color: #7a3038;
     letter-spacing: 1px;
+  }
+  .fixed-stat-rate{
+    font-family: 'VT323', monospace;
+    font-size: 12px;
+    color: #29ff8a;
+    margin-top: 2px;
   }
   .fixed-stat-value{
     font-family: 'VT323', monospace;
@@ -395,6 +412,32 @@
   .species-btn.selected{
     border-color: var(--neon-red);
     box-shadow: 0 0 10px rgba(255,30,67,0.5), inset 0 0 8px rgba(255,30,67,0.2);
+  }
+
+  .glow-color-grid{
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+  .glow-color-btn{
+    aspect-ratio: 1;
+    background: #0a0a0c;
+    border: 2px solid #2a2a30;
+    cursor: pointer;
+    position: relative;
+  }
+  .glow-color-btn::after{
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background: var(--swatch-color);
+    box-shadow: 0 0 8px var(--swatch-color);
+  }
+  .glow-color-btn:hover{ border-color: #fff; }
+  .glow-color-btn.selected{
+    border-color: #fff;
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
   }
 
   .name-input{
@@ -684,6 +727,9 @@
     <p class="text-[9px] text-center mb-4" style="color:var(--neon-red); text-shadow:0 0 6px var(--neon-red);">CHOOSE YOUR PET</p>
     <div class="species-grid mb-5" id="speciesGrid"></div>
 
+    <p class="text-[9px] text-center mb-3" style="color:var(--neon-red); text-shadow:0 0 6px var(--neon-red);">CHOOSE A GLOW COLOR</p>
+    <div class="glow-color-grid mb-5" id="glowColorGrid"></div>
+
     <label for="petNameInput" class="block led-label mb-2 text-center">NAME YOUR PET</label>
     <input type="text" id="petNameInput" class="name-input mb-5" placeholder="Enter a name" maxlength="16" autocomplete="off" spellcheck="false">
 
@@ -737,21 +783,30 @@
     <div class="stat-row">
       <div class="stat-label"><span>HUNGER</span><span id="hungerValue">100</span></div>
       <div class="stat-bar-track"><div class="stat-bar-fill hunger" id="hungerBar" style="width:100%"></div></div>
+      <div class="stat-countdown" id="hungerCountdown">empty in --:--:--</div>
     </div>
     <div class="stat-row">
       <div class="stat-label"><span>HAPPINESS</span><span id="happinessValue">100</span></div>
       <div class="stat-bar-track"><div class="stat-bar-fill happiness" id="happinessBar" style="width:100%"></div></div>
+      <div class="stat-countdown" id="happinessCountdown">empty in --:--:--</div>
     </div>
     <div class="stat-row">
       <div class="stat-label"><span>ENERGY</span><span id="energyValue">100</span></div>
       <div class="stat-bar-track"><div class="stat-bar-fill energy" id="energyBar" style="width:100%"></div></div>
+      <div class="stat-countdown" id="energyCountdown">empty in --:--:--</div>
     </div>
     <div class="fixed-stat-row">
-      <span class="fixed-stat-label">WEIGHT</span>
+      <div>
+        <span class="fixed-stat-label">WEIGHT</span>
+        <div class="fixed-stat-rate" id="weightRate">+0.5 lb/day</div>
+      </div>
       <span class="fixed-stat-value" id="weightValue">2.0 lb (0.9 kg)</span>
     </div>
     <div class="fixed-stat-row">
-      <span class="fixed-stat-label">IQ</span>
+      <div>
+        <span class="fixed-stat-label">IQ</span>
+        <div class="fixed-stat-rate" id="iqRate">+0.2/day</div>
+      </div>
       <span class="fixed-stat-value" id="iqValue">1</span>
     </div>
 
@@ -963,8 +1018,13 @@
   const hungerValue = document.getElementById("hungerValue");
   const happinessValue = document.getElementById("happinessValue");
   const energyValue = document.getElementById("energyValue");
+  const hungerCountdown = document.getElementById("hungerCountdown");
+  const happinessCountdown = document.getElementById("happinessCountdown");
+  const energyCountdown = document.getElementById("energyCountdown");
   const weightValue = document.getElementById("weightValue");
   const iqValue = document.getElementById("iqValue");
+  const weightRate = document.getElementById("weightRate");
+  const iqRate = document.getElementById("iqRate");
 
   const feedBtn = document.getElementById("feedBtn");
   const playBtn = document.getElementById("playBtn");
@@ -990,6 +1050,46 @@
     speciesGrid.appendChild(btn);
   });
 
+  // --- Glow color picker ---
+  const GLOW_COLORS = [
+    { id: "red", name: "Red", bright: "#ff0033", soft: "#ff1e43" },
+    { id: "orange", name: "Orange", bright: "#ff6a00", soft: "#ff9433" },
+    { id: "yellow", name: "Yellow", bright: "#ffcc00", soft: "#ffe066" },
+    { id: "green", name: "Green", bright: "#00ff66", soft: "#33ff8a" },
+    { id: "cyan", name: "Cyan", bright: "#00e0ff", soft: "#33e6ff" },
+    { id: "blue", name: "Blue", bright: "#3366ff", soft: "#5c85ff" },
+    { id: "purple", name: "Purple", bright: "#a233ff", soft: "#c266ff" },
+    { id: "pink", name: "Pink", bright: "#ff33aa", soft: "#ff66c2" },
+    { id: "white", name: "White", bright: "#ffffff", soft: "#e0e0e0" },
+    { id: "gold", name: "Gold", bright: "#ffd700", soft: "#ffe680" },
+    { id: "lime", name: "Lime", bright: "#aaff00", soft: "#c6ff4d" },
+    { id: "teal", name: "Teal", bright: "#00ffcc", soft: "#4dffdb" },
+  ];
+
+  const glowColorGrid = document.getElementById("glowColorGrid");
+  let selectedGlowColor = GLOW_COLORS[0].id; // default: red, so picking a color is optional, not required
+
+  GLOW_COLORS.forEach((color, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "glow-color-btn" + (i === 0 ? " selected" : "");
+    btn.style.setProperty("--swatch-color", color.bright);
+    btn.setAttribute("aria-label", `Choose ${color.name} glow`);
+    btn.title = color.name;
+    btn.addEventListener("click", () => {
+      selectedGlowColor = color.id;
+      [...glowColorGrid.children].forEach(c => c.classList.remove("selected"));
+      btn.classList.add("selected");
+    });
+    glowColorGrid.appendChild(btn);
+  });
+
+  function applyGlowColor(colorId){
+    const color = GLOW_COLORS.find(c => c.id === colorId) || GLOW_COLORS[0];
+    petSprite.style.setProperty("--pet-glow", color.soft);
+    petSprite.style.setProperty("--pet-glow-bright", color.bright);
+  }
+
   function updateAdoptBtn(){
     adoptBtn.disabled = !selectedSpecies || petNameInput.value.trim().length === 0;
   }
@@ -999,6 +1099,7 @@
     if(!selectedSpecies || petNameInput.value.trim().length === 0) return;
     pet = {
       species: selectedSpecies,
+      glowColor: selectedGlowColor,
       name: petNameInput.value.trim().slice(0, 16),
       hunger: 100,
       happiness: 100,
@@ -1025,8 +1126,32 @@
     return "needs you right now";
   }
 
+  // Formats and displays how long until a decaying stat hits 0 at its
+  // current effective rate (points/hour). Shows H:MM:SS, live-updating
+  // via the same interval that already ticks the care-button cooldowns.
+  function updateStatCountdown(el, currentValue, ratePerHour){
+    if(currentValue <= 0){
+      el.textContent = "empty now";
+      el.classList.add("critical");
+      return;
+    }
+    if(ratePerHour <= 0){
+      el.textContent = "not decaying"; // fully offset by furniture
+      el.classList.remove("critical");
+      return;
+    }
+    const hoursLeft = currentValue / ratePerHour;
+    const totalSeconds = Math.floor(hoursLeft * 3600);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    el.textContent = `empty in ${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    el.classList.toggle("critical", hoursLeft < 1);
+  }
+
   function renderStats(){
     if(!pet) return;
+    applyGlowColor(pet.glowColor || "red");
     hungerBar.style.width = pet.hunger + "%";
     happinessBar.style.width = pet.happiness + "%";
     energyBar.style.width = pet.energy + "%";
@@ -1034,12 +1159,26 @@
     happinessValue.textContent = Math.round(pet.happiness);
     energyValue.textContent = Math.round(pet.energy);
 
+    // Time until each stat hits 0 at its current decay rate (furniture
+    // like the Automatic Feeder/Cozy Bed/Scratching Post slows this down,
+    // so it's computed live rather than off a fixed rate).
+    updateStatCountdown(hungerCountdown, pet.hunger, DECAY_PER_HOUR * getFurnitureMultiplier(pet, "hungerDecayMult"));
+    updateStatCountdown(happinessCountdown, pet.happiness, DECAY_PER_HOUR * getFurnitureMultiplier(pet, "happinessDecayMult"));
+    updateStatCountdown(energyCountdown, pet.energy, DECAY_PER_HOUR * getFurnitureMultiplier(pet, "energyDecayMult"));
+
     // Weight/IQ have no ceiling — shown as plain values, weight in both
     // lb and kg since that's the more universally readable unit pairing.
     const weightLb = pet.weight || 0;
     const weightKg = weightLb * 0.453592;
     weightValue.textContent = `${weightLb.toFixed(1)} lb (${weightKg.toFixed(1)} kg)`;
     iqValue.textContent = Math.round(pet.iq || 0);
+
+    // Daily gain rate at current furniture (Fridge/Bookcase boost this) —
+    // the base hourly rate is fixed, so this is just rate * 24 * multiplier.
+    const weightPerDay = WEIGHT_GROWTH_PER_HOUR * 24 * getFurnitureMultiplier(pet, "weightGainMult");
+    const iqPerDay = IQ_GROWTH_PER_HOUR * 24 * getFurnitureMultiplier(pet, "iqGainMult");
+    weightRate.textContent = `+${weightPerDay.toFixed(2)} lb/day`;
+    iqRate.textContent = `+${iqPerDay.toFixed(2)}/day`;
 
     const isCritical = pet.hunger < 20 || pet.happiness < 20 || pet.energy < 20;
     const isThriving = pet.hunger >= 90 && pet.happiness >= 90 && pet.energy >= 90;
@@ -1158,26 +1297,164 @@
   }
 
   const roomFurniture = document.getElementById("roomFurniture");
+  const roomViewport = document.getElementById("roomViewport");
+  const roomWorld = document.getElementById("roomWorld");
 
+  // Room grid: matches --cell-px (56) and the 12x12 world / 6x6 viewport
+  // sizing set in CSS. Kept in one place so movement, furniture placement,
+  // and the camera all agree on the same coordinate system.
+  const ROOM = { cols: 12, rows: 12, viewCols: 6, viewRows: 6, cellPx: 56 };
+
+  // Furniture sits at fixed, spaced-out grid cells along the room rather
+  // than drifting with the pet, and is now sized/positioned in real grid
+  // coordinates so it can't end up outside the world or overlapping the
+  // walked path awkwardly.
   function renderRoomFurniture(ownedIds){
     roomFurniture.innerHTML = "";
     if(ownedIds.length === 0) return;
-    // Spread evenly along the floor, leaving margin so nothing sits under
-    // the walking pet's usual center path.
-    const count = ownedIds.length;
+    // Fixed anchor cells spread around the room's interior, avoiding the
+    // very edges so items don't sit under the camera-follow border.
+    const anchors = [
+      [1, 1], [10, 1], [1, 10], [10, 10], [5, 1], [1, 5], [10, 5], [5, 10],
+    ];
     ownedIds.forEach((id, i) => {
       const item = GOTCHYA_FURNITURE.find(f => f.id === id);
       if(!item) return;
-      const posPercent = 10 + (i / Math.max(1, count - 1 || 1)) * 80;
+      const [gx, gy] = anchors[i % anchors.length];
       const el = document.createElement("span");
       el.className = "room-furniture-item";
-      el.style.left = `${count === 1 ? 12 : posPercent}%`;
+      el.style.left = `${gx * ROOM.cellPx + ROOM.cellPx / 2}px`;
+      el.style.top = `${gy * ROOM.cellPx + ROOM.cellPx / 2}px`;
+      el.style.transform = "translate(-50%, -50%)";
       el.textContent = item.icon;
       el.title = `${item.name} — ${item.desc}`;
       roomFurniture.appendChild(el);
     });
   }
 
+  // --- Movement + camera ---
+  // The pet has a position in grid cells (can be fractional while
+  // walking's CSS transition is in flight, but we track the target cell).
+  // The camera scrolls room-world by translating it so the pet's cell
+  // stays within the visible viewport, clamped so the camera never shows
+  // past the room's outer edges — this is what stops the sprite's head
+  // (or any part of it) from being clipped at the world boundary.
+  let petGridX = Math.floor(ROOM.cols / 2);
+  let petGridY = Math.floor(ROOM.rows / 2);
+
+  function setPetPixelPosition(gx, gy){
+    // Center the sprite within its cell.
+    petSprite.style.left = `${gx * ROOM.cellPx + ROOM.cellPx / 2}px`;
+    petSprite.style.top = `${gy * ROOM.cellPx + ROOM.cellPx / 2}px`;
+  }
+
+  function updateCamera(gx, gy){
+    const viewportPx = ROOM.viewCols * ROOM.cellPx;
+    const worldPx = ROOM.cols * ROOM.cellPx;
+    const maxOffset = worldPx - viewportPx;
+
+    // Center the camera on the pet, then clamp so it never scrolls past
+    // the room's edges (which would otherwise reveal empty space beyond
+    // the world, or equivalently let the pet render outside the frame).
+    const targetPx = gx * ROOM.cellPx + ROOM.cellPx / 2 - viewportPx / 2;
+    const targetPy = gy * ROOM.cellPx + ROOM.cellPx / 2 - viewportPx / 2;
+    const offsetX = Math.min(Math.max(targetPx, 0), maxOffset);
+    const offsetY = Math.min(Math.max(targetPy, 0), maxOffset);
+
+    roomWorld.style.transform = `translate(${-offsetX}px, ${-offsetY}px)`;
+  }
+
+  // Initial placement, centered, before any wander step has run.
+  setPetPixelPosition(petGridX, petGridY);
+  updateCamera(petGridX, petGridY);
+
+  // --- Idle wander: makes the pet feel alive even when no stat is
+  // critical or thriving. Picks a random nearby cell (up/down/left/right,
+  // not diagonal teleports across the whole room), walks there slowly,
+  // the camera follows, pauses and bobs in place a while, repeats.
+  // Distress/thriving animations on the sprite itself still take
+  // priority visually since they're separate CSS classes layered on top.
+  let wanderTimer = null;
+
+  function startWander(){
+    if(wanderTimer) return;
+
+    let lastDir = null; // avoid immediately reversing, which reads as boring back-and-forth pacing
+
+    function step(){
+      if(!pet){ wanderTimer = null; return; }
+
+      // 8-directional movement (includes diagonals), so wandering doesn't
+      // read as strictly axis-locked left/right/up/down pacing.
+      const directions = [
+        { dx: 1, dy: 0 }, { dx: -1, dy: 0 }, { dx: 0, dy: 1 }, { dx: 0, dy: -1 },
+        { dx: 1, dy: 1 }, { dx: 1, dy: -1 }, { dx: -1, dy: 1 }, { dx: -1, dy: -1 },
+      ];
+
+      // Small chance of just pausing/looking around without moving at all
+      // this leg — adds unpredictability instead of always relocating.
+      const shouldPauseInPlace = Math.random() < 0.2;
+
+      let dir = { dx: 0, dy: 0 };
+      let steps = 0;
+      let nextX = petGridX;
+      let nextY = petGridY;
+
+      if(!shouldPauseInPlace){
+        // Filter out the direct reverse of the last move so the pet
+        // doesn't constantly ping-pong between two cells.
+        const candidates = lastDir
+          ? directions.filter(d => !(d.dx === -lastDir.dx && d.dy === -lastDir.dy))
+          : directions;
+        dir = candidates[Math.floor(Math.random() * candidates.length)];
+        steps = 1 + Math.floor(Math.random() * 3); // move 1-3 cells this leg, varied pacing
+        nextX = Math.min(ROOM.cols - 1, Math.max(0, petGridX + dir.dx * steps));
+        nextY = Math.min(ROOM.rows - 1, Math.max(0, petGridY + dir.dy * steps));
+      }
+
+      const movingRight = nextX > petGridX;
+      const actuallyMoving = nextX !== petGridX || nextY !== petGridY;
+      // Walk duration scales a little with distance so a 3-cell diagonal
+      // hop doesn't look like it's teleporting at the same speed as a
+      // 1-cell nudge.
+      const walkDuration = actuallyMoving ? 1400 + steps * 500 : 0;
+
+      if(actuallyMoving){
+        lastDir = dir;
+      }
+
+      petGridX = nextX;
+      petGridY = nextY;
+
+      if(actuallyMoving){
+        petSprite.classList.remove("idle-bob");
+        petSprite.classList.add("walking");
+        if(dir.dx !== 0){
+          petSprite.classList.toggle("facing-left", !movingRight);
+        }
+        petSprite.style.transitionDuration = `${walkDuration}ms, ${walkDuration}ms`;
+        setPetPixelPosition(petGridX, petGridY);
+        updateCamera(petGridX, petGridY);
+      }
+
+      const pauseDuration = 1800 + Math.random() * 4200; // idle a varied while between legs
+
+      wanderTimer = setTimeout(() => {
+        petSprite.classList.remove("walking");
+        petSprite.classList.add("idle-bob");
+        wanderTimer = setTimeout(step, pauseDuration);
+      }, actuallyMoving ? walkDuration : 200);
+    }
+
+    step();
+  }
+
+  function stopWander(){
+    if(wanderTimer){
+      clearTimeout(wanderTimer);
+      wanderTimer = null;
+    }
+  }
 
   const CARE_COOLDOWN_MS = 5 * 60 * 60 * 1000; // 5 hours per action
 
@@ -1453,6 +1730,22 @@
   setInterval(() => {
     if(pet) renderAlarmClock();
   }, 30000);
+
+  // Stat countdowns show seconds precision, so they need to visibly tick
+  // every second. Full decay only actually applies to pet.hunger/etc. on
+  // the slower 30s interval above, so to avoid the countdown looking
+  // frozen in between, this factors in real elapsed time since the last
+  // applied decay rather than just re-displaying the same stale value.
+  setInterval(() => {
+    if(!pet) return;
+    const hoursSinceDecay = (Date.now() - pet.lastSeen) / (1000 * 60 * 60);
+    const hungerRate = DECAY_PER_HOUR * getFurnitureMultiplier(pet, "hungerDecayMult");
+    const happinessRate = DECAY_PER_HOUR * getFurnitureMultiplier(pet, "happinessDecayMult");
+    const energyRate = DECAY_PER_HOUR * getFurnitureMultiplier(pet, "energyDecayMult");
+    updateStatCountdown(hungerCountdown, clamp(pet.hunger - hungerRate * hoursSinceDecay, 0, 100), hungerRate);
+    updateStatCountdown(happinessCountdown, clamp(pet.happiness - happinessRate * hoursSinceDecay, 0, 100), happinessRate);
+    updateStatCountdown(energyCountdown, clamp(pet.energy - energyRate * hoursSinceDecay, 0, 100), energyRate);
+  }, 1000);
 
   // --- Idle wander: makes the pet feel alive even when no stat is
   // critical or thriving. Picks a random spot within the stage, walks

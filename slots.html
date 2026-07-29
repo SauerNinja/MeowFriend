@@ -136,6 +136,35 @@
     border: 3px solid #3a3a42;
     box-shadow: inset 0 0 14px rgba(255,30,67,0.3), inset 0 0 0 2px #000;
     padding: 10px 6px;
+    position: relative;
+  }
+
+  /* Ambient rainbow glow behind the reel window — always slowly cycling,
+     independent of win/loss state, so the machine feels alive even at
+     rest. Sits behind the reels via z-index, doesn't affect their own
+     colors, just washes the window's backdrop. */
+  .slot-window::before{
+    content: "";
+    position: absolute;
+    inset: -6px;
+    z-index: -1;
+    border-radius: 4px;
+    filter: blur(14px);
+    opacity: 0.55;
+    animation: slot-ambient-rainbow 8s linear infinite;
+  }
+  @keyframes slot-ambient-rainbow{
+    0%   { background: #ff1e43; }
+    14%  { background: #ff9433; }
+    28%  { background: #ffcc00; }
+    42%  { background: #33ff77; }
+    57%  { background: #33e0ff; }
+    71%  { background: #6644ff; }
+    85%  { background: #ff44aa; }
+    100% { background: #ff1e43; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .slot-window::before{ animation: none; background: #ff1e43; }
   }
 
   .slot-reel{
@@ -144,6 +173,11 @@
     border-right: 2px solid #1e1e22;
     position: relative;
     background: linear-gradient(var(--led-bg), transparent 22%, transparent 78%, var(--led-bg));
+    box-shadow: none;
+    transition: box-shadow 0.3s ease;
+  }
+  .slot-reel.reel-landed-glow{
+    box-shadow: inset 0 0 18px var(--reel-glow, #ff1e43), 0 0 12px var(--reel-glow, #ff1e43);
   }
   .slot-reel:last-child{ border-right: none; }
 
@@ -487,6 +521,21 @@
   const ARCADE_TIER = new Set(["🍒","💸","🧧"]);
   const BIG_MONEY = new Set(["💰","🤑","7️⃣"]);
 
+  // Each symbol gets its own glow color so the reels don't all pulse the
+  // same shade — spread across a full rainbow rather than sticking to the
+  // site's usual red.
+  const SYMBOL_GLOW_COLORS = {
+    "💎": "#33e0ff",
+    "💰": "#ffd700", "🤑": "#ffcc00", "7️⃣": "#ff9433",
+    "🍒": "#ff1e43", "💸": "#33ff77", "🧧": "#ff44aa",
+    "🐀": "#a233ff", "🐾": "#6644ff", "🐟": "#33e0ff", "🧶": "#ff6a00",
+    "🐱": "#ff9433", "😹": "#ffcc00", "😻": "#ff44aa", "😼": "#a233ff",
+    "😽": "#33ff77", "🙀": "#ff1e43", "😿": "#3366ff", "😾": "#6644ff",
+  };
+  function glowColorFor(symbol){
+    return SYMBOL_GLOW_COLORS[symbol] || "#ff1e43";
+  }
+
   const SPIN_COST = 1;
   const CELL_H = 72;
 
@@ -566,6 +615,7 @@
     if(spinning) return;
     spinning = true;
     stoppedReels = new Set();
+    reels.forEach(reel => reel.classList.remove("reel-landed-glow"));
     pendingSymbols = [weightedRandomSymbol(), weightedRandomSymbol(), weightedRandomSymbol()];
     reels.forEach((reel, i) => buildStrip(reel, pendingSymbols[i], 60));
 
@@ -610,6 +660,14 @@
         stoppedReels.add(i);
         strip.style.transition = `transform ${duration}ms cubic-bezier(0.12, 0.85, 0.2, 1)`;
         strip.style.transform = `translateY(-${target}px)`;
+        // Each reel glows the color of whatever it actually landed on,
+        // right as it stops — three different colors most of the time,
+        // rather than one uniform tint across all three.
+        setTimeout(() => {
+          const color = glowColorFor(symbols[i]);
+          reel.style.setProperty("--reel-glow", color);
+          reel.classList.add("reel-landed-glow");
+        }, duration);
       }, delay);
     });
     const totalDelay = MIN_FREE_SPIN_MS + (reels.length - 1) * REEL_STAGGER_MS + (900 + (reels.length - 1) * 150);
