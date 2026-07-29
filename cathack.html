@@ -124,6 +124,9 @@
     font-size: 14px;
     line-height: 1;
     background: #0a0a0c;
+    overflow: hidden;
+    min-width: 0;
+    min-height: 0;
   }
   .ch-cell.floor{ background: #14141a; }
   .ch-cell.wall{ background: #050506; }
@@ -161,6 +164,46 @@
     text-shadow: 0 0 6px var(--neon-red);
   }
   .dpad-btn:active{ filter: brightness(1.4); transform: translateY(1px); }
+
+  .stat-bar-track{
+    height: 12px;
+    background: #0a0a0c;
+    border: 2px solid #3a3a42;
+    overflow: hidden;
+  }
+  .stat-bar-fill{
+    height: 100%;
+    transition: width 0.3s ease;
+  }
+  .stat-bar-fill.hp{ background: linear-gradient(90deg, #29ff8a, #6bff29); }
+  .stat-bar-fill.enemy{ background: linear-gradient(90deg, #ff1e43, #ff5566); }
+
+  .battle-btn{
+    background: linear-gradient(180deg, #2a2a30, #17171a);
+    border: 2px solid var(--neon-red);
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 12px 6px;
+    line-height: 1.4;
+    cursor: pointer;
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+  .battle-btn:hover:not(:disabled){ filter: brightness(1.3); }
+  .battle-btn:disabled{
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .battle-btn.flee{
+    border-color: #4a2a30;
+    color: #9a5a62;
+    text-shadow: none;
+  }
+  .battle-btn.flee:hover:not(:disabled){ border-color: #fff; color: #fff; }
+  .battle-btn-cost{
+    font-size: 7px;
+    color: #7a3038;
+  }
 
   .enter-btn{
     background: linear-gradient(180deg, #ff2f4d 0%, #d80f2b 55%, #9c0a1f 100%);
@@ -295,6 +338,44 @@
     <p class="text-[8px] text-[#7a3038] tracking-widest text-center mt-3">ARROW KEYS / WASD, OR TAP — TURN-BASED, MONSTERS MOVE AFTER YOU</p>
   </div>
 
+  <!-- Battle screen: replaces the dungeon view for the duration of a fight -->
+  <div id="battleScreen" class="chassis p-5 sm:p-7 hidden">
+    <p class="panel-eyebrow text-center mb-4">A WILD CREATURE BLOCKS THE WAY</p>
+
+    <div class="flex items-center justify-around mb-5">
+      <div class="text-center">
+        <div class="text-4xl mb-2" id="battlePlayerIcon" aria-hidden="true">🐱</div>
+        <div class="text-[8px] text-[#7a3038]" id="battlePlayerName">YOU</div>
+      </div>
+      <div class="text-2xl" style="color:var(--neon-red);" aria-hidden="true">⚔️</div>
+      <div class="text-center">
+        <div class="text-4xl mb-2" id="battleMonsterIcon" aria-hidden="true">🐀</div>
+        <div class="text-[8px] text-[#7a3038]">ENEMY</div>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <div class="flex justify-between text-[8px] text-[#7a3038] mb-1">
+        <span>YOUR HP</span><span id="battlePlayerHpText">—</span>
+      </div>
+      <div class="stat-bar-track"><div class="stat-bar-fill hp" id="battlePlayerHpBar" style="width:100%"></div></div>
+    </div>
+    <div class="mb-5">
+      <div class="flex justify-between text-[8px] text-[#7a3038] mb-1">
+        <span>ENEMY HP</span><span id="battleMonsterHpText">—</span>
+      </div>
+      <div class="stat-bar-track"><div class="stat-bar-fill enemy" id="battleMonsterHpBar" style="width:100%"></div></div>
+    </div>
+
+    <div class="log-panel mb-4" id="battleLogPanel" aria-live="polite"></div>
+
+    <div class="grid grid-cols-3 gap-2">
+      <button type="button" id="battleAttackBtn" class="battle-btn">ATTACK</button>
+      <button type="button" id="battleSpecialBtn" class="battle-btn">SPECIAL<br><span class="battle-btn-cost">(2 MP)</span></button>
+      <button type="button" id="battleFleeBtn" class="battle-btn flee">FLEE</button>
+    </div>
+  </div>
+
   <div id="deathScreen" class="chassis p-6 sm:p-8 hidden text-center">
     <div class="text-5xl mb-4" aria-hidden="true">💀</div>
     <p class="panel-heading mb-4" id="deathMessage">YOUR PET HAS DIED</p>
@@ -418,6 +499,18 @@
   const deathScreen = document.getElementById("deathScreen");
   const confirmModal = document.getElementById("confirmModal");
 
+  const battleScreen = document.getElementById("battleScreen");
+  const battlePlayerIcon = document.getElementById("battlePlayerIcon");
+  const battleMonsterIcon = document.getElementById("battleMonsterIcon");
+  const battlePlayerHpText = document.getElementById("battlePlayerHpText");
+  const battleMonsterHpText = document.getElementById("battleMonsterHpText");
+  const battlePlayerHpBar = document.getElementById("battlePlayerHpBar");
+  const battleMonsterHpBar = document.getElementById("battleMonsterHpBar");
+  const battleLogPanel = document.getElementById("battleLogPanel");
+  const battleAttackBtn = document.getElementById("battleAttackBtn");
+  const battleSpecialBtn = document.getElementById("battleSpecialBtn");
+  const battleFleeBtn = document.getElementById("battleFleeBtn");
+
   function log(msg){
     logLines.push(msg);
     if(logLines.length > 40) logLines.shift();
@@ -453,6 +546,7 @@
 
   function render(){
     grid.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
+    grid.style.gridTemplateRows = `repeat(${ROWS}, 1fr)`;
     grid.innerHTML = "";
     for(let y = 0; y < ROWS; y++){
       for(let x = 0; x < COLS; x++){
@@ -488,21 +582,138 @@
 
   function endRunWithDeath(){
     running = false;
+    inBattle = false;
     const record = killGotchyaPet(`Died on depth ${depth} of Cat Hack`);
     document.getElementById("deathPetName").textContent = record ? record.name : "Your pet";
     dungeonScreen.classList.add("hidden");
+    battleScreen.classList.add("hidden");
     deathScreen.classList.remove("hidden");
   }
 
-  function playerAttack(monster){
+  // --- Battle system ---
+  // Bumping into a monster no longer resolves in a single instant hit —
+  // it opens a dedicated turn-based battle screen. Dungeon movement is
+  // fully locked while inBattle is true; the fight only ends by victory,
+  // defeat, or a successful flee, at which point control returns to the
+  // dungeon view.
+  let inBattle = false;
+  let activeMonster = null;
+  let battleLogLines = [];
+
+  function battleLog(msg){
+    battleLogLines.push(msg);
+    if(battleLogLines.length > 30) battleLogLines.shift();
+    battleLogPanel.innerHTML = battleLogLines.slice().reverse().map(l => `<div>${l}</div>`).join("");
+  }
+
+  function updateBattleHud(){
+    const maxHp = calcMaxHp(pet.weight);
+    battlePlayerIcon.textContent = pet.species || "🐱";
+    battleMonsterIcon.textContent = activeMonster.emoji;
+    battlePlayerHpText.textContent = `${Math.max(0, currentHp)}/${maxHp}`;
+    battleMonsterHpText.textContent = `${Math.max(0, activeMonster.hp)}/${activeMonster.maxHp}`;
+    battlePlayerHpBar.style.width = `${Math.max(0, (currentHp / maxHp) * 100)}%`;
+    battleMonsterHpBar.style.width = `${Math.max(0, (activeMonster.hp / activeMonster.maxHp) * 100)}%`;
+    battleSpecialBtn.disabled = currentMp < 2;
+  }
+
+  function startBattle(monster){
+    inBattle = true;
+    activeMonster = monster;
+    battleLogLines = [];
+    dungeonScreen.classList.add("hidden");
+    battleScreen.classList.remove("hidden");
+    battleLog(`A wild ${monster.emoji} attacks!`);
+    updateBattleHud();
+  }
+
+  function endBattle(){
+    inBattle = false;
+    activeMonster = null;
+    battleScreen.classList.add("hidden");
+    dungeonScreen.classList.remove("hidden");
+    refreshStatsFromPet();
+    updateHud();
+    render();
+  }
+
+  // Monster's turn within a battle — only ever called after the player's
+  // chosen action has fully resolved, keeping combat strictly turn-based.
+  function battleMonsterStrike(){
+    if(!activeMonster.alive) return;
+    currentHp -= activeMonster.atk;
+    battleLog(`${activeMonster.emoji} hits you for ${activeMonster.atk}.`);
+    log(`${activeMonster.emoji} hit you for ${activeMonster.atk} in battle.`);
+    if(currentHp <= 0){
+      currentHp = 0;
+      updateBattleHud();
+      battleLog(`${pet.name} has fallen...`);
+      setTimeout(endRunWithDeath, 1200);
+      return;
+    }
+    updateBattleHud();
+  }
+
+  function battleAttack(){
+    if(!inBattle) return;
     const dmg = 1 + Math.floor(Math.random() * 3) + Math.floor((pet.weight || 0) / 20);
-    monster.hp -= dmg;
-    log(`You hit ${monster.emoji} for ${dmg}.`);
-    if(monster.hp <= 0){
-      monster.alive = false;
-      log(`${monster.emoji} defeated!`);
+    activeMonster.hp -= dmg;
+    battleLog(`You hit ${activeMonster.emoji} for ${dmg}.`);
+    log(`You hit ${activeMonster.emoji} for ${dmg} in battle.`);
+
+    if(activeMonster.hp <= 0){
+      activeMonster.alive = false;
+      battleLog(`${activeMonster.emoji} defeated!`);
+      log(`${activeMonster.emoji} defeated in battle!`);
+      setTimeout(endBattle, 900);
+      return;
+    }
+
+    updateBattleHud();
+    battleMonsterStrike();
+  }
+
+  // Special attack: costs 2 MP, hits harder, scales with IQ instead of
+  // weight — gives mana an actual purpose in combat.
+  function battleSpecial(){
+    if(!inBattle || currentMp < 2) return;
+    currentMp -= 2;
+    const dmg = 3 + Math.floor(Math.random() * 4) + Math.floor((pet.iq || 0) / 8);
+    activeMonster.hp -= dmg;
+    battleLog(`You unleash a special attack on ${activeMonster.emoji} for ${dmg}!`);
+    log(`Special attack on ${activeMonster.emoji} for ${dmg} in battle.`);
+
+    if(activeMonster.hp <= 0){
+      activeMonster.alive = false;
+      battleLog(`${activeMonster.emoji} defeated!`);
+      log(`${activeMonster.emoji} defeated in battle!`);
+      setTimeout(endBattle, 900);
+      return;
+    }
+
+    updateBattleHud();
+    battleMonsterStrike();
+  }
+
+  // Fleeing has a real chance to fail — the monster gets a free hit if it
+  // does, same as it would if you fumbled an escape. On success the
+  // monster stays alive on the floor (not defeated, not removed).
+  function battleFlee(){
+    if(!inBattle) return;
+    const fleeChance = 0.6;
+    if(Math.random() < fleeChance){
+      battleLog(`${pet.name} flees from ${activeMonster.emoji}!`);
+      log(`Fled from ${activeMonster.emoji}.`);
+      setTimeout(endBattle, 700);
+    } else {
+      battleLog(`Couldn't get away!`);
+      battleMonsterStrike();
     }
   }
+
+  battleAttackBtn.addEventListener("click", battleAttack);
+  battleSpecialBtn.addEventListener("click", battleSpecial);
+  battleFleeBtn.addEventListener("click", battleFlee);
 
   function monsterTurn(){
     dungeon.monsters.forEach(m => {
@@ -512,15 +723,10 @@
       const dist = Math.abs(player.x - m.x) + Math.abs(player.y - m.y);
 
       if(dist === 1){
-        currentHp -= m.atk;
-        log(`${m.emoji} hits you for ${m.atk}!`);
-        if(currentHp <= 0){
-          currentHp = 0;
-          updateHud();
-          log(`${pet.name} has fallen...`);
-          setTimeout(endRunWithDeath, 1200);
-          return;
-        }
+        // Adjacent monsters no longer free-hit the player outside of
+        // battle — contact is what triggers a battle in tryMove, not a
+        // passive attack here.
+        return;
       } else if(dist <= 6){
         const nx = m.x + (Math.random() < 0.5 ? dx : 0);
         const ny = m.y + (Math.random() < 0.5 ? 0 : dy);
@@ -532,12 +738,13 @@
   }
 
   function tryMove(dx, dy){
-    if(!running) return;
+    if(!running || inBattle) return;
     const nx = player.x + dx, ny = player.y + dy;
 
     const monster = monsterAt(nx, ny);
     if(monster){
-      playerAttack(monster);
+      startBattle(monster);
+      return;
     } else if(tileAt(nx, ny) !== TILE.WALL){
       player.x = nx; player.y = ny;
       if(tileAt(nx, ny) === TILE.EXIT){

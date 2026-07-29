@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MeowFriend — README</title>
+<meta name="description" content="About the MeowFriend project — what it is, how it's built, and its open-source MIT license.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sauerninja.github.io/MeowFriend/readme.html">
+
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="MeowFriend — README">
+<meta property="og:description" content="About the MeowFriend project — what it is, how it's built, and its open-source MIT license.">
+<meta property="og:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="MeowFriend logo: a glowing black cat face beside the MEOWFRIEND wordmark on a dark neon-red arcade console background">
+<meta property="og:url" content="https://sauerninja.github.io/MeowFriend/readme.html">
+<meta property="og:site_name" content="MeowFriend">
+<meta property="og:locale" content="en_US">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MeowFriend — README">
+<meta name="twitter:description" content="About the MeowFriend project — what it is, how it's built, and its open-source MIT license.">
+<meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
+
+<script src="shared-tickets.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root{
+    --neon-red: #ff1e43;
+    --neon-red-bright: #ff0033;
+    --led-bg: #0a0a0c;
+  }
+  * { box-sizing: border-box; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, #14090b 0%, #000000 55%);
+    font-family: 'Press Start 2P', monospace;
+    color: #ffb3bd;
+    min-height: 100vh;
+  }
+
+  .scanlines::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 3px);
+    z-index: 50;
+  }
+
+  .neon-text{
+    color: var(--neon-red);
+    text-shadow: 0 0 2px var(--neon-red-bright), 0 0 8px var(--neon-red), 0 0 18px var(--neon-red);
+  }
+
+  .back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: #ff8b96;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+  .back-link:hover{ color: var(--neon-red); }
+
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+  .body-copy{
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.65;
+    color: #ffc7cf;
+  }
+  .body-copy ul{
+    list-style: disc;
+    padding-left: 24px;
+  }
+  .body-copy li{
+    margin-bottom: 6px;
+  }
+
+  :focus-visible{
+    outline: 2px solid var(--neon-red);
+    outline-offset: 3px;
+  }
+</style>
+</head>
+<body class="scanlines flex items-center justify-center px-4 py-10">
+
+<main class="w-full max-w-xl">
+
+  <header class="flex flex-col items-center mb-6">
+    <a href="index.html" class="back-link mb-4">&larr; BACK TO FAUCET</a>
+    <div class="text-5xl mb-5" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">📄</div>
+    <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">README</h1>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">ABOUT THIS PROJECT</p>
+  </header>
+
+  <section class="info-panel p-6 sm:p-8" aria-labelledby="overview-heading">
+    <p class="panel-eyebrow mb-3">OVERVIEW</p>
+    <h2 id="overview-heading" class="panel-heading mb-4">WHAT IS MEOWFRIEND</h2>
+    <p class="body-copy">
+      MeowFriend is a retro arcade faucet site for Meowcoin (MEWC) — a collection of minigames, a
+      virtual pet system, and an optional Meowcoin-node-integrated backend, wrapped in a neon
+      CRT-arcade look.
+    </p>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="whats-in-heading">
+    <p class="panel-eyebrow mb-3">CONTENTS</p>
+    <h2 id="whats-in-heading" class="panel-heading mb-4">WHAT'S IN HERE</h2>
+    <ul class="body-copy">
+      <li><strong>Faucet</strong> — a small MEWC drip faucet with a cooldown timer, gated behind a sign-to-register flow so a player proves control of their own address before claiming.</li>
+      <li><strong>Arcade minigames</strong> — a slot machine, a road-crossing game, and an endless runner, all sharing a single in-game ticket economy.</li>
+      <li><strong>Gotchya</strong> — a persistent virtual pet with hunger/happiness/energy, weight and IQ that grow over real time, a shop for food and permanent upgrades, and a backpack for items found while playing.</li>
+      <li><strong>Cat Hack</strong> — a turn-based, permadeath roguelike dungeon crawl starring your Gotchya pet, with a cemetery for pets who don't make it back.</li>
+      <li><strong>Donations &amp; registration</strong> — an optional flow for donating MEWC and registering a wallet address via cryptographic message signing, verified against a real Meowcoin node rather than trusted client-side.</li>
+    </ul>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="tech-heading">
+    <p class="panel-eyebrow mb-3">TECH</p>
+    <h2 id="tech-heading" class="panel-heading mb-4">HOW IT'S BUILT</h2>
+    <p class="body-copy">
+      Vanilla HTML/CSS/JS on the frontend — no build step, no framework — with Tailwind via CDN for
+      utility styling. A small Node.js/Express bridge server handles anything that needs to talk to
+      a real Meowcoin node's RPC interface. No accounts, no tracking, no ads.
+    </p>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="license-heading">
+    <p class="panel-eyebrow mb-3">LICENSE</p>
+    <h2 id="license-heading" class="panel-heading mb-4">OPEN SOURCE — MIT</h2>
+    <p class="body-copy">
+      This project is open for anyone to use, fork, modify, and build on. It's released under the
+      <strong>MIT License</strong>. Contributions, forks, and reuse are welcome.
+    </p>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="disclaimer-heading">
+    <p class="panel-eyebrow mb-3">DISCLAIMER</p>
+    <h2 id="disclaimer-heading" class="panel-heading mb-4">READ THIS</h2>
+    <p class="body-copy">
+      MeowFriend is an independent fan project and demo faucet. It is not affiliated with or
+      endorsed by the official Meowcoin team, and nothing on this site is financial advice. Any
+      ticket, in-game currency, or game asset described on this site has no monetary value and is
+      not redeemable for MEWC, cash, or anything else, except where explicitly built as a real
+      on-chain feature and clearly labeled as such. Addresses generated or shown by the site are for
+      small, game-related amounts only — this is not a wallet and should not be used to store or
+      hold funds.
+    </p>
+  </section>
+
+  <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
+    <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
+    <p class="mt-2">NOT AFFILIATED WITH THE OFFICIAL MEOWCOIN TEAM. NOT FINANCIAL ADVICE.</p>
+    <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
+  </footer>
+
+</main>
+
+</body>
+</html>
