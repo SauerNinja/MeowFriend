@@ -179,6 +179,89 @@
     white-space: nowrap;
   }
 
+  .purchase-toast{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+  }
+  .purchase-toast .toast-msg{
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: #29ff8a;
+    text-shadow: 0 0 8px #29ff8a;
+    border: 2px solid #29ff8a;
+    background: #081410;
+    padding: 10px 16px;
+    animation: toast-pop 1.6s ease-out forwards;
+  }
+  @keyframes toast-pop{
+    0%   { opacity: 0; transform: translateY(-6px) scale(0.9); }
+    12%  { opacity: 1; transform: translateY(0) scale(1); }
+    80%  { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-4px) scale(0.95); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .purchase-toast .toast-msg{ animation: none; }
+  }
+
+  .region-modal-backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .region-modal-backdrop.hidden{ display: none; }
+  .region-modal{
+    background: linear-gradient(180deg, #222228, #1a1a1e);
+    border: 3px solid var(--neon-red);
+    box-shadow: 0 0 30px rgba(255,30,67,0.4), inset 0 0 20px rgba(255,30,67,0.1);
+    padding: 24px;
+    max-width: 420px;
+    width: 100%;
+  }
+  .region-select{
+    width: 100%;
+    background: #0a0a0c;
+    border: 3px solid #3a3a42;
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding: 12px 10px;
+    box-shadow: inset 0 0 10px rgba(255,30,67,0.15);
+  }
+  .region-select:focus{
+    outline: none;
+    box-shadow: 0 0 0 2px var(--neon-red), inset 0 0 10px rgba(255,30,67,0.25);
+  }
+  .region-cancel-btn{
+    background: transparent;
+    border: 2px solid #4a2a30;
+    color: #9a5a62;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+  .region-cancel-btn:hover{ border-color: var(--neon-red); color: var(--neon-red); }
+  .region-confirm-btn{
+    background: transparent;
+    border: 2px solid var(--neon-red);
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 10px 16px;
+    cursor: pointer;
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+  .region-confirm-btn:hover{ filter: brightness(1.3); }
+
   :focus-visible{
     outline: 2px solid var(--neon-red);
     outline-offset: 3px;
@@ -201,6 +284,24 @@
     <div class="led-value" id="ticketDisplay">0 🎟️</div>
   </div>
 
+  <div id="purchaseToast" class="purchase-toast" aria-live="polite"></div>
+
+  <div id="regionModal" class="region-modal-backdrop hidden">
+    <div class="region-modal">
+      <p class="panel-eyebrow mb-2">⏰ ALARM CLOCK</p>
+      <h2 class="panel-heading mb-3">SELECT YOUR REGION</h2>
+      <p class="body-copy text-base leading-snug mb-4">
+        Pick the timezone the clock should display. This is set once and used for the current time
+        shown on the Alarm Clock — it doesn't change anything else on the site.
+      </p>
+      <select id="regionSelect" class="region-select mb-4"></select>
+      <div class="flex justify-center gap-3">
+        <button type="button" id="regionCancelBtn" class="region-cancel-btn">CANCEL</button>
+        <button type="button" id="regionConfirmBtn" class="region-confirm-btn">CONFIRM &amp; BUY</button>
+      </div>
+    </div>
+  </div>
+
   <div id="noPetWarning" class="draft-warning mb-6 hidden">
     <p class="led-label mb-2" style="color:#ffb347;">⚠ NO PET ADOPTED YET</p>
     <p class="body-copy text-base leading-snug">
@@ -212,12 +313,22 @@
 
   <section class="info-panel p-6 sm:p-8" aria-labelledby="items-heading">
     <p class="panel-eyebrow mb-3">CONSUMABLES</p>
-    <h2 id="items-heading" class="panel-heading mb-4">FOOD &amp; BOOKS</h2>
+    <h2 id="items-heading" class="panel-heading mb-4">WEIGHT &amp; IQ ITEMS</h2>
     <p class="body-copy mb-4">
       These normally only drop from playing Slots, Crossing, and Runner — buy them directly here
       instead, if you'd rather spend tickets than chase the drop.
     </p>
     <div class="flex flex-col gap-3" id="itemList"></div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="care-items-heading">
+    <p class="panel-eyebrow mb-3">CONSUMABLES</p>
+    <h2 id="care-items-heading" class="panel-heading mb-4">FOOD, TOYS &amp; BEDDING</h2>
+    <p class="body-copy mb-4">
+      Used on the Gotchya page for FEED / PLAY / REST. Feeding lets you pick which food to use —
+      bigger meals restore more hunger but cost more tickets.
+    </p>
+    <div class="flex flex-col gap-3" id="careItemList"></div>
   </section>
 
   <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="furniture-heading">
@@ -245,9 +356,8 @@
   const furnitureShopList = document.getElementById("furnitureShopList");
   const noPetWarning = document.getElementById("noPetWarning");
 
-  // Same catalog as gotchya.html's DROP_ITEMS — duplicated intentionally
-  // since these are just display/purchase data here, while gotchya.html
-  // owns the actual gameplay logic for using them.
+  // Weight/IQ items — these only otherwise drop from playing Slots,
+  // Crossing, and Runner. Buying here skips the RNG.
   const SHOP_DROP_ITEMS = [
     { id: "kibble_bag", name: "Kibble Bag", icon: "🥫", desc: "+2 weight", cost: 40 },
     { id: "cat_burger", name: "Cat Burger", icon: "🍔", desc: "+5 weight", cost: 90 },
@@ -257,9 +367,28 @@
     { id: "encyclopedia", name: "Encyclopedia", icon: "📚", desc: "+12 IQ", cost: 200 },
   ];
 
+  // Hunger/happiness/energy consumables — same catalog as gotchya.html's
+  // SHOP_ITEMS (kept in sync manually; gotchya.html owns the actual
+  // feed/play/rest gameplay logic that consumes these from inventory).
+  const SHOP_CARE_ITEMS = [
+    { id: "kibble", name: "Kibble", icon: "🍚", desc: "+10 hunger", cost: 2 },
+    { id: "canned_food", name: "Canned Food", icon: "🥫", desc: "+18 hunger", cost: 4 },
+    { id: "fish", name: "Fish Treat", icon: "🐟", desc: "+28 hunger", cost: 6 },
+    { id: "chicken", name: "Roast Chicken", icon: "🍗", desc: "+40 hunger", cost: 9 },
+    { id: "feast_plate", name: "Feast Plate", icon: "🍱", desc: "+60 hunger", cost: 14 },
+    { id: "ball", name: "Yarn Ball", icon: "🧶", desc: "+12 happiness, -5 hunger", cost: 2 },
+    { id: "feather_wand", name: "Feather Wand", icon: "🪶", desc: "+22 happiness, -9 hunger", cost: 4 },
+    { id: "toy", name: "Squeaky Toy", icon: "🦴", desc: "+35 happiness, -14 hunger", cost: 7 },
+    { id: "laser_pointer", name: "Laser Pointer", icon: "🔴", desc: "+50 happiness, -20 hunger", cost: 10 },
+    { id: "playground", name: "Cat Playground", icon: "🏰", desc: "+70 happiness, -28 hunger", cost: 16 },
+    { id: "pillow", name: "Soft Pillow", icon: "🛏️", desc: "+25 energy", cost: 5 },
+    { id: "blanket", name: "Warm Blanket", icon: "🧣", desc: "+40 energy", cost: 8 },
+  ];
+
   function updateTicketDisplay(){
     ticketDisplay.textContent = `${getTickets()} 🎟️`;
     renderItems();
+    renderCareItems();
     renderFurniture();
   }
   document.addEventListener("tickets:changed", updateTicketDisplay);
@@ -288,11 +417,129 @@
     });
   }
 
+  const purchaseToast = document.getElementById("purchaseToast");
+
+  function showPurchaseToast(message){
+    const el = document.createElement("div");
+    el.className = "toast-msg";
+    el.textContent = message;
+    purchaseToast.innerHTML = "";
+    purchaseToast.appendChild(el);
+    setTimeout(() => {
+      if(purchaseToast.contains(el)) purchaseToast.removeChild(el);
+    }, 1600);
+  }
+
+  // --- Region selection for the Alarm Clock ---
+  // A curated list of representative IANA timezones rather than every
+  // city, grouped roughly by region so it's a short, scannable list.
+  const TIMEZONE_REGIONS = [
+    { label: "US Pacific (Los Angeles)", tz: "America/Los_Angeles" },
+    { label: "US Mountain (Denver)", tz: "America/Denver" },
+    { label: "US Central (Chicago)", tz: "America/Chicago" },
+    { label: "US Eastern (New York)", tz: "America/New_York" },
+    { label: "Canada (Toronto)", tz: "America/Toronto" },
+    { label: "Mexico (Mexico City)", tz: "America/Mexico_City" },
+    { label: "Brazil (Sao Paulo)", tz: "America/Sao_Paulo" },
+    { label: "UK / Ireland (London)", tz: "Europe/London" },
+    { label: "Western Europe (Paris)", tz: "Europe/Paris" },
+    { label: "Eastern Europe (Athens)", tz: "Europe/Athens" },
+    { label: "Middle East (Dubai)", tz: "Asia/Dubai" },
+    { label: "India (Kolkata)", tz: "Asia/Kolkata" },
+    { label: "China (Shanghai)", tz: "Asia/Shanghai" },
+    { label: "Japan (Tokyo)", tz: "Asia/Tokyo" },
+    { label: "South Korea (Seoul)", tz: "Asia/Seoul" },
+    { label: "Southeast Asia (Singapore)", tz: "Asia/Singapore" },
+    { label: "Australia East (Sydney)", tz: "Australia/Sydney" },
+    { label: "Australia West (Perth)", tz: "Australia/Perth" },
+    { label: "New Zealand (Auckland)", tz: "Pacific/Auckland" },
+    { label: "South Africa (Johannesburg)", tz: "Africa/Johannesburg" },
+    { label: "UTC", tz: "UTC" },
+  ];
+
+  const regionModal = document.getElementById("regionModal");
+  const regionSelect = document.getElementById("regionSelect");
+  const regionCancelBtn = document.getElementById("regionCancelBtn");
+  const regionConfirmBtn = document.getElementById("regionConfirmBtn");
+
+  TIMEZONE_REGIONS.forEach(r => {
+    const opt = document.createElement("option");
+    opt.value = r.tz;
+    opt.textContent = r.label;
+    regionSelect.appendChild(opt);
+  });
+  // Default to the browser's own timezone if it happens to be in the list.
+  try {
+    const guess = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if([...regionSelect.options].some(o => o.value === guess)){
+      regionSelect.value = guess;
+    }
+  } catch {}
+
+  let pendingAlarmPurchase = null; // { itemId, cost }
+
+  function openRegionModal(itemId, cost){
+    pendingAlarmPurchase = { itemId, cost };
+    regionModal.classList.remove("hidden");
+  }
+
+  function closeRegionModal(){
+    regionModal.classList.add("hidden");
+    pendingAlarmPurchase = null;
+  }
+
+  regionCancelBtn.addEventListener("click", closeRegionModal);
+
+  regionConfirmBtn.addEventListener("click", () => {
+    if(!pendingAlarmPurchase) return;
+    const { itemId, cost } = pendingAlarmPurchase;
+    const timezone = regionSelect.value;
+    closeRegionModal();
+    completeFurniturePurchase(itemId, cost, { timezone });
+  });
+
   function buyDropItem(itemId, cost){
     if(getTickets() < cost) return;
+    const item = SHOP_DROP_ITEMS.find(i => i.id === itemId);
     addTickets(-cost);
     grantGotchyaItem(itemId);
     updateTicketDisplay();
+    showPurchaseToast(`✓ BOUGHT ${item ? item.name.toUpperCase() : "ITEM"}`);
+  }
+
+  const careItemList = document.getElementById("careItemList");
+
+  function renderCareItems(){
+    careItemList.innerHTML = "";
+    SHOP_CARE_ITEMS.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "shop-item";
+      row.innerHTML = `
+        <div class="shop-item-info">
+          <span class="shop-item-icon">${item.icon}</span>
+          <div>
+            <div class="shop-item-name">${item.name}</div>
+            <div class="shop-item-desc">${item.desc}</div>
+          </div>
+        </div>
+        <button type="button" class="shop-buy-btn" data-item="${item.id}" data-cost="${item.cost}">${item.cost} 🎟️</button>
+      `;
+      careItemList.appendChild(row);
+    });
+    careItemList.querySelectorAll(".shop-buy-btn").forEach(btn => {
+      const cost = parseInt(btn.dataset.cost, 10);
+      btn.disabled = getTickets() < cost;
+      btn.addEventListener("click", () => buyCareItem(btn.dataset.item, cost));
+    });
+  }
+
+  function buyCareItem(itemId, cost){
+    if(getTickets() < cost) return;
+    const item = SHOP_CARE_ITEMS.find(i => i.id === itemId);
+    addTickets(-cost);
+    grantGotchyaItem(itemId);
+    updateTicketDisplay();
+    showPurchaseToast(`✓ BOUGHT ${item ? item.name.toUpperCase() : "ITEM"}`);
   }
 
   function renderFurniture(){
@@ -340,16 +587,36 @@
     const pet = getGotchyaPet();
     if(!pet){
       noPetWarning.classList.remove("hidden");
+      showPurchaseToast("ADOPT A PET FIRST");
       return;
     }
     if(getTickets() < cost) return;
     if(pet.furniture && pet.furniture[itemId]) return;
 
+    if(itemId === "alarm_clock"){
+      openRegionModal(itemId, cost);
+      return;
+    }
+
+    completeFurniturePurchase(itemId, cost);
+  }
+
+  function completeFurniturePurchase(itemId, cost, extra){
+    const pet = getGotchyaPet();
+    if(!pet) return;
+    if(getTickets() < cost) return;
+    if(pet.furniture && pet.furniture[itemId]) return;
+
+    const item = GOTCHYA_FURNITURE.find(i => i.id === itemId);
     addTickets(-cost);
     pet.furniture = pet.furniture || {};
     pet.furniture[itemId] = true;
+    if(extra && extra.timezone){
+      pet.timezone = extra.timezone;
+    }
     saveGotchyaPet(pet);
     renderFurniture();
+    showPurchaseToast(`✓ BOUGHT ${item ? item.name.toUpperCase() : "FURNITURE"}`);
   }
 
   updateTicketDisplay();

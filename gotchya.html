@@ -123,34 +123,78 @@
     padding: 24px 10px;
     text-align: center;
     position: relative;
+    min-height: 130px;
+    overflow: hidden;
     transition: border-color 0.2s ease;
   }
+  /* Owned furniture sits along the floor of the room, static, behind the
+     walking pet — a visible record of permanent purchases from the Shop. */
+  .room-furniture{
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .room-furniture-item{
+    position: absolute;
+    bottom: 6px;
+    font-size: 28px;
+    filter: drop-shadow(0 0 4px rgba(255,30,67,0.5));
+    opacity: 0.85;
+  }
+
   .pet-sprite{
     font-size: 64px;
     line-height: 1;
     display: inline-block;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));
+    transition: left 1.8s ease-in-out;
+    z-index: 2;
   }
-  .pet-name{
-    font-size: 13px;
-    color: var(--neon-red);
-    text-shadow: 0 0 6px var(--neon-red);
-    margin-top: 10px;
+
+  /* Idle wander: a gentle up-down bob while standing still, so the pet
+     never looks like a static image even between walks. */
+  @keyframes pet-idle-bob{
+    0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+    50% { transform: translate(-50%, -50%) translateY(-4px); }
   }
-  .pet-mood{
-    font-family: 'VT323', monospace;
-    font-size: 16px;
-    color: #ffc7cf;
-    margin-top: 4px;
+  .pet-sprite.idle-bob{
+    animation: pet-idle-bob 2.4s ease-in-out infinite;
+  }
+
+  /* Walking: a faster bob plus slight tilt, layered on top of the left%
+     transition JS drives, so it reads as footsteps rather than gliding. */
+  @keyframes pet-walk-bob{
+    0%, 100% { transform: translate(-50%, -50%) translateY(0) rotate(0deg); }
+    25% { transform: translate(-50%, -50%) translateY(-6px) rotate(-3deg); }
+    75% { transform: translate(-50%, -50%) translateY(-6px) rotate(3deg); }
+  }
+  .pet-sprite.walking{
+    animation: pet-walk-bob 0.5s ease-in-out infinite;
+  }
+  .pet-sprite.facing-left{
+    transform: translate(-50%, -50%) scaleX(-1);
+  }
+  .pet-sprite.facing-left.walking{
+    animation: pet-walk-bob-flipped 0.5s ease-in-out infinite;
+  }
+  @keyframes pet-walk-bob-flipped{
+    0%, 100% { transform: translate(-50%, -50%) scaleX(-1) translateY(0) rotate(0deg); }
+    25% { transform: translate(-50%, -50%) scaleX(-1) translateY(-6px) rotate(3deg); }
+    75% { transform: translate(-50%, -50%) scaleX(-1) translateY(-6px) rotate(-3deg); }
   }
 
   /* --- Distress state: any stat critical --- */
   @keyframes pet-shake{
-    0%, 100% { transform: translateX(0) rotate(0deg); }
-    20% { transform: translateX(-3px) rotate(-4deg); }
-    40% { transform: translateX(3px) rotate(4deg); }
-    60% { transform: translateX(-2px) rotate(-2deg); }
-    80% { transform: translateX(2px) rotate(2deg); }
+    0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+    20% { transform: translate(calc(-50% - 3px), -50%) rotate(-4deg); }
+    40% { transform: translate(calc(-50% + 3px), -50%) rotate(4deg); }
+    60% { transform: translate(calc(-50% - 2px), -50%) rotate(-2deg); }
+    80% { transform: translate(calc(-50% + 2px), -50%) rotate(2deg); }
   }
   .pet-sprite.distress{
     animation: pet-shake 0.5s ease-in-out infinite;
@@ -179,8 +223,8 @@
     animation: rainbow-cycle 1.4s linear infinite;
   }
   @keyframes pet-bounce{
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+    0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+    50% { transform: translate(-50%, -50%) translateY(-8px); }
   }
   .pet-sprite.thriving{
     animation: pet-bounce 0.6s ease-in-out infinite;
@@ -245,12 +289,34 @@
   .stat-bar-fill.hunger{ background: linear-gradient(90deg, #ff8a3d, #ffb347); }
   .stat-bar-fill.happiness{ background: linear-gradient(90deg, #29ff8a, #6bff29); }
   .stat-bar-fill.energy{ background: linear-gradient(90deg, #33e0ff, #33aaff); }
-  .stat-bar-fill.weight{ background: linear-gradient(90deg, #ffcc00, #ff9900); }
-  .stat-bar-fill.iq{ background: linear-gradient(90deg, #cc44ff, #8833ff); }
   .stat-bar-fill.critical{
     background: linear-gradient(90deg, #ff1e43, #ff0033) !important;
     animation: bar-flash 0.7s ease-in-out infinite;
   }
+
+  /* Weight/IQ have no ceiling, so they're shown as a plain fixed value
+     (with a small "+" tick-up flash on gain) instead of a percentage bar,
+     which wouldn't mean anything without a max to bar against. */
+  .fixed-stat-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border: 2px solid #2a2a30;
+    background: #0a0a0c;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+  }
+  .fixed-stat-label{
+    font-size: 8px;
+    color: #7a3038;
+    letter-spacing: 1px;
+  }
+  .fixed-stat-value{
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: #ffc7cf;
+  }
+
   @keyframes bar-flash{
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }
@@ -279,6 +345,13 @@
   .care-btn:disabled{
     opacity: 0.35;
     cursor: not-allowed;
+  }
+  .care-btn-cooldown{
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    letter-spacing: 0;
+    color: #7a3038;
+    text-shadow: none;
   }
   .care-btn-icon{ font-size: 20px; }
 
@@ -404,6 +477,13 @@
     filter: brightness(1.2);
   }
   .drop-use-hint{
+    color: var(--neon-red);
+    font-size: 11px;
+    border: 1px solid var(--neon-red);
+    padding: 1px 6px;
+    margin-left: 4px;
+  }
+  .chip-desc{
     color: #7a3038;
     font-size: 13px;
   }
@@ -474,6 +554,74 @@
     text-shadow: 0 0 8px var(--neon-red);
   }
 
+  .feed-modal-backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .feed-modal-backdrop.hidden{ display: none; }
+  .feed-modal{
+    background: linear-gradient(180deg, #222228, #1a1a1e);
+    border: 3px solid var(--neon-red);
+    box-shadow: 0 0 30px rgba(255,30,67,0.4), inset 0 0 20px rgba(255,30,67,0.1);
+    padding: 24px;
+    max-width: 420px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .feed-option-list{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .feed-option{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 2px solid #2a2a30;
+    background: #0a0a0c;
+    padding: 10px 12px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+  }
+  .feed-option:hover{
+    border-color: var(--neon-red);
+    background: #12080a;
+  }
+  .feed-option-icon{ font-size: 24px; flex-shrink: 0; }
+  .feed-option-info{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .feed-option-name{
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    color: #ffc7cf;
+  }
+  .feed-option-desc{
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    color: #7a3038;
+  }
+  .feed-cancel-btn{
+    background: transparent;
+    border: 2px solid #4a2a30;
+    color: #9a5a62;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+  .feed-cancel-btn:hover{ border-color: var(--neon-red); color: var(--neon-red); }
+
   .reset-btn{
     background: transparent;
     border: 2px dashed #4a2a30;
@@ -528,15 +676,36 @@
     <div class="rivet absolute bottom-2 left-2"></div>
     <div class="rivet absolute bottom-2 right-2"></div>
 
-    <div class="led-screen mb-4 text-center">
-      <div class="led-label">TICKETS</div>
-      <div class="led-value large" id="ticketDisplay">0 🎟️</div>
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div class="led-screen">
+        <div class="led-label">TICKETS</div>
+        <div class="led-value large" id="ticketDisplay">0 🎟️</div>
+      </div>
+      <div class="led-screen text-right">
+        <div class="led-label">NAME</div>
+        <div class="led-value large" id="petNameDisplay">PET</div>
+      </div>
+    </div>
+
+    <div class="led-screen mb-5 text-center">
+      <div class="led-label">MOOD</div>
+      <div class="led-value" id="petMoodDisplay">feeling okay</div>
+    </div>
+
+    <div id="alarmClockScreen" class="grid grid-cols-2 gap-4 mb-5 hidden">
+      <div class="led-screen">
+        <div class="led-label">⏰ CURRENT TIME</div>
+        <div class="led-value" id="alarmTimeDisplay">--:--</div>
+      </div>
+      <div class="led-screen text-right">
+        <div class="led-label">DAYS ELAPSED</div>
+        <div class="led-value" id="alarmDaysDisplay">0</div>
+      </div>
     </div>
 
     <div class="pet-stage mb-5" id="petStage">
+      <div class="room-furniture" id="roomFurniture" aria-hidden="true"></div>
       <span class="pet-sprite" id="petSprite">🐱</span>
-      <div class="pet-name" id="petNameDisplay">PET</div>
-      <div class="pet-mood" id="petMoodDisplay">feeling okay</div>
     </div>
 
     <div class="stat-row">
@@ -551,13 +720,13 @@
       <div class="stat-label"><span>ENERGY</span><span id="energyValue">100</span></div>
       <div class="stat-bar-track"><div class="stat-bar-fill energy" id="energyBar" style="width:100%"></div></div>
     </div>
-    <div class="stat-row">
-      <div class="stat-label"><span>WEIGHT</span><span id="weightValue">0</span></div>
-      <div class="stat-bar-track"><div class="stat-bar-fill weight" id="weightBar" style="width:0%"></div></div>
+    <div class="fixed-stat-row">
+      <span class="fixed-stat-label">WEIGHT</span>
+      <span class="fixed-stat-value" id="weightValue">2.0 lb (0.9 kg)</span>
     </div>
-    <div class="stat-row">
-      <div class="stat-label"><span>IQ</span><span id="iqValue">0</span></div>
-      <div class="stat-bar-track"><div class="stat-bar-fill iq" id="iqBar" style="width:0%"></div></div>
+    <div class="fixed-stat-row">
+      <span class="fixed-stat-label">IQ</span>
+      <span class="fixed-stat-value" id="iqValue">1</span>
     </div>
 
     <div class="grid grid-cols-3 gap-3 my-5">
@@ -632,16 +801,45 @@
     <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
   </footer>
 
+  <div id="feedModal" class="feed-modal-backdrop hidden">
+    <div class="feed-modal">
+      <p class="panel-eyebrow mb-2">🍽️ FEED</p>
+      <h2 class="panel-heading mb-4">CHOOSE FOOD</h2>
+      <div class="feed-option-list" id="feedOptionList"></div>
+      <div class="flex justify-center mt-4">
+        <button type="button" id="feedCancelBtn" class="feed-cancel-btn">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="playModal" class="feed-modal-backdrop hidden">
+    <div class="feed-modal">
+      <p class="panel-eyebrow mb-2">🧶 PLAY</p>
+      <h2 class="panel-heading mb-4">CHOOSE ACTIVITY</h2>
+      <p class="body-copy text-base leading-snug mb-3">Playing works up an appetite — hunger drops a bit each time.</p>
+      <div class="feed-option-list" id="playOptionList"></div>
+      <div class="flex justify-center mt-4">
+        <button type="button" id="playCancelBtn" class="feed-cancel-btn">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <script>
   const SPECIES = ["🐱","🐶","🐰","🐹","🐭","🐼","🐨","🐯","🦊","🐸","🐷","🐥"];
 
   const SHOP_ITEMS = [
-    { id: "kibble", name: "Kibble", icon: "🍚", desc: "+15 hunger", cost: 3, stat: "hunger", amount: 15 },
-    { id: "fish", name: "Fish Treat", icon: "🐟", desc: "+30 hunger", cost: 6, stat: "hunger", amount: 30 },
-    { id: "ball", name: "Yarn Ball", icon: "🧶", desc: "+20 happiness", cost: 4, stat: "happiness", amount: 20 },
-    { id: "toy", name: "Squeaky Toy", icon: "🦴", desc: "+35 happiness", cost: 7, stat: "happiness", amount: 35 },
+    { id: "kibble", name: "Kibble", icon: "🍚", desc: "+10 hunger", cost: 2, stat: "hunger", amount: 10 },
+    { id: "canned_food", name: "Canned Food", icon: "🥫", desc: "+18 hunger", cost: 4, stat: "hunger", amount: 18 },
+    { id: "fish", name: "Fish Treat", icon: "🐟", desc: "+28 hunger", cost: 6, stat: "hunger", amount: 28 },
+    { id: "chicken", name: "Roast Chicken", icon: "🍗", desc: "+40 hunger", cost: 9, stat: "hunger", amount: 40 },
+    { id: "feast_plate", name: "Feast Plate", icon: "🍱", desc: "+60 hunger", cost: 14, stat: "hunger", amount: 60 },
+    { id: "ball", name: "Yarn Ball", icon: "🧶", desc: "+12 happiness, -5 hunger", cost: 2, stat: "happiness", amount: 12, hungerCost: 5 },
+    { id: "feather_wand", name: "Feather Wand", icon: "🪶", desc: "+22 happiness, -9 hunger", cost: 4, stat: "happiness", amount: 22, hungerCost: 9 },
+    { id: "toy", name: "Squeaky Toy", icon: "🦴", desc: "+35 happiness, -14 hunger", cost: 7, stat: "happiness", amount: 35, hungerCost: 14 },
+    { id: "laser_pointer", name: "Laser Pointer", icon: "🔴", desc: "+50 happiness, -20 hunger", cost: 10, stat: "happiness", amount: 50, hungerCost: 20 },
+    { id: "playground", name: "Cat Playground", icon: "🏰", desc: "+70 happiness, -28 hunger", cost: 16, stat: "happiness", amount: 70, hungerCost: 28 },
     { id: "pillow", name: "Soft Pillow", icon: "🛏️", desc: "+25 energy", cost: 5, stat: "energy", amount: 25 },
     { id: "blanket", name: "Warm Blanket", icon: "🧣", desc: "+40 energy", cost: 8, stat: "energy", amount: 40 },
   ];
@@ -678,19 +876,11 @@
 
   function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
 
-  // Soft-cap growth for Weight/IQ: rate scales up with current value (the
-  // "higher stat grows faster" behavior), peaks just past the first soft
-  // cap (100), then decays smoothly toward and past the second, much
-  // softer cap (500) rather than hitting a hard ceiling. No stat can ever
-  // truly max out, but gains become negligible well beyond 500.
-  function softCapGrowthPerHour(value){
-    const BASE = 0.02;
-    const SOFT_CAP = 100;
-    const DECAY_START = 90;
-    const scaled = BASE * (1 + (value / SOFT_CAP) * 3);
-    const falloff = value < DECAY_START ? 1 : Math.exp(-(value - DECAY_START) / SOFT_CAP);
-    return scaled * falloff;
-  }
+  // Fixed linear growth rates for Weight and IQ — genuinely uncapped, no
+  // slowdown near any number. Weight grows faster than IQ per your spec.
+  // Values are in pounds (weight) and IQ points, per real hour.
+  const WEIGHT_GROWTH_PER_HOUR = 0.02;
+  const IQ_GROWTH_PER_HOUR = 0.008;
 
   function applyDecay(p){
     const now = Date.now();
@@ -703,12 +893,12 @@
       p.happiness = clamp(p.happiness - happinessLoss, 0, 100);
       p.energy = clamp(p.energy - energyLoss, 0, 100);
 
-      // Weight/IQ grow slowly over time on their own (soft-capped, no
-      // upper bound), boosted by owned furniture (Fridge/Bookcase).
+      // Weight/IQ grow at a fixed rate over time, no upper bound, boosted
+      // by owned furniture (Fridge/Bookcase).
       const weightMult = getFurnitureMultiplier(p, "weightGainMult");
       const iqMult = getFurnitureMultiplier(p, "iqGainMult");
-      p.weight = Math.max(0, (p.weight || 0) + softCapGrowthPerHour(p.weight || 0) * hoursElapsed * weightMult);
-      p.iq = Math.max(0, (p.iq || 0) + softCapGrowthPerHour(p.iq || 0) * hoursElapsed * iqMult);
+      p.weight = Math.max(0, (p.weight || 0) + WEIGHT_GROWTH_PER_HOUR * hoursElapsed * weightMult);
+      p.iq = Math.max(0, (p.iq || 0) + IQ_GROWTH_PER_HOUR * hoursElapsed * iqMult);
 
       p.lastSeen = now;
     }
@@ -737,6 +927,9 @@
   const petSprite = document.getElementById("petSprite");
   const petNameDisplay = document.getElementById("petNameDisplay");
   const petMoodDisplay = document.getElementById("petMoodDisplay");
+  const alarmClockScreen = document.getElementById("alarmClockScreen");
+  const alarmTimeDisplay = document.getElementById("alarmTimeDisplay");
+  const alarmDaysDisplay = document.getElementById("alarmDaysDisplay");
 
   const hungerBar = document.getElementById("hungerBar");
   const happinessBar = document.getElementById("happinessBar");
@@ -744,8 +937,6 @@
   const hungerValue = document.getElementById("hungerValue");
   const happinessValue = document.getElementById("happinessValue");
   const energyValue = document.getElementById("energyValue");
-  const weightBar = document.getElementById("weightBar");
-  const iqBar = document.getElementById("iqBar");
   const weightValue = document.getElementById("weightValue");
   const iqValue = document.getElementById("iqValue");
 
@@ -786,15 +977,17 @@
       hunger: 100,
       happiness: 100,
       energy: 100,
-      weight: 0,
-      iq: 0,
+      weight: 2,
+      iq: 1,
       inventory: {},
       furniture: {},
+      lastAction: {},
       lastSeen: Date.now(),
       adoptedAt: Date.now(),
     };
     savePet(pet);
     renderAll();
+    startWander();
   });
 
   function getMood(p){
@@ -815,13 +1008,11 @@
     happinessValue.textContent = Math.round(pet.happiness);
     energyValue.textContent = Math.round(pet.energy);
 
-    // Weight/IQ are uncapped, so their bar shows progress toward the
-    // nearest soft milestone (100, then 500, then just stays near-full —
-    // there's always further to go, but the bar doesn't need to pretend
-    // there's a hard ceiling to be readable).
-    weightBar.style.width = milestoneBarWidth(pet.weight || 0) + "%";
-    iqBar.style.width = milestoneBarWidth(pet.iq || 0) + "%";
-    weightValue.textContent = Math.round(pet.weight || 0);
+    // Weight/IQ have no ceiling — shown as plain values, weight in both
+    // lb and kg since that's the more universally readable unit pairing.
+    const weightLb = pet.weight || 0;
+    const weightKg = weightLb * 0.453592;
+    weightValue.textContent = `${weightLb.toFixed(1)} lb (${weightKg.toFixed(1)} kg)`;
     iqValue.textContent = Math.round(pet.iq || 0);
 
     const isCritical = pet.hunger < 20 || pet.happiness < 20 || pet.energy < 20;
@@ -845,12 +1036,6 @@
 
   // Scales an uncapped value into a 0-100 bar width using soft milestones
   // at 100 and 500, so the bar stays meaningful without implying a real max.
-  function milestoneBarWidth(value){
-    if(value <= 100) return (value / 100) * 60; // 0-100 fills first 60% of bar
-    if(value <= 500) return 60 + ((value - 100) / 400) * 35; // 100-500 fills next 35%
-    return 95 + Math.min(5, (value - 500) / 200); // beyond 500, creep toward 100%
-  }
-
   // Brief green flash + floating "+N" popup on the stage whenever a care
   // action successfully restores a stat, so feeding/playing/resting has an
   // actual moment of feedback instead of just the bar quietly moving.
@@ -880,9 +1065,9 @@
       if(!item) return "";
       const isDropItem = DROP_ITEMS.some(d => d.id === id);
       if(isDropItem){
-        return `<button type="button" class="inventory-chip drop-use-btn" data-item="${id}">${item.icon} ${item.name} &times;${count} <span class="drop-use-hint">(use)</span></button>`;
+        return `<button type="button" class="inventory-chip drop-use-btn" data-item="${id}">${item.icon} ${item.name} &times;${count} <span class="chip-desc">(${item.desc})</span> <span class="drop-use-hint">USE</span></button>`;
       }
-      return `<span class="inventory-chip">${item.icon} ${item.name} &times;${count}</span>`;
+      return `<span class="inventory-chip">${item.icon} ${item.name} &times;${count} <span class="chip-desc">(${item.desc})</span></span>`;
     }).join("");
 
     inventoryList.querySelectorAll(".drop-use-btn").forEach(btn => {
@@ -916,22 +1101,91 @@
     const owned = Object.entries(pet.furniture || {}).filter(([, has]) => has);
     if(owned.length === 0){
       furnitureList.innerHTML = `<span class="body-copy text-base">No furniture yet — visit the Shop to buy permanent boosts.</span>`;
-      return;
+    } else {
+      furnitureList.innerHTML = owned.map(([id]) => {
+        const item = GOTCHYA_FURNITURE.find(f => f.id === id);
+        if(!item) return "";
+        return `<span class="inventory-chip">${item.icon} ${item.name} &mdash; ${item.desc}</span>`;
+      }).join("");
     }
-    furnitureList.innerHTML = owned.map(([id]) => {
-      const item = GOTCHYA_FURNITURE.find(f => f.id === id);
-      if(!item) return "";
-      return `<span class="inventory-chip">${item.icon} ${item.name} &mdash; ${item.desc}</span>`;
-    }).join("");
+    renderRoomFurniture(owned.map(([id]) => id));
+    renderAlarmClock();
   }
 
+  function renderAlarmClock(){
+    const hasClock = pet.furniture && pet.furniture.alarm_clock;
+    alarmClockScreen.classList.toggle("hidden", !hasClock);
+    if(!hasClock) return;
+
+    const tz = pet.timezone || "UTC";
+    try {
+      const timeStr = new Intl.DateTimeFormat("en-US", {
+        hour: "2-digit", minute: "2-digit", hour12: true, timeZone: tz,
+      }).format(new Date());
+      alarmTimeDisplay.textContent = timeStr;
+    } catch {
+      alarmTimeDisplay.textContent = new Date().toLocaleTimeString();
+    }
+
+    const daysElapsed = Math.floor((Date.now() - (pet.adoptedAt || Date.now())) / (1000 * 60 * 60 * 24));
+    alarmDaysDisplay.textContent = String(daysElapsed);
+  }
+
+  const roomFurniture = document.getElementById("roomFurniture");
+
+  function renderRoomFurniture(ownedIds){
+    roomFurniture.innerHTML = "";
+    if(ownedIds.length === 0) return;
+    // Spread evenly along the floor, leaving margin so nothing sits under
+    // the walking pet's usual center path.
+    const count = ownedIds.length;
+    ownedIds.forEach((id, i) => {
+      const item = GOTCHYA_FURNITURE.find(f => f.id === id);
+      if(!item) return;
+      const posPercent = 10 + (i / Math.max(1, count - 1 || 1)) * 80;
+      const el = document.createElement("span");
+      el.className = "room-furniture-item";
+      el.style.left = `${count === 1 ? 12 : posPercent}%`;
+      el.textContent = item.icon;
+      el.title = `${item.name} — ${item.desc}`;
+      roomFurniture.appendChild(el);
+    });
+  }
+
+
+  const CARE_COOLDOWN_MS = 5 * 60 * 60 * 1000; // 5 hours per action
+
+  function getCooldownRemaining(statType){
+    const last = (pet.lastAction && pet.lastAction[statType]) || 0;
+    return Math.max(0, CARE_COOLDOWN_MS - (Date.now() - last));
+  }
+
+  function formatCooldown(ms){
+    const totalMin = Math.ceil(ms / 60000);
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  }
+
+  const CARE_BUTTONS = { hunger: feedBtn, happiness: playBtn, energy: sleepBtn };
+  const CARE_LABELS_DEFAULT = { hunger: "FEED", happiness: "PLAY", energy: "REST" };
+  const CARE_ICONS = { hunger: "🍽️", happiness: "🧶", energy: "💤" };
+
+  // Base restoration from a plain FEED/PLAY/REST click — always available
+  // on cooldown alone, no item required.
+  const CARE_BASE_AMOUNT = { hunger: 20, happiness: 20, energy: 20 };
+  const PLAY_BASE_HUNGER_COST = 8; // even a plain play, no toy, works up an appetite
+
   function updateCareButtons(){
-    const hasFood = Object.entries(pet.inventory || {}).some(([id, c]) => c > 0 && SHOP_ITEMS.find(i => i.id === id)?.stat === "hunger");
-    const hasFun = Object.entries(pet.inventory || {}).some(([id, c]) => c > 0 && SHOP_ITEMS.find(i => i.id === id)?.stat === "happiness");
-    const hasRest = Object.entries(pet.inventory || {}).some(([id, c]) => c > 0 && SHOP_ITEMS.find(i => i.id === id)?.stat === "energy");
-    feedBtn.disabled = !hasFood;
-    playBtn.disabled = !hasFun;
-    sleepBtn.disabled = !hasRest;
+    Object.entries(CARE_BUTTONS).forEach(([statType, btn]) => {
+      const remaining = getCooldownRemaining(statType);
+      const onCooldown = remaining > 0;
+      btn.disabled = onCooldown;
+      const icon = `<span class="care-btn-icon">${CARE_ICONS[statType]}</span>`;
+      btn.innerHTML = onCooldown
+        ? `${icon}${CARE_LABELS_DEFAULT[statType]}<span class="care-btn-cooldown">${formatCooldown(remaining)}</span>`
+        : `${icon}${CARE_LABELS_DEFAULT[statType]}`;
+    });
   }
 
   const STAT_LABELS = { hunger: "hunger", happiness: "happiness", energy: "energy", weight: "weight", iq: "IQ" };
@@ -945,33 +1199,186 @@
     happiness: { weight: 0.2, iq: 0.2 },
   };
 
-  function useBestItem(statType){
-    const owned = Object.entries(pet.inventory || {})
-      .filter(([id, c]) => c > 0 && SHOP_ITEMS.find(i => i.id === id)?.stat === statType)
-      .map(([id]) => SHOP_ITEMS.find(i => i.id === id))
-      .sort((a, b) => b.amount - a.amount);
-    if(owned.length === 0) return;
-    const item = owned[0];
+  // Applies a restore amount to a stat, the associated side-effects, an
+  // optional hunger cost (playing works up an appetite), marks the
+  // cooldown, saves, and plays the success flash. Shared by the REST
+  // auto-pick flow and the FEED/PLAY pickers below so the underlying
+  // effects always stay consistent no matter how the action was triggered.
+  function applyCareResult(statType, restoreAmount, hungerCost){
     const before = pet[statType];
-    pet.inventory[item.id] -= 1;
-    pet[statType] = clamp(pet[statType] + item.amount, 0, 100);
+    pet[statType] = clamp(pet[statType] + restoreAmount, 0, 100);
     const actualGain = pet[statType] - before;
 
-    // Weight/IQ have no upper cap, so only clamp their lower bound.
     const sideEffects = CARE_SIDE_EFFECTS[statType] || {};
     Object.entries(sideEffects).forEach(([stat, amount]) => {
       pet[stat] = Math.max(0, (pet[stat] || 0) + amount);
     });
 
+    // Playing burns energy the pet gets from food — knock hunger down
+    // separately from the stat being restored, clamped so it can't go
+    // negative.
+    if(hungerCost && statType !== "hunger"){
+      pet.hunger = clamp(pet.hunger - hungerCost, 0, 100);
+    }
+
+    pet.lastAction = pet.lastAction || {};
+    pet.lastAction[statType] = Date.now();
     pet.lastSeen = Date.now();
     savePet(pet);
     renderAll();
     playCareSuccess(STAT_LABELS[statType], actualGain);
   }
 
+  // REST: always works on cooldown alone using a fixed base amount. If a
+  // matching item is sitting in the backpack, the best one is
+  // automatically also consumed for a bonus on top — items make it more
+  // effective, but were never required to use the action at all.
+  function doCareAction(statType){
+    if(getCooldownRemaining(statType) > 0) return;
+
+    let restoreAmount = CARE_BASE_AMOUNT[statType];
+    const owned = Object.entries(pet.inventory || {})
+      .filter(([id, c]) => c > 0 && SHOP_ITEMS.find(i => i.id === id)?.stat === statType)
+      .map(([id]) => SHOP_ITEMS.find(i => i.id === id))
+      .sort((a, b) => b.amount - a.amount);
+    if(owned.length > 0){
+      const item = owned[0];
+      pet.inventory[item.id] -= 1;
+      restoreAmount += item.amount;
+    }
+
+    applyCareResult(statType, restoreAmount);
+  }
+
+  // --- FEED: the player explicitly picks which food to use ---
+  const FOOD_ITEMS = SHOP_ITEMS.filter(i => i.stat === "hunger");
+  const feedModal = document.getElementById("feedModal");
+  const feedOptionList = document.getElementById("feedOptionList");
+  const feedCancelBtn = document.getElementById("feedCancelBtn");
+
+  function openFeedPicker(){
+    if(getCooldownRemaining("hunger") > 0) return;
+
+    feedOptionList.innerHTML = "";
+
+    // Base option: always available, no item consumed, same amount as
+    // clicking with nothing in the backpack.
+    const baseRow = document.createElement("button");
+    baseRow.type = "button";
+    baseRow.className = "feed-option";
+    baseRow.innerHTML = `
+      <span class="feed-option-icon">🍽️</span>
+      <span class="feed-option-info">
+        <span class="feed-option-name">Just Feed (no item)</span>
+        <span class="feed-option-desc">+${CARE_BASE_AMOUNT.hunger} hunger</span>
+      </span>
+    `;
+    baseRow.addEventListener("click", () => {
+      closeFeedPicker();
+      applyCareResult("hunger", CARE_BASE_AMOUNT.hunger);
+    });
+    feedOptionList.appendChild(baseRow);
+
+    // One row per food item actually owned, showing exactly how much each
+    // restores so the choice is informed, largest amount doesn't need to
+    // mean best value once ticket cost is considered — that's the
+    // player's call.
+    FOOD_ITEMS.forEach(item => {
+      const count = (pet.inventory && pet.inventory[item.id]) || 0;
+      if(count <= 0) return;
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "feed-option";
+      row.innerHTML = `
+        <span class="feed-option-icon">${item.icon}</span>
+        <span class="feed-option-info">
+          <span class="feed-option-name">${item.name} &times;${count}</span>
+          <span class="feed-option-desc">+${CARE_BASE_AMOUNT.hunger + item.amount} hunger total (base + item)</span>
+        </span>
+      `;
+      row.addEventListener("click", () => {
+        closeFeedPicker();
+        pet.inventory[item.id] -= 1;
+        applyCareResult("hunger", CARE_BASE_AMOUNT.hunger + item.amount);
+      });
+      feedOptionList.appendChild(row);
+    });
+
+    feedModal.classList.remove("hidden");
+  }
+
+  function closeFeedPicker(){
+    feedModal.classList.add("hidden");
+  }
+
+  feedCancelBtn.addEventListener("click", closeFeedPicker);
+
+  // --- PLAY: the player explicitly picks which toy/activity to use ---
+  // More playful options give more happiness but also cost more hunger —
+  // the pet works up a bigger appetite from a big play session than a
+  // quick one.
+  const PLAY_ITEMS = SHOP_ITEMS.filter(i => i.stat === "happiness");
+  const playModal = document.getElementById("playModal");
+  const playOptionList = document.getElementById("playOptionList");
+  const playCancelBtn = document.getElementById("playCancelBtn");
+
+  function openPlayPicker(){
+    if(getCooldownRemaining("happiness") > 0) return;
+
+    playOptionList.innerHTML = "";
+
+    const baseRow = document.createElement("button");
+    baseRow.type = "button";
+    baseRow.className = "feed-option";
+    baseRow.innerHTML = `
+      <span class="feed-option-icon">🧶</span>
+      <span class="feed-option-info">
+        <span class="feed-option-name">Just Play (no item)</span>
+        <span class="feed-option-desc">+${CARE_BASE_AMOUNT.happiness} happiness, -${PLAY_BASE_HUNGER_COST} hunger</span>
+      </span>
+    `;
+    baseRow.addEventListener("click", () => {
+      closePlayPicker();
+      applyCareResult("happiness", CARE_BASE_AMOUNT.happiness, PLAY_BASE_HUNGER_COST);
+    });
+    playOptionList.appendChild(baseRow);
+
+    PLAY_ITEMS.forEach(item => {
+      const count = (pet.inventory && pet.inventory[item.id]) || 0;
+      if(count <= 0) return;
+      const totalHappiness = CARE_BASE_AMOUNT.happiness + item.amount;
+      const totalHungerCost = PLAY_BASE_HUNGER_COST + (item.hungerCost || 0);
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "feed-option";
+      row.innerHTML = `
+        <span class="feed-option-icon">${item.icon}</span>
+        <span class="feed-option-info">
+          <span class="feed-option-name">${item.name} &times;${count}</span>
+          <span class="feed-option-desc">+${totalHappiness} happiness, -${totalHungerCost} hunger total</span>
+        </span>
+      `;
+      row.addEventListener("click", () => {
+        closePlayPicker();
+        pet.inventory[item.id] -= 1;
+        applyCareResult("happiness", totalHappiness, totalHungerCost);
+      });
+      playOptionList.appendChild(row);
+    });
+
+    playModal.classList.remove("hidden");
+  }
+
+  function closePlayPicker(){
+    playModal.classList.add("hidden");
+  }
+
+  playCancelBtn.addEventListener("click", closePlayPicker);
+
   // Using a Weight or IQ drop item directly from the backpack — these are
   // the bigger jumps found by playing the other games, uncapped like the
-  // stats themselves.
+  // stats themselves. Not cooldown-gated since they're a separate,
+  // limited-by-inventory resource rather than a repeatable free action.
   function useDropItem(itemId){
     const item = DROP_ITEMS.find(i => i.id === itemId);
     if(!item) return;
@@ -984,9 +1391,9 @@
     playCareSuccess(STAT_LABELS[item.stat], item.amount);
   }
 
-  feedBtn.addEventListener("click", () => useBestItem("hunger"));
-  playBtn.addEventListener("click", () => useBestItem("happiness"));
-  sleepBtn.addEventListener("click", () => useBestItem("energy"));
+  feedBtn.addEventListener("click", openFeedPicker);
+  playBtn.addEventListener("click", openPlayPicker);
+  sleepBtn.addEventListener("click", () => doCareAction("energy"));
 
   resetBtn.addEventListener("click", () => {
     if(!confirm(`Release ${pet.name}? This can't be undone.`)) return;
@@ -994,6 +1401,7 @@
     pet = null;
     selectedSpecies = null;
     petNameInput.value = "";
+    stopWander();
     renderAll();
   });
 
@@ -1008,7 +1416,65 @@
     renderStats();
   }, 30000);
 
+  // Cooldown countdown needs to visibly tick — refresh just the buttons
+  // more frequently than the full stat decay tick above.
+  setInterval(() => {
+    if(pet) updateCareButtons();
+  }, 15000);
+
+  // Keep the Alarm Clock's time display live without waiting on the
+  // heavier decay tick.
+  setInterval(() => {
+    if(pet) renderAlarmClock();
+  }, 30000);
+
+  // --- Idle wander: makes the pet feel alive even when no stat is
+  // critical or thriving. Picks a random spot within the stage, walks
+  // there over a couple seconds (steering the sprite to face the
+  // direction it's moving), pauses and bobs in place a while, repeats.
+  // Distress/thriving animations on the sprite itself still take
+  // priority visually since they're separate CSS classes layered on top.
+  let wanderTimer = null;
+
+  function startWander(){
+    if(wanderTimer) return;
+
+    function step(){
+      if(!pet){ wanderTimer = null; return; }
+
+      const stageWidth = petStage.clientWidth;
+      const spriteMargin = 40; // keep the sprite from walking into the walls
+      const currentLeftPx = petSprite.getBoundingClientRect().left - petStage.getBoundingClientRect().left;
+      const targetLeftPx = spriteMargin + Math.random() * Math.max(0, stageWidth - spriteMargin * 2);
+      const movingRight = targetLeftPx > currentLeftPx;
+
+      petSprite.classList.remove("idle-bob");
+      petSprite.classList.add("walking");
+      petSprite.classList.toggle("facing-left", !movingRight);
+      petSprite.style.left = `${(targetLeftPx / stageWidth) * 100}%`;
+
+      const walkDuration = 1800; // matches the CSS `left` transition time
+      const pauseDuration = 2000 + Math.random() * 3000; // idle a couple seconds between walks
+
+      wanderTimer = setTimeout(() => {
+        petSprite.classList.remove("walking");
+        petSprite.classList.add("idle-bob");
+        wanderTimer = setTimeout(step, pauseDuration);
+      }, walkDuration);
+    }
+
+    step();
+  }
+
+  function stopWander(){
+    if(wanderTimer){
+      clearTimeout(wanderTimer);
+      wanderTimer = null;
+    }
+  }
+
   renderAll();
+  if(pet) startWander();
 </script>
 
 </body>

@@ -118,6 +118,7 @@ const GOTCHYA_FURNITURE = [
   { id: "cozy_bed", name: "Cozy Bed", icon: "🛌", desc: "-30% energy decay rate", cost: 3000, effect: "energyDecayMult", value: 0.7 },
   { id: "food_bowl", name: "Automatic Feeder", icon: "🥣", desc: "-30% hunger decay rate", cost: 3000, effect: "hungerDecayMult", value: 0.7 },
   { id: "scratch_post", name: "Scratching Post", icon: "🪵", desc: "-30% happiness decay rate", cost: 3000, effect: "happinessDecayMult", value: 0.7 },
+  { id: "alarm_clock", name: "Alarm Clock", icon: "⏰", desc: "Shows current time + days since adoption", cost: 500, effect: "display", value: 1 },
 ];
 
 // Computes the combined multiplier for a given effect across all furniture
