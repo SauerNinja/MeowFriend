@@ -179,6 +179,20 @@
   .slot-reel.reel-landed-glow{
     box-shadow: inset 0 0 18px var(--reel-glow, #ff1e43), 0 0 12px var(--reel-glow, #ff1e43);
   }
+  /* On an actual win, all three reels flip to a shared green glow,
+     overriding their individual per-symbol landed colors, so a win reads
+     as one unmistakable unified signal rather than three different hues. */
+  @keyframes reel-win-pulse{
+    0%, 100% { box-shadow: inset 0 0 18px #29ff8a, 0 0 14px #29ff8a; }
+    50% { box-shadow: inset 0 0 26px #29ff8a, 0 0 22px #29ff8a; }
+  }
+  .slot-reel.reel-win-glow{
+    box-shadow: inset 0 0 18px #29ff8a, 0 0 14px #29ff8a !important;
+    animation: reel-win-pulse 0.6s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .slot-reel.reel-win-glow{ animation: none; }
+  }
   .slot-reel:last-child{ border-right: none; }
 
   .reel-strip{
@@ -312,6 +326,18 @@
     cursor: not-allowed;
     text-shadow: none;
   }
+  @keyframes spin-btn-win-pulse{
+    0%, 100% { box-shadow: 0 8px 0 #0a6e2e, 0 10px 14px rgba(0,0,0,0.6), 0 0 22px rgba(41,255,138,0.7), inset 0 2px 0 rgba(255,255,255,0.3); }
+    50% { box-shadow: 0 8px 0 #0a6e2e, 0 10px 14px rgba(0,0,0,0.6), 0 0 34px rgba(41,255,138,0.95), inset 0 2px 0 rgba(255,255,255,0.3); }
+  }
+  .spin-btn.spin-btn-win{
+    background: linear-gradient(180deg, #33ff8a 0%, #0fbd5c 55%, #0a6e2e 100%) !important;
+    border-color: #0a6e2e !important;
+    animation: spin-btn-win-pulse 0.6s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .spin-btn.spin-btn-win{ animation: none; }
+  }
 
   .test-btn{
     background: transparent;
@@ -328,19 +354,9 @@
     color: var(--neon-red);
   }
 
-  .burst-panel{
-    border: 2px solid #2a2a30;
-    background: rgba(10,10,12,0.5);
-    padding: 12px 14px;
-  }
-  .burst-label{
-    font-family: 'VT323', monospace;
-    font-size: 14px;
-    color: #7a3038;
-    text-align: center;
-  }
   .burst-size-row{
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
   }
@@ -350,7 +366,8 @@
     color: #9a5a62;
     font-family: 'Press Start 2P', monospace;
     font-size: 11px;
-    padding: 8px 16px;
+    padding: 8px 14px;
+    min-width: 44px;
     cursor: pointer;
   }
   .burst-size-btn:hover{ border-color: var(--neon-red); color: var(--neon-red); }
@@ -359,30 +376,6 @@
     color: var(--neon-red);
     box-shadow: 0 0 8px rgba(255,30,67,0.4);
   }
-  .burst-start-btn, .burst-stop-btn{
-    flex: 1;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 10px;
-    padding: 10px;
-    cursor: pointer;
-  }
-  .burst-start-btn{
-    background: transparent;
-    border: 2px solid var(--neon-red);
-    color: var(--neon-red);
-  }
-  .burst-start-btn:hover:not(:disabled){ filter: brightness(1.3); }
-  .burst-start-btn:disabled{
-    border-color: #401019;
-    color: #6e4a4f;
-    cursor: not-allowed;
-  }
-  .burst-stop-btn{
-    background: #3a1218;
-    border: 2px solid #ff1e43;
-    color: #ff8b96;
-  }
-  .burst-stop-btn:hover{ filter: brightness(1.3); }
   .burst-progress{
     font-family: 'VT323', monospace;
     font-size: 14px;
@@ -456,27 +449,24 @@
       TICKETS ARE A FOR-FUN SCORE ONLY. NOT REDEEMABLE FOR MEWC, CASH, OR ANYTHING OF VALUE.
     </p>
 
-    <div class="flex justify-center mb-4">
+    <div class="burst-size-row mb-3">
+      <button type="button" class="burst-size-btn" data-size="1">1</button>
+      <button type="button" class="burst-size-btn" data-size="5">5</button>
+      <button type="button" class="burst-size-btn" data-size="10">10</button>
+      <button type="button" class="burst-size-btn" data-size="25">25</button>
+      <button type="button" class="burst-size-btn" data-size="100">100</button>
+      <button type="button" class="burst-size-btn" data-size="500">500</button>
+    </div>
+
+    <div class="flex justify-center mb-2">
       <button type="button" id="spinBtn" class="spin-btn w-full py-5 text-sm tracking-wider">
-        SPIN — 1 🎟️
+        SPIN 1 — 1 🎟️
       </button>
     </div>
 
-    <div class="burst-panel mb-4">
-      <p class="burst-label mb-2">BURST SPIN — pick a batch, click once, watch it play</p>
-      <div class="burst-size-row mb-3">
-        <button type="button" class="burst-size-btn" data-size="5">5</button>
-        <button type="button" class="burst-size-btn" data-size="10">10</button>
-        <button type="button" class="burst-size-btn" data-size="25">25</button>
-      </div>
-      <div class="flex gap-2">
-        <button type="button" id="burstStartBtn" class="burst-start-btn">SPIN BATCH</button>
-        <button type="button" id="burstStopBtn" class="burst-stop-btn hidden">STOP</button>
-      </div>
-      <p class="burst-progress hidden" id="burstProgress"></p>
-    </div>
+    <p class="burst-progress hidden" id="burstProgress"></p>
 
-    <div class="flex justify-center">
+    <div class="flex justify-center mt-4">
       <button type="button" id="testTicketsBtn" class="test-btn">TEST: +100 TICKETS</button>
     </div>
   </section>
@@ -690,10 +680,20 @@
     }
     marqueeLights.classList.add(lightClass);
 
+    // On an actual win, the reel boxes and the spin button both flip to a
+    // shared green glow — a single unmistakable signal, separate from the
+    // per-symbol landed colors and the rainbow chassis flash.
+    if(type === "win"){
+      reels.forEach(reel => reel.classList.add("reel-win-glow"));
+      spinBtn.classList.add("spin-btn-win");
+    }
+
     setTimeout(() => {
       machineChassis.classList.remove("casino-win-flash", "casino-cherry-flash");
       ticketScreen.classList.remove("casino-win-flash", "casino-cherry-flash");
       marqueeLights.classList.remove("result-loss", "result-cherry", "result-win");
+      reels.forEach(reel => reel.classList.remove("reel-win-glow"));
+      spinBtn.classList.remove("spin-btn-win");
     }, durationMs);
   }
 
@@ -717,9 +717,44 @@
 
   let controlsLocked = false;
 
+  const BURST_SIZE_KEY = "meowfriend_burst_size";
+  const burstSizeBtns = document.querySelectorAll(".burst-size-btn");
+  const burstProgress = document.getElementById("burstProgress");
+
+  let burstSize = parseInt(localStorage.getItem(BURST_SIZE_KEY) || "1", 10);
+  let burstRunning = false;
+  let burstStopRequested = false;
+
+  function updateSpinBtnLabel(){
+    if(burstRunning){
+      spinBtn.textContent = "STOP";
+      return;
+    }
+    spinBtn.textContent = burstSize === 1
+      ? `SPIN 1 — ${SPIN_COST} 🎟️`
+      : `SPIN ${burstSize} — ${burstSize * SPIN_COST} 🎟️`;
+  }
+
+  function selectBurstSize(size){
+    burstSize = size;
+    localStorage.setItem(BURST_SIZE_KEY, String(size));
+    burstSizeBtns.forEach(btn => {
+      btn.classList.toggle("selected", parseInt(btn.dataset.size, 10) === size);
+    });
+    updateSpinBtnLabel();
+  }
+
+  burstSizeBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      if(burstRunning) return; // don't let size change mid-run
+      selectBurstSize(parseInt(btn.dataset.size, 10));
+    });
+  });
+  selectBurstSize(burstSize);
+
   function updateTicketDisplay(){
     ticketDisplay.textContent = `${getTickets()} 🎟️`;
-    if(!controlsLocked){
+    if(!controlsLocked && !burstRunning){
       spinBtn.disabled = getTickets() < SPIN_COST;
     }
   }
@@ -727,7 +762,9 @@
 
   function setControlsLocked(locked){
     controlsLocked = locked;
-    spinBtn.disabled = locked || getTickets() < SPIN_COST;
+    if(!burstRunning){
+      spinBtn.disabled = locked || getTickets() < SPIN_COST;
+    }
   }
 
   function doSpin(){
@@ -769,7 +806,7 @@
 
         // Push-notification-style toast on any real win, queued so it
         // still surfaces even if the player has navigated to another page
-        // by the time it fires (relevant during a burst run).
+        // by the time it fires (relevant during a multi-spin run).
         if(payout.type === "win"){
           queueWinNotification(`${payout.label} +${payout.tickets} tickets!`);
         }
@@ -790,44 +827,18 @@
     });
   }
 
-  spinBtn.addEventListener("click", doSpin);
-
-  // --- Burst mode ---
-  // A fixed, player-chosen batch of spins that plays out automatically
-  // once triggered, then stops on its own — no unattended/no-cap looping.
-  // The batch SIZE choice persists across pages (so picking "10" once
-  // sticks), but a running burst itself does not survive navigation —
-  // leaving the page stops it, by design.
-  const BURST_SIZE_KEY = "meowfriend_burst_size";
-  const burstSizeBtns = document.querySelectorAll(".burst-size-btn");
-  const burstStartBtn = document.getElementById("burstStartBtn");
-  const burstStopBtn = document.getElementById("burstStopBtn");
-  const burstProgress = document.getElementById("burstProgress");
-
-  let burstSize = parseInt(localStorage.getItem(BURST_SIZE_KEY) || "5", 10);
-  let burstRunning = false;
-  let burstStopRequested = false;
-
-  function selectBurstSize(size){
-    burstSize = size;
-    localStorage.setItem(BURST_SIZE_KEY, String(size));
-    burstSizeBtns.forEach(btn => {
-      btn.classList.toggle("selected", parseInt(btn.dataset.size, 10) === size);
-    });
-  }
-
-  burstSizeBtns.forEach(btn => {
-    btn.addEventListener("click", () => selectBurstSize(parseInt(btn.dataset.size, 10)));
-  });
-  selectBurstSize(burstSize);
-
-  async function runBurst(){
+  // --- Spin runner ---
+  // Runs exactly `burstSize` spins (1 by default, up to whichever count is
+  // selected), stopping on its own once done, out of tickets, or if the
+  // player hits the button again mid-run (which now reads STOP). No
+  // unattended/no-cap looping — every run has a hard, player-chosen end.
+  async function runSpins(){
     if(burstRunning) return;
     burstRunning = true;
     burstStopRequested = false;
-    burstStartBtn.classList.add("hidden");
-    burstStopBtn.classList.remove("hidden");
-    burstProgress.classList.remove("hidden");
+    updateSpinBtnLabel();
+    spinBtn.disabled = false;
+    if(burstSize > 1) burstProgress.classList.remove("hidden");
 
     let spinsCompleted = 0;
     let netTickets = 0;
@@ -835,38 +846,44 @@
     for(let i = 0; i < burstSize; i++){
       if(burstStopRequested) break;
       if(getTickets() < SPIN_COST){
-        burstProgress.textContent = `STOPPED — OUT OF TICKETS (${spinsCompleted}/${burstSize})`;
+        if(burstSize > 1) burstProgress.textContent = `STOPPED — OUT OF TICKETS (${spinsCompleted}/${burstSize})`;
         break;
       }
 
-      burstProgress.textContent = `SPIN ${i + 1} / ${burstSize}...`;
+      if(burstSize > 1) burstProgress.textContent = `SPIN ${i + 1} / ${burstSize}...`;
       const before = getTickets();
       const payout = await doSpin();
       const after = getTickets();
       netTickets += (after - before);
       spinsCompleted++;
 
-      if(payout){
+      if(payout && burstSize > 1){
         burstProgress.textContent = `SPIN ${spinsCompleted} / ${burstSize} — ${payout.label}`;
       }
     }
 
-    if(!burstStopRequested && spinsCompleted === burstSize){
+    if(burstSize > 1){
       const sign = netTickets >= 0 ? "+" : "";
-      burstProgress.textContent = `BATCH DONE — ${spinsCompleted} SPINS, NET ${sign}${netTickets} 🎟️`;
-    } else if(burstStopRequested){
-      const sign = netTickets >= 0 ? "+" : "";
-      burstProgress.textContent = `STOPPED — ${spinsCompleted} SPINS, NET ${sign}${netTickets} 🎟️`;
+      if(!burstStopRequested && spinsCompleted === burstSize){
+        burstProgress.textContent = `DONE — ${spinsCompleted} SPINS, NET ${sign}${netTickets} 🎟️`;
+      } else {
+        burstProgress.textContent = `STOPPED — ${spinsCompleted} SPINS, NET ${sign}${netTickets} 🎟️`;
+      }
     }
 
     burstRunning = false;
-    burstStartBtn.classList.remove("hidden");
-    burstStopBtn.classList.add("hidden");
+    updateSpinBtnLabel();
+    spinBtn.disabled = getTickets() < SPIN_COST;
   }
 
-  burstStartBtn.addEventListener("click", runBurst);
-  burstStopBtn.addEventListener("click", () => {
-    burstStopRequested = true;
+  spinBtn.addEventListener("click", () => {
+    if(burstRunning){
+      burstStopRequested = true;
+      spinBtn.textContent = "STOPPING...";
+      spinBtn.disabled = true;
+      return;
+    }
+    runSpins();
   });
 
   const testTicketsBtn = document.getElementById("testTicketsBtn");

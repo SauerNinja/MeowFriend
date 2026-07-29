@@ -420,19 +420,23 @@
     gap: 8px;
   }
   .glow-color-btn{
-    aspect-ratio: 1;
+    width: 100%;
+    height: 40px;
+    min-height: 40px;
     background: #0a0a0c;
     border: 2px solid #2a2a30;
     cursor: pointer;
     position: relative;
+    padding: 0;
+    display: block;
   }
   .glow-color-btn::after{
     content: "";
     position: absolute;
     inset: 6px;
     border-radius: 50%;
-    background: var(--swatch-color);
-    box-shadow: 0 0 8px var(--swatch-color);
+    background: var(--swatch-color, #ff1e43);
+    box-shadow: 0 0 8px var(--swatch-color, #ff1e43);
   }
   .glow-color-btn:hover{ border-color: #fff; }
   .glow-color-btn.selected{
