@@ -316,11 +316,23 @@ window.MeowFriendServerStatus = { isOnline: false };
     });
   }
 
-  injectStyles();
-  injectStatusBadge();
-  pollServerHealth();
-  checkPlayerStatus();
-  setInterval(pollServerHealth, 15000);
+  function initServerStatusAndGate(){
+    injectStyles();
+    injectStatusBadge();
+    pollServerHealth();
+    checkPlayerStatus();
+    setInterval(pollServerHealth, 15000);
+  }
+
+  // This script loads synchronously in <head>, before <body> is parsed —
+  // touching document.body immediately (as injectStatusBadge does) throws
+  // and silently halts every script after it on the page, including each
+  // page's own inline script. Defer until the DOM is actually ready.
+  if(document.body){
+    initServerStatusAndGate();
+  } else {
+    document.addEventListener("DOMContentLoaded", initServerStatusAndGate);
+  }
 })();
 
 

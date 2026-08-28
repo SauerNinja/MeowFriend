@@ -836,7 +836,11 @@ app.get('/api/player/account', (req, res) => {
   });
 });
 
-
+// Basic health check — useful for confirming the tunnel + server are up
+// without touching the wallet or RPC at all.
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
 app.listen(PORT, () => {
   console.log(`MeowFriend bridge listening on port ${PORT}`);
