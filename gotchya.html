@@ -139,6 +139,38 @@
     margin: 0 auto;
   }
 
+  /* Day/night lighting — a color-tone overlay sitting above everything
+     else in the room but below the pet-stat critical/thriving glow (which
+     lives on .pet-stage, a level up, so it always reads clearly). Purely
+     visual: never affects stat math, matching how furniture-decor items
+     work. Opacity/color driven by JS based on real local hour. */
+  .room-lighting{
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    transition: background 3s ease, opacity 3s ease;
+  }
+
+  /* Wallpaper sits behind the grid/furniture/pet, flooring tints the
+     existing grid pattern rather than replacing it, so the room's
+     coordinate grid lines (used for build-mode placement) stay visible
+     regardless of which flooring is selected. */
+  .room-wallpaper{
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    transition: background 0.4s ease;
+  }
+  .room-flooring-tint{
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    transition: background-color 0.4s ease;
+  }
+
   .room-world{
     width: calc(var(--cell-px) * 12);
     height: calc(var(--cell-px) * 12);
@@ -400,6 +432,111 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
   }
+  .build-mode-btn{
+    background: transparent;
+    border: 2px solid var(--neon-red);
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 10px 18px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+  .build-mode-btn:hover{ filter: brightness(1.2); }
+  .build-mode-btn.active{
+    background: var(--neon-red);
+    color: #1a0a0d;
+    text-shadow: none;
+    box-shadow: 0 0 12px rgba(255,30,67,0.6);
+  }
+
+  .build-palette{
+    border: 2px solid #2a2a30;
+    background: #0a0a0c;
+    padding: 14px;
+  }
+  .build-item-grid{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .build-item-btn{
+    background: #14141a;
+    border: 2px solid #2a2a30;
+    padding: 10px 4px;
+    font-size: 22px;
+    cursor: pointer;
+    text-align: center;
+    position: relative;
+  }
+  .build-item-btn:hover{ border-color: var(--neon-red); }
+  .build-item-btn.selected{
+    border-color: var(--neon-red);
+    box-shadow: 0 0 10px rgba(255,30,67,0.5), inset 0 0 8px rgba(255,30,67,0.2);
+  }
+  .build-item-btn.placed::after{
+    content: "✓";
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 10px;
+    color: #29ff8a;
+    text-shadow: 0 0 4px #29ff8a;
+  }
+
+  /* Build-mode grid overlay: shows every room cell as a tappable target
+     while active. Only rendered/interactive when build mode is on, so it
+     never interferes with normal wander/viewing. */
+  .room-build-grid{
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: grid;
+    grid-template-columns: repeat(12, var(--cell-px));
+    grid-template-rows: repeat(12, var(--cell-px));
+  }
+  .room-build-cell{
+    border: 1px solid rgba(255,30,67,0.15);
+    cursor: pointer;
+  }
+  .room-build-cell:hover{
+    background: rgba(255,30,67,0.25);
+  }
+  .room-build-cell.occupied{
+    cursor: not-allowed;
+  }
+  .room-build-cell.occupied:hover{
+    background: rgba(255,80,80,0.15);
+  }
+
+  .cosmetic-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .cosmetic-btn{
+    background: #0a0a0c;
+    border: 2px solid #2a2a30;
+    padding: 10px 6px;
+    cursor: pointer;
+    text-align: center;
+    font-family: 'VT323', monospace;
+    color: #ffc7cf;
+  }
+  .cosmetic-btn:hover:not(:disabled){ border-color: var(--neon-red); }
+  .cosmetic-btn.selected{
+    border-color: var(--neon-red);
+    box-shadow: 0 0 10px rgba(255,30,67,0.5), inset 0 0 8px rgba(255,30,67,0.2);
+  }
+  .cosmetic-btn:disabled{
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .cosmetic-icon{ font-size: 22px; display: block; margin-bottom: 4px; }
+  .cosmetic-name{ font-size: 14px; display: block; }
+  .cosmetic-cost{ font-size: 12px; color: #7a3038; display: block; }
+
   .species-btn{
     background: #0a0a0c;
     border: 2px solid #2a2a30;
@@ -774,9 +911,26 @@
     <div class="pet-stage mb-5" id="petStage">
       <div class="room-viewport" id="roomViewport">
         <div class="room-world" id="roomWorld">
+          <div class="room-wallpaper" id="roomWallpaper" aria-hidden="true"></div>
+          <div class="room-flooring-tint" id="roomFlooringTint" aria-hidden="true"></div>
           <div class="room-furniture" id="roomFurniture" aria-hidden="true"></div>
+          <div class="room-build-grid hidden" id="roomBuildGrid" aria-hidden="true"></div>
           <span class="pet-sprite" id="petSprite">🐱</span>
         </div>
+        <div class="room-lighting" id="roomLighting" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div class="flex justify-center mb-3">
+      <button type="button" id="buildModeBtn" class="build-mode-btn">🔨 BUILD MODE</button>
+    </div>
+    <div id="buildPalette" class="build-palette hidden mb-5">
+      <p class="body-copy text-base leading-snug mb-3" id="buildInstructions">
+        Tap a piece of furniture below, then tap an empty cell in the room to place it.
+      </p>
+      <div class="build-item-grid" id="buildItemGrid"></div>
+      <div class="flex justify-center mt-4">
+        <button type="button" id="buildModeExitBtn" class="feed-cancel-btn">DONE</button>
       </div>
     </div>
 
@@ -853,7 +1007,19 @@
     <div class="inventory-list" id="furnitureList"></div>
     <p class="body-copy text-base leading-snug mt-4">
       Furniture is a permanent boost bought once from the <a href="shop.html" style="color:var(--neon-red);">Shop</a>.
+      Tap 🔨 BUILD MODE above the room to choose where each piece goes.
     </p>
+  </section>
+
+  <section id="roomCustomizeSection" class="info-panel p-6 sm:p-8 mt-6 hidden" aria-labelledby="customize-heading">
+    <p class="panel-eyebrow mb-3">HOME</p>
+    <h2 id="customize-heading" class="panel-heading mb-4">ROOM STYLE</h2>
+
+    <p class="text-[9px] mb-3" style="color:var(--neon-red); text-shadow:0 0 6px var(--neon-red);">WALLPAPER</p>
+    <div class="cosmetic-grid mb-5" id="wallpaperGrid"></div>
+
+    <p class="text-[9px] mb-3" style="color:var(--neon-red); text-shadow:0 0 6px var(--neon-red);">FLOORING</p>
+    <div class="cosmetic-grid" id="flooringGrid"></div>
   </section>
 
   <div id="resetWrap" class="flex justify-center mt-6 hidden">
@@ -1239,17 +1405,20 @@
       adoptScreen.classList.remove("hidden");
       careScreen.classList.add("hidden");
       furnitureSection.classList.add("hidden");
+      roomCustomizeSection.classList.add("hidden");
       resetWrap.classList.add("hidden");
       return;
     }
     adoptScreen.classList.add("hidden");
     careScreen.classList.remove("hidden");
     furnitureSection.classList.remove("hidden");
+    roomCustomizeSection.classList.remove("hidden");
     resetWrap.classList.remove("hidden");
 
     ticketDisplay.textContent = `${getTickets()} 🎟️`;
     renderStats();
     renderFurniture();
+    renderCosmeticGrids();
     updateCareButtons();
   }
 
@@ -1266,6 +1435,52 @@
     }
     renderRoomFurniture(owned.map(([id]) => id));
     renderAlarmClock();
+    renderWallpaperAndFlooring();
+  }
+
+  const roomWallpaper = document.getElementById("roomWallpaper");
+  const roomFlooringTint = document.getElementById("roomFlooringTint");
+
+  function renderWallpaperAndFlooring(){
+    const wallpaper = GOTCHYA_WALLPAPERS.find(w => w.id === (pet.wallpaper || "default")) || GOTCHYA_WALLPAPERS[0];
+    const flooring = GOTCHYA_FLOORINGS.find(f => f.id === (pet.flooring || "default")) || GOTCHYA_FLOORINGS[0];
+    roomWallpaper.style.background = wallpaper.gradient;
+    roomFlooringTint.style.backgroundColor = flooring.color;
+  }
+
+  // --- Day/night lighting ---
+  // Uses the pet's stored timezone if the Alarm Clock furniture set one
+  // (see renderAlarmClock below), otherwise falls back to the browser's
+  // own local time — day/night works even without owning that furniture,
+  // since it's ambient room lighting, not a display feature gated behind
+  // a purchase.
+  const roomLighting = document.getElementById("roomLighting");
+
+  const LIGHTING_STAGES = [
+    // [startHour, endHour) in 24h time, background tint, opacity
+    { start: 5,  end: 7,  color: "rgba(255,150,80,0.28)", opacity: 1 },   // dawn
+    { start: 7,  end: 18, color: "rgba(255,255,255,0)",   opacity: 0 },   // day — no tint
+    { start: 18, end: 20, color: "rgba(255,110,60,0.32)", opacity: 1 },   // dusk
+    { start: 20, end: 24, color: "rgba(20,20,60,0.45)",   opacity: 1 },   // night
+    { start: 0,  end: 5,  color: "rgba(15,15,45,0.55)",   opacity: 1 },   // deep night
+  ];
+
+  function getCurrentHourInPetTimezone(){
+    const tz = pet && pet.timezone;
+    if(!tz) return new Date().getHours();
+    try {
+      const hourStr = new Intl.DateTimeFormat("en-US", { hour: "numeric", hour12: false, timeZone: tz }).format(new Date());
+      return parseInt(hourStr, 10) % 24;
+    } catch {
+      return new Date().getHours();
+    }
+  }
+
+  function updateRoomLighting(){
+    const hour = getCurrentHourInPetTimezone();
+    const stage = LIGHTING_STAGES.find(s => hour >= s.start && hour < s.end) || LIGHTING_STAGES[1];
+    roomLighting.style.background = stage.color;
+    roomLighting.style.opacity = stage.opacity;
   }
 
   function renderAlarmClock(){
@@ -1303,17 +1518,24 @@
   function renderRoomFurniture(ownedIds){
     roomFurniture.innerHTML = "";
     if(ownedIds.length === 0) return;
-    // Fixed anchor cells spread around the room's interior, avoiding the
-    // very edges so items don't sit under the camera-follow border.
-    const anchors = [
+    // Fallback anchor cells for any owned item that hasn't been explicitly
+    // placed via Build Mode yet (e.g. furniture owned before this feature
+    // existed, or bought but not yet placed) — same spread as before, now
+    // just the default rather than the only option.
+    const fallbackAnchors = [
       [1, 1], [10, 1], [1, 10], [10, 10], [5, 1], [1, 5], [10, 5], [5, 10],
+      [3, 3], [8, 3], [3, 8], [8, 8], [2, 6], [9, 6], [6, 2], [6, 9],
     ];
+    pet.furniturePositions = pet.furniturePositions || {};
+
     ownedIds.forEach((id, i) => {
       const item = GOTCHYA_FURNITURE.find(f => f.id === id);
       if(!item) return;
-      const [gx, gy] = anchors[i % anchors.length];
+      const pos = pet.furniturePositions[id] || fallbackAnchors[i % fallbackAnchors.length];
+      const [gx, gy] = pos;
       const el = document.createElement("span");
       el.className = "room-furniture-item";
+      el.dataset.furnitureId = id;
       el.style.left = `${gx * ROOM.cellPx + ROOM.cellPx / 2}px`;
       el.style.top = `${gy * ROOM.cellPx + ROOM.cellPx / 2}px`;
       el.style.transform = "translate(-50%, -50%)";
@@ -1323,7 +1545,180 @@
     });
   }
 
-  // --- Movement + camera ---
+  // --- Build Mode: player-chosen furniture placement ---
+  // A real toggle (not drag-and-drop): turning Build Mode on shows a
+  // palette of every owned furniture item plus a clickable grid overlay
+  // on the room. Tap an item, then tap an empty cell to place it there —
+  // tapping an already-placed item's icon lets you pick it back up to
+  // relocate it. Positions save to pet.furniturePositions and persist.
+  const buildModeBtn = document.getElementById("buildModeBtn");
+  const buildModeExitBtn = document.getElementById("buildModeExitBtn");
+  const buildPalette = document.getElementById("buildPalette");
+  const buildItemGrid = document.getElementById("buildItemGrid");
+  const buildInstructions = document.getElementById("buildInstructions");
+  const roomBuildGrid = document.getElementById("roomBuildGrid");
+
+  let buildModeActive = false;
+  let selectedBuildItemId = null;
+
+  function ownedFurnitureIds(){
+    return Object.entries(pet.furniture || {}).filter(([, has]) => has).map(([id]) => id);
+  }
+
+  function renderBuildPalette(){
+    const owned = ownedFurnitureIds();
+    if(owned.length === 0){
+      buildItemGrid.innerHTML = `<span class="body-copy text-base" style="grid-column: 1 / -1;">No furniture owned yet — buy some from the Shop first.</span>`;
+      return;
+    }
+    buildItemGrid.innerHTML = "";
+    owned.forEach(id => {
+      const item = GOTCHYA_FURNITURE.find(f => f.id === id);
+      if(!item) return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "build-item-btn" + (pet.furniturePositions && pet.furniturePositions[id] ? " placed" : "");
+      if(id === selectedBuildItemId) btn.classList.add("selected");
+      btn.textContent = item.icon;
+      btn.title = item.name;
+      btn.addEventListener("click", () => {
+        selectedBuildItemId = (selectedBuildItemId === id) ? null : id;
+        renderBuildPalette();
+        updateBuildInstructions();
+      });
+      buildItemGrid.appendChild(btn);
+    });
+  }
+
+  function updateBuildInstructions(){
+    if(selectedBuildItemId){
+      const item = GOTCHYA_FURNITURE.find(f => f.id === selectedBuildItemId);
+      buildInstructions.textContent = `Tap an empty cell to place your ${item ? item.name : "item"}.`;
+    } else {
+      buildInstructions.textContent = "Tap a piece of furniture below, then tap an empty cell in the room to place it.";
+    }
+  }
+
+  function isCellOccupied(gx, gy, excludingId){
+    pet.furniturePositions = pet.furniturePositions || {};
+    return Object.entries(pet.furniturePositions).some(([id, pos]) =>
+      id !== excludingId && pos[0] === gx && pos[1] === gy
+    );
+  }
+
+  function renderBuildGrid(){
+    roomBuildGrid.innerHTML = "";
+    pet.furniturePositions = pet.furniturePositions || {};
+    for(let gy = 0; gy < ROOM.rows; gy++){
+      for(let gx = 0; gx < ROOM.cols; gx++){
+        const cell = document.createElement("div");
+        cell.className = "room-build-cell";
+        const occupied = isCellOccupied(gx, gy, selectedBuildItemId);
+        if(occupied) cell.classList.add("occupied");
+        cell.addEventListener("click", () => {
+          if(!selectedBuildItemId) return;
+          if(isCellOccupied(gx, gy, selectedBuildItemId)) return;
+          pet.furniturePositions[selectedBuildItemId] = [gx, gy];
+          savePet(pet);
+          selectedBuildItemId = null;
+          renderFurniture();
+          renderBuildPalette();
+          renderBuildGrid();
+          updateBuildInstructions();
+        });
+        roomBuildGrid.appendChild(cell);
+      }
+    }
+  }
+
+  function enterBuildMode(){
+    buildModeActive = true;
+    selectedBuildItemId = null;
+    buildModeBtn.classList.add("active");
+    buildPalette.classList.remove("hidden");
+    roomBuildGrid.classList.remove("hidden");
+    stopWander(); // pet stays put while placing furniture, so cells aren't a moving target
+    renderBuildPalette();
+    renderBuildGrid();
+    updateBuildInstructions();
+  }
+
+  function exitBuildMode(){
+    buildModeActive = false;
+    selectedBuildItemId = null;
+    buildModeBtn.classList.remove("active");
+    buildPalette.classList.add("hidden");
+    roomBuildGrid.classList.add("hidden");
+    if(pet) startWander();
+  }
+
+  buildModeBtn.addEventListener("click", () => {
+    if(buildModeActive) exitBuildMode(); else enterBuildMode();
+  });
+  buildModeExitBtn.addEventListener("click", exitBuildMode);
+
+  // --- Room cosmetics: wallpaper & flooring ---
+  const wallpaperGrid = document.getElementById("wallpaperGrid");
+  const flooringGrid = document.getElementById("flooringGrid");
+  const roomCustomizeSection = document.getElementById("roomCustomizeSection");
+
+  function renderCosmeticGrids(){
+    const tickets = getTickets();
+
+    wallpaperGrid.innerHTML = "";
+    GOTCHYA_WALLPAPERS.forEach(w => {
+      const owned = (pet.ownedWallpapers && pet.ownedWallpapers[w.id]) || w.cost === 0;
+      const selected = (pet.wallpaper || "default") === w.id;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "cosmetic-btn" + (selected ? " selected" : "");
+      btn.disabled = !owned && tickets < w.cost;
+      btn.innerHTML = `<span class="cosmetic-icon">${w.icon}</span><span class="cosmetic-name">${w.name}</span><span class="cosmetic-cost">${owned ? (selected ? "Selected" : "Owned") : `${w.cost} 🎟️`}</span>`;
+      btn.addEventListener("click", () => {
+        if(owned){
+          pet.wallpaper = w.id;
+        } else {
+          if(tickets < w.cost) return;
+          addTickets(-w.cost);
+          pet.ownedWallpapers = pet.ownedWallpapers || {};
+          pet.ownedWallpapers[w.id] = true;
+          pet.wallpaper = w.id;
+        }
+        savePet(pet);
+        renderWallpaperAndFlooring();
+        renderCosmeticGrids();
+      });
+      wallpaperGrid.appendChild(btn);
+    });
+
+    flooringGrid.innerHTML = "";
+    GOTCHYA_FLOORINGS.forEach(f => {
+      const owned = (pet.ownedFloorings && pet.ownedFloorings[f.id]) || f.cost === 0;
+      const selected = (pet.flooring || "default") === f.id;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "cosmetic-btn" + (selected ? " selected" : "");
+      btn.disabled = !owned && tickets < f.cost;
+      btn.innerHTML = `<span class="cosmetic-icon">${f.icon}</span><span class="cosmetic-name">${f.name}</span><span class="cosmetic-cost">${owned ? (selected ? "Selected" : "Owned") : `${f.cost} 🎟️`}</span>`;
+      btn.addEventListener("click", () => {
+        if(owned){
+          pet.flooring = f.id;
+        } else {
+          if(tickets < f.cost) return;
+          addTickets(-f.cost);
+          pet.ownedFloorings = pet.ownedFloorings || {};
+          pet.ownedFloorings[f.id] = true;
+          pet.flooring = f.id;
+        }
+        savePet(pet);
+        renderWallpaperAndFlooring();
+        renderCosmeticGrids();
+      });
+      flooringGrid.appendChild(btn);
+    });
+  }
+
+
   // The pet has a position in grid cells (can be fractional while
   // walking's CSS transition is in flight, but we track the target cell).
   // The camera scrolls room-world by translating it so the pet's cell
@@ -1339,20 +1734,64 @@
     petSprite.style.top = `${gy * ROOM.cellPx + ROOM.cellPx / 2}px`;
   }
 
+  // Camera uses a deadzone: it doesn't recenter on every single step, only
+  // scrolls once the pet gets within EDGE_MARGIN cells of the visible
+  // viewport's edge — and even then, only scrolls just enough to keep the
+  // pet that same margin away from the edge, not all the way back to
+  // center. This is what actually prevents the pet from ever visually
+  // reaching the edge of the screen: the previous version re-centered the
+  // camera on every move, but stopped adjusting the instant it hit the
+  // room's outer boundary — after which the pet could keep walking toward
+  // that same wall and visually exit the frame, since nothing was left to
+  // stop the pet itself once the camera could no longer follow.
+  const EDGE_MARGIN = 1.25; // cells of buffer kept between the pet and the viewport edge
+
+  let cameraOffsetX = 0;
+  let cameraOffsetY = 0;
+  let cameraInitialized = false;
+
   function updateCamera(gx, gy){
     const viewportPx = ROOM.viewCols * ROOM.cellPx;
     const worldPx = ROOM.cols * ROOM.cellPx;
     const maxOffset = worldPx - viewportPx;
+    const marginPx = EDGE_MARGIN * ROOM.cellPx;
 
-    // Center the camera on the pet, then clamp so it never scrolls past
-    // the room's edges (which would otherwise reveal empty space beyond
-    // the world, or equivalently let the pet render outside the frame).
-    const targetPx = gx * ROOM.cellPx + ROOM.cellPx / 2 - viewportPx / 2;
-    const targetPy = gy * ROOM.cellPx + ROOM.cellPx / 2 - viewportPx / 2;
-    const offsetX = Math.min(Math.max(targetPx, 0), maxOffset);
-    const offsetY = Math.min(Math.max(targetPy, 0), maxOffset);
+    const petPx = gx * ROOM.cellPx + ROOM.cellPx / 2;
+    const petPy = gy * ROOM.cellPx + ROOM.cellPx / 2;
 
-    roomWorld.style.transform = `translate(${-offsetX}px, ${-offsetY}px)`;
+    if(!cameraInitialized){
+      // First placement: center normally, same as before.
+      cameraOffsetX = Math.min(Math.max(petPx - viewportPx / 2, 0), maxOffset);
+      cameraOffsetY = Math.min(Math.max(petPy - viewportPx / 2, 0), maxOffset);
+      cameraInitialized = true;
+    } else {
+      // Where the pet currently sits within the CURRENT viewport.
+      const petScreenX = petPx - cameraOffsetX;
+      const petScreenY = petPy - cameraOffsetY;
+
+      // Only nudge the camera enough to keep the pet outside the margin
+      // band on whichever side it's approaching — never snaps back to
+      // center, so movement reads as the camera "catching up" rather than
+      // constantly re-locking onto the pet.
+      if(petScreenX < marginPx){
+        cameraOffsetX -= (marginPx - petScreenX);
+      } else if(petScreenX > viewportPx - marginPx){
+        cameraOffsetX += (petScreenX - (viewportPx - marginPx));
+      }
+      if(petScreenY < marginPx){
+        cameraOffsetY -= (marginPx - petScreenY);
+      } else if(petScreenY > viewportPx - marginPx){
+        cameraOffsetY += (petScreenY - (viewportPx - marginPx));
+      }
+
+      // Still clamp to the room's real boundary — the deadzone controls
+      // WHEN the camera moves, this clamp still controls how far it's
+      // ever allowed to go, so the world's outer edge is never exceeded.
+      cameraOffsetX = Math.min(Math.max(cameraOffsetX, 0), maxOffset);
+      cameraOffsetY = Math.min(Math.max(cameraOffsetY, 0), maxOffset);
+    }
+
+    roomWorld.style.transform = `translate(${-cameraOffsetX}px, ${-cameraOffsetY}px)`;
   }
 
   // Initial placement, centered, before any wander step has run.
@@ -1700,11 +2139,14 @@
     if(pet) updateCareButtons();
   }, 15000);
 
-  // Keep the Alarm Clock's time display live without waiting on the
-  // heavier decay tick.
+  // Keep the Alarm Clock's time display and the room's day/night lighting
+  // live without waiting on the heavier decay tick. Lighting updates
+  // regardless of whether the Alarm Clock furniture is owned.
   setInterval(() => {
     if(pet) renderAlarmClock();
+    updateRoomLighting();
   }, 30000);
+  updateRoomLighting();
 
   // Stat countdowns show seconds precision, so they need to visibly tick
   // every second. Full decay only actually applies to pet.hunger/etc. on

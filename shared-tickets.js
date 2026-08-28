@@ -436,6 +436,39 @@ const GOTCHYA_FURNITURE = [
   { id: "food_bowl", name: "Automatic Feeder", icon: "🥣", desc: "-30% hunger decay rate", cost: 3000, effect: "hungerDecayMult", value: 0.7 },
   { id: "scratch_post", name: "Scratching Post", icon: "🪵", desc: "-30% happiness decay rate", cost: 3000, effect: "happinessDecayMult", value: 0.7 },
   { id: "alarm_clock", name: "Alarm Clock", icon: "⏰", desc: "Shows current time + days since adoption", cost: 500, effect: "display", value: 1 },
+  // Purely decorative furniture — no stat effect, bought for the room's
+  // look and to give the pet more things to walk around. effect:"decor"
+  // never matches getFurnitureMultiplier's filter, so these are always
+  // no-ops for gameplay math by construction, not by convention.
+  { id: "plant", name: "Potted Plant", icon: "🪴", desc: "Decorative", cost: 400, effect: "decor", value: 1 },
+  { id: "lamp", name: "Floor Lamp", icon: "💡", desc: "Decorative", cost: 600, effect: "decor", value: 1 },
+  { id: "rug", name: "Round Rug", icon: "🟤", desc: "Decorative", cost: 350, effect: "decor", value: 1 },
+  { id: "scratcher_toy", name: "Cat Tree", icon: "🌳", desc: "Decorative", cost: 1200, effect: "decor", value: 1 },
+  { id: "fishtank", name: "Fish Tank", icon: "🐠", desc: "Decorative", cost: 1500, effect: "decor", value: 1 },
+  { id: "trophy", name: "Trophy Shelf", icon: "🏆", desc: "Decorative", cost: 2000, effect: "decor", value: 1 },
+  { id: "window", name: "Window", icon: "🪟", desc: "Decorative", cost: 800, effect: "decor", value: 1 },
+  { id: "mirror", name: "Wall Mirror", icon: "🪞", desc: "Decorative", cost: 900, effect: "decor", value: 1 },
+];
+
+// Cosmetic room customization — wallpaper (background pattern) and
+// flooring (foreground grid tint). Purely visual, never touch stat math.
+// "default" is free and is what every pet already has, so nobody's room
+// changes until they actually buy and select something new.
+const GOTCHYA_WALLPAPERS = [
+  { id: "default", name: "Plain", icon: "⬛", cost: 0, gradient: "radial-gradient(circle at 50% 30%, rgba(255,30,67,0.08), transparent 70%)" },
+  { id: "stars", name: "Starfield", icon: "✨", cost: 800, gradient: "radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 70% 60%, #fff, transparent), radial-gradient(1px 1px at 40% 80%, #fff, transparent), radial-gradient(1px 1px at 85% 20%, #fff, transparent), radial-gradient(circle at 50% 30%, rgba(60,30,90,0.25), transparent 70%)" },
+  { id: "sunset", name: "Sunset", icon: "🌇", cost: 1000, gradient: "linear-gradient(180deg, rgba(255,120,60,0.18), rgba(255,30,67,0.08))" },
+  { id: "forest", name: "Forest", icon: "🌲", cost: 1000, gradient: "linear-gradient(180deg, rgba(40,160,90,0.14), rgba(20,60,40,0.1))" },
+  { id: "ocean", name: "Ocean", icon: "🌊", cost: 1000, gradient: "linear-gradient(180deg, rgba(40,140,220,0.16), rgba(20,60,100,0.1))" },
+  { id: "candy", name: "Candy", icon: "🍬", cost: 1200, gradient: "linear-gradient(135deg, rgba(255,100,200,0.16), rgba(150,80,255,0.14))" },
+];
+
+const GOTCHYA_FLOORINGS = [
+  { id: "default", name: "Concrete", icon: "⬛", cost: 0, color: "rgba(255,30,67,0.06)" },
+  { id: "wood", name: "Wood Floor", icon: "🟫", cost: 600, color: "rgba(200,140,70,0.14)" },
+  { id: "tile", name: "Checker Tile", icon: "⬜", cost: 600, color: "rgba(220,220,230,0.1)" },
+  { id: "grass", name: "Grass", icon: "🟩", cost: 900, color: "rgba(80,200,100,0.14)" },
+  { id: "sand", name: "Sand", icon: "🟨", cost: 900, color: "rgba(230,200,110,0.14)" },
 ];
 
 // Computes the combined multiplier for a given effect across all furniture

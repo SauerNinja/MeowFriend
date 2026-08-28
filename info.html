@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>MeowFriend — How It Works &amp; FAQ</title>
-<meta name="description" content="How the MeowFriend Meowcoin faucet works, what Meowcoin (MEWC) is, and answers to frequently asked questions.">
+<meta name="description" content="How MeowFriend's Meow Ticket faucet works, what Meowcoin (MEWC) is, and answers to frequently asked questions.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://sauerninja.github.io/MeowFriend/info.html">
 
@@ -19,7 +19,7 @@
 <!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="MeowFriend — How It Works &amp; FAQ">
-<meta property="og:description" content="How the MeowFriend Meowcoin faucet works, what Meowcoin (MEWC) is, and answers to frequently asked questions.">
+<meta property="og:description" content="How MeowFriend's Meow Ticket faucet works, what Meowcoin (MEWC) is, and answers to frequently asked questions.">
 <meta property="og:image" content="https://sauerninja.github.io/MeowFriend/assets/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -32,7 +32,7 @@
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="MeowFriend — How It Works &amp; FAQ">
-<meta name="twitter:description" content="How the MeowFriend Meowcoin faucet works, what Meowcoin (MEWC) is, and answers to frequently asked questions.">
+<meta name="twitter:description" content="How MeowFriend's Meow Ticket faucet works, what Meowcoin (MEWC) is, and answers to frequently asked questions.">
 <meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/assets/og-image.png">
 <meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
 
@@ -50,28 +50,28 @@
     },
     {
       "@type": "Question",
-      "name": "How much MEWC do I get, and how often?",
-      "acceptedAnswer": { "@type": "Answer", "text": "10 MEWC per boop, once every 24 hours. The RECHARGE screen counts down to your next claim." }
+      "name": "How many Meow Tickets do I get, and how often?",
+      "acceptedAnswer": { "@type": "Answer", "text": "1,000 tickets per boop, once an hour. Booping again within the streak window before it lapses increases the payout up to 5,000 tickets at a 5-boop streak. The RECHARGE screen counts down to your next boop." }
     },
     {
       "@type": "Question",
-      "name": "Do I need to sign up or connect a wallet?",
-      "acceptedAnswer": { "@type": "Answer", "text": "No. There's no account and nothing to connect. Paste a Meowcoin address that starts with M and boop." }
+      "name": "Do I need to sign up or connect a wallet to play?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A free username is required to mint tickets, register donations, or appear on leaderboards — no wallet or email needed for that. Browsing the site and playing the games works even without a username. Linking a Meowcoin wallet address is only needed if you want to withdraw tickets or donate MEWC." }
     },
     {
       "@type": "Question",
       "name": "Is MeowFriend affiliated with the official Meowcoin project?",
-      "acceptedAnswer": { "@type": "Answer", "text": "No. MeowFriend is an independent, community-built faucet and isn't affiliated with or endorsed by the Meowcoin core team." }
+      "acceptedAnswer": { "@type": "Answer", "text": "No. MeowFriend is an independent, community-built project and isn't affiliated with or endorsed by the Meowcoin core team." }
     },
     {
       "@type": "Question",
-      "name": "How does the drip actually get paid out?",
-      "acceptedAnswer": { "@type": "Answer", "text": "This build simulates the drip locally in your browser so the full flow can be tested end to end. Wiring it up to a live Meowcoin node and hot wallet is the next step before a public launch." }
+      "name": "How does ticket minting actually work?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A small bridge server connects the site to a real Meowcoin node. Minting tickets, verifying donations, and processing withdrawals all require that server to be online — a status badge in the corner shows live connectivity. Browsing and playing games works even if the server is temporarily offline." }
     },
     {
       "@type": "Question",
       "name": "What are tickets, and what can I do with them?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Tickets are a for-fun score you can spend on the slot machine and future minigames, plus cosmetic items, collectibles, and other extras as they're added. They have no real-world value and can't be redeemed for MEWC, cash, or anything else." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Tickets are a for-fun currency you can spend on the slot machine, Crossing, Runner, Gotchya's shop, and room customization. Tickets are a real Meowcoin asset (MEOWFRIEND_TICKET) that can be withdrawn to your own wallet once linked, but they have no real-world monetary value and there is no expectation of profit." }
     }
   ]
 }
@@ -225,23 +225,23 @@
     <ol class="grid grid-cols-2 sm:grid-cols-4 gap-6 list-none p-0 m-0">
       <li class="flex flex-col items-center text-center gap-3">
         <span class="step-badge" aria-hidden="true">1</span>
-        <span class="step-label">PASTE ADDRESS</span>
-        <p class="body-copy text-base leading-snug">Enter a Meowcoin address starting with M.</p>
+        <span class="step-label">PICK A USERNAME</span>
+        <p class="body-copy text-base leading-snug">Required to mint tickets or appear on leaderboards — no wallet needed.</p>
       </li>
       <li class="flex flex-col items-center text-center gap-3">
         <span class="step-badge" aria-hidden="true">2</span>
         <span class="step-label">BOOP</span>
-        <p class="body-copy text-base leading-snug">Click BOOP FOR MEOWCOIN to start the drip.</p>
+        <p class="body-copy text-base leading-snug">Click BOOP FOR MEOW TICKETS to mint your first batch.</p>
       </li>
       <li class="flex flex-col items-center text-center gap-3">
         <span class="step-badge" aria-hidden="true">3</span>
-        <span class="step-label">GET MEWC</span>
-        <p class="body-copy text-base leading-snug">Watch the success banner confirm your drip.</p>
+        <span class="step-label">PLAY &amp; EARN</span>
+        <p class="body-copy text-base leading-snug">Spend tickets across Slots, Crossing, Runner, Gotchya, and Cat Hack.</p>
       </li>
       <li class="flex flex-col items-center text-center gap-3">
         <span class="step-badge" aria-hidden="true">4</span>
         <span class="step-label">COME BACK</span>
-        <p class="body-copy text-base leading-snug">The RECHARGE timer unlocks the button in 24h.</p>
+        <p class="body-copy text-base leading-snug">The RECHARGE timer unlocks your next boop in an hour — boop again before the streak window lapses for a bigger payout.</p>
       </li>
     </ol>
   </section>
@@ -254,8 +254,9 @@
       Miners secure the network with MeowPow, an energy-conscious algorithm in the ProgPow family that's friendly
       to ordinary GPUs, and every block sends a portion of its reward to animal shelters and pet-welfare causes.
       The project launched in 2022 with a fair distribution — no premine, no ICO, no insider allocation — so new
-      holders start on the same footing as everyone else. MeowFriend exists to make that first step easier: claim
-      a small starter balance, and go explore the network.
+      holders start on the same footing as everyone else. MeowFriend's Meow Tickets are a separate, valueless
+      in-game currency inspired by that theme — donating real MEWC is one optional way to earn extra tickets, and
+      linking a wallet lets you withdraw tickets back out as a real (still valueless) Meowcoin asset.
     </p>
   </section>
 
@@ -268,24 +269,24 @@
         <div class="faq-answer body-copy">Meowcoin is a cat-themed, proof-of-work cryptocurrency that launched in 2022 with a fair launch — no premine, no ICO. It runs on MeowPow, a GPU-mineable algorithm in the ProgPow family, and sends a share of block rewards to animal shelters.</div>
       </details>
       <details class="faq-item">
-        <summary>How much MEWC do I get, and how often?</summary>
-        <div class="faq-answer body-copy">10 MEWC per boop, once every 24 hours. The RECHARGE screen counts down to your next claim.</div>
+        <summary>How many Meow Tickets do I get, and how often?</summary>
+        <div class="faq-answer body-copy">1,000 tickets per boop, once an hour. Booping again before your streak window lapses raises the payout — up to 5,000 tickets at a 5-boop streak. Missing the window resets it back to 1,000. The RECHARGE screen counts down to your next boop.</div>
       </details>
       <details class="faq-item">
         <summary>Do I need to sign up or connect a wallet?</summary>
-        <div class="faq-answer body-copy">No. There's no account and nothing to connect. Paste a Meowcoin address that starts with M and boop.</div>
+        <div class="faq-answer body-copy">A free username is required to mint tickets, register donations, or show up on leaderboards — that's it, no wallet or email involved. You can browse the site and play every game without a username. Linking a Meowcoin address is only needed if you want to withdraw tickets out or donate real MEWC.</div>
       </details>
       <details class="faq-item">
         <summary>Is MeowFriend affiliated with the official Meowcoin project?</summary>
-        <div class="faq-answer body-copy">No. MeowFriend is an independent, community-built faucet and isn't affiliated with or endorsed by the Meowcoin core team.</div>
+        <div class="faq-answer body-copy">No. MeowFriend is an independent, community-built project and isn't affiliated with or endorsed by the Meowcoin core team.</div>
       </details>
       <details class="faq-item">
-        <summary>How does the drip actually get paid out?</summary>
-        <div class="faq-answer body-copy">This build simulates the drip locally in your browser so the full flow can be tested end to end. Wiring it up to a live Meowcoin node and hot wallet is the next step before a public launch.</div>
+        <summary>How does ticket minting actually work?</summary>
+        <div class="faq-answer body-copy">A small bridge server connects the site to a real Meowcoin node. Minting tickets, verifying donations, and processing withdrawals all need that server reachable — the status badge in the corner shows live connectivity. Browsing pages and playing games works fine even if it's temporarily offline.</div>
       </details>
       <details class="faq-item">
         <summary>What are tickets, and what can I do with them?</summary>
-        <div class="faq-answer body-copy">Tickets are a for-fun score you can spend on the slot machine and future minigames, plus cosmetic items, collectibles, and other extras as they're added. They have no real-world value and can't be redeemed for MEWC, cash, or anything else.</div>
+        <div class="faq-answer body-copy">Tickets are a for-fun currency spendable across Slots, Crossing, Runner, Gotchya's shop and room customization, and Cat Hack. They're backed by a real Meowcoin asset (MEOWFRIEND_TICKET) you can withdraw to your own linked wallet, but they have no real-world monetary value and there's no expectation of profit or winning.</div>
       </details>
     </div>
   </section>

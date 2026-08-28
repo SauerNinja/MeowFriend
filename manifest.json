@@ -1,7 +1,7 @@
 {
   "name": "MeowFriend Faucet",
   "short_name": "MeowFriend",
-  "description": "Free Meowcoin (MEWC) faucet. Boop once every 24 hours to claim MEWC.",
+  "description": "Free Meow Tickets faucet. Boop once an hour to mint tickets, play arcade games, and raise a virtual pet.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#000000",
