@@ -324,18 +324,15 @@
 
   <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="scores-heading">
     <p class="panel-eyebrow mb-3">LEADERBOARD</p>
-    <h2 id="scores-heading" class="panel-heading mb-4">LOCAL HIGH SCORES</h2>
+    <h2 id="scores-heading" class="panel-heading mb-4">YOUR LOCAL HIGH SCORES</h2>
     <div class="score-table" id="scoreTable"></div>
+  </section>
 
-    <div class="draft-warning mt-5">
-      <p class="led-label mb-2" style="color:#ffb347;">⚠ LOCAL ONLY — NOT A REAL LEADERBOARD YET</p>
-      <p class="body-copy text-base leading-snug">
-        Scores above are stored only in <strong>your own browser</strong> — nobody else can see them, and
-        they don't sync anywhere. A real cross-player leaderboard needs people to register a Meowcoin
-        wallet address with the site first, so scores can be tied to an identity instead of just a
-        browser's local storage. That registration flow doesn't exist yet — this is a placeholder
-        until it does.
-      </p>
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="global-scores-heading">
+    <p class="panel-eyebrow mb-3">GLOBAL</p>
+    <h2 id="global-scores-heading" class="panel-heading mb-4">TOP 10 — ALL PLAYERS</h2>
+    <div class="score-table" id="globalScoreTable">
+      <div class="score-row"><span>Loading...</span><span>&mdash;</span></div>
     </div>
   </section>
 
@@ -430,6 +427,43 @@
     scores.sort((a, b) => b.score - a.score);
     localStorage.setItem(SCORES_KEY, JSON.stringify(scores.slice(0, 10)));
     renderScores();
+    submitScoreToServer(newScore);
+  }
+
+  async function submitScoreToServer(score){
+    try {
+      await fetch(`${TICKETS_API_BASE}/api/leaderboard/crossing/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ score }),
+      });
+      loadGlobalLeaderboard();
+    } catch {
+      // Bridge unreachable — local score is still saved above; the global
+      // leaderboard just won't reflect this run until the server is back.
+    }
+  }
+
+  const globalScoreTable = document.getElementById("globalScoreTable");
+
+  async function loadGlobalLeaderboard(){
+    try {
+      const response = await fetch(`${TICKETS_API_BASE}/api/leaderboard/crossing`);
+      if(!response.ok) throw new Error("unavailable");
+      const data = await response.json();
+      const entries = data.leaderboard || [];
+
+      if(entries.length === 0){
+        globalScoreTable.innerHTML = `<div class="score-row"><span>No scores yet</span><span>&mdash;</span></div>`;
+        return;
+      }
+      globalScoreTable.innerHTML = entries.map((e, i) =>
+        `<div class="score-row"><span>#${i+1} &mdash; ${e.username}</span><span>${e.score}</span></div>`
+      ).join("");
+    } catch {
+      globalScoreTable.innerHTML = `<div class="score-row"><span>Leaderboard unavailable</span><span>&mdash;</span></div>`;
+    }
   }
 
   function renderScores(){
@@ -829,6 +863,7 @@
   updateTicketDisplay();
   updateLivesDisplay();
   renderScores();
+  loadGlobalLeaderboard();
   drawIdle();
 </script>
 

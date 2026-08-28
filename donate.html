@@ -208,37 +208,84 @@
   <section class="info-panel p-6 sm:p-8" aria-labelledby="donate-heading">
     <h2 id="donate-heading" class="sr-only">Donate MEWC, Get Tickets</h2>
     <p class="body-copy mb-5">
-      Send MEWC to the faucet address below, then paste your transaction ID (TXID) to receive
-      10 tickets per 100 MEWC donated. Tickets are a for-fun score only — not redeemable for MEWC,
-      cash, or anything of value.
+      Send MEWC to your own personal donation address below — it's yours alone, so any payment sent
+      there is detected and credited automatically. No TXID paste needed. Rate: 1,000 tickets per
+      100 MEWC donated. Tickets are for-fun only — not redeemable for MEWC, cash, or anything of
+      value.
     </p>
 
-    <div class="led-screen mb-5 text-center">
-      <div class="led-label">YOUR TICKETS</div>
-      <div class="led-value large" id="ticketsTotalDonate">0 🎟️</div>
+    <div id="donateTermsGate" class="draft-warning mb-6">
+      <p class="led-label mb-2" style="color:#ffb347;">⚠ READ BEFORE DONATING</p>
+      <p class="body-copy text-base leading-snug mb-4">
+        MeowFriend tickets are for entertainment and video-game purposes only. Donating is entirely
+        optional and never required to play. Tickets have no monetary value, cannot be redeemed for
+        MEWC or cash, and there is no expectation of winning, profit, or any return of any kind.
+        Only donate an amount you're fully comfortable never seeing again.
+      </p>
+      <label class="flex items-start gap-3 mb-4" style="cursor:pointer;">
+        <input type="checkbox" id="donateTermsCheckbox" class="mt-1">
+        <span class="body-copy text-base leading-snug">
+          I understand tickets have no real value, donations are optional and non-refundable, and
+          I am not donating with any expectation of profit or return.
+        </span>
+      </label>
+      <button type="button" id="donateTermsAgreeBtn" class="submit-btn" disabled>AGREE &amp; CONTINUE</button>
     </div>
 
-    <div class="led-screen mb-5">
-      <div class="led-label">FAUCET DONATION ADDRESS</div>
-      <div class="flex items-center gap-2 mt-1">
-        <div class="led-value break-all flex-1" id="donationAddress">mewc1qklnr4rdvh9aq59p2r0dtyqr2q5rff2xjlkm7zw</div>
-        <button type="button" id="copyAddressBtn" class="copy-btn" aria-label="Copy donation address to clipboard">COPY</button>
+    <div id="donateContent" class="hidden">
+      <div class="led-screen mb-5 text-center">
+        <div class="led-label">YOUR TICKETS</div>
+        <div class="led-value large" id="ticketsTotalDonate">0 🎟️</div>
       </div>
-    </div>
 
-    <label for="donationTxid" class="block led-label mb-2">YOUR TRANSACTION ID (TXID)</label>
-    <input
-      type="text"
-      id="donationTxid"
-      class="addr-input w-full mb-3"
-      placeholder="Paste your TXID here"
-      autocomplete="off"
-      spellcheck="false"
-    >
-    <div class="flex justify-center mb-3">
-      <button type="button" id="claimDonationBtn" class="submit-btn">SUBMIT TXID FOR TICKETS</button>
+      <div class="led-screen mb-5">
+        <div class="led-label">YOUR PERSONAL DONATION ADDRESS</div>
+        <div class="flex items-center gap-2 mt-1">
+          <div class="led-value break-all flex-1" id="personalDonationAddress">Loading...</div>
+          <button type="button" id="copyPersonalAddressBtn" class="copy-btn" aria-label="Copy your donation address to clipboard">COPY</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 mb-5">
+        <div class="led-screen">
+          <div class="led-label">LIFETIME DONATED</div>
+          <div class="led-value" id="lifetimeDonated">0 MEWC</div>
+        </div>
+        <div class="led-screen text-right">
+          <div class="led-label">STATUS</div>
+          <div class="led-value" id="autoDetectStatus" style="font-size:12px;">Checking...</div>
+        </div>
+      </div>
+
+      <p id="personalDonationStatus" class="text-[8px] text-center leading-relaxed mb-2" style="color:#9a5a62;"></p>
+
+      <details class="mt-6">
+        <summary class="led-label" style="cursor:pointer;">SHARED ADDRESS + MANUAL TXID (FALLBACK)</summary>
+        <div class="mt-4">
+          <div class="led-screen mb-5">
+            <div class="led-label">FAUCET DONATION ADDRESS</div>
+            <div class="flex items-center gap-2 mt-1">
+              <div class="led-value break-all flex-1" id="donationAddress">mewc1qklnr4rdvh9aq59p2r0dtyqr2q5rff2xjlkm7zw</div>
+              <button type="button" id="copyAddressBtn" class="copy-btn" aria-label="Copy donation address to clipboard">COPY</button>
+            </div>
+          </div>
+
+          <label for="donationTxid" class="block led-label mb-2">YOUR TRANSACTION ID (TXID)</label>
+          <input
+            type="text"
+            id="donationTxid"
+            class="addr-input w-full mb-3"
+            placeholder="Paste your TXID here"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <div class="flex justify-center mb-3">
+            <button type="button" id="claimDonationBtn" class="submit-btn">SUBMIT TXID FOR TICKETS</button>
+          </div>
+          <p id="donationStatus" class="text-[8px] text-center leading-relaxed" style="color:#9a5a62;"></p>
+        </div>
+      </details>
     </div>
-    <p id="donationStatus" class="text-[8px] text-center leading-relaxed" style="color:#9a5a62;"></p>
 
     <div class="draft-warning mt-5">
       <p class="led-label mb-2" style="color:#ffb347;">⚠ REQUIRES THE BRIDGE SERVER</p>
@@ -315,7 +362,8 @@
   </section>
 
   <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
-    <p>TICKETS HAVE NO REAL-WORLD VALUE AND CANNOT BE REDEEMED FOR MEWC, CASH, OR ANY OTHER ASSET.</p>
+    <p>DONATIONS ARE NEVER REQUIRED TO PLAY OR USE THIS SITE.</p>
+    <p class="mt-2">TICKETS HAVE NO REAL-WORLD VALUE AND CANNOT BE REDEEMED FOR MEWC, CASH, OR ANY OTHER ASSET.</p>
     <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
   </footer>
 
@@ -332,30 +380,105 @@
   // Same bridge server as the homepage BOOP button and registration flow.
   const API_BASE = "https://YOUR_TUNNEL_URL.trycloudflare.com";
 
-  // --- Copy donation address to clipboard ---
+  // --- Copy-to-clipboard, reused by both the personal and shared address ---
+  function wireCopyButton(displayEl, btnEl){
+    btnEl.addEventListener("click", async () => {
+      const address = displayEl.textContent.trim();
+      try {
+        await navigator.clipboard.writeText(address);
+        btnEl.textContent = "COPIED!";
+        btnEl.classList.add("copied");
+      } catch {
+        const range = document.createRange();
+        range.selectNodeContents(displayEl);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        btnEl.textContent = "SELECTED";
+      }
+      setTimeout(() => {
+        btnEl.textContent = "COPY";
+        btnEl.classList.remove("copied");
+      }, 2000);
+    });
+  }
+
   const donationAddress = document.getElementById("donationAddress");
   const copyAddressBtn = document.getElementById("copyAddressBtn");
+  wireCopyButton(donationAddress, copyAddressBtn);
 
-  copyAddressBtn.addEventListener("click", async () => {
-    const address = donationAddress.textContent.trim();
+  // --- Personal auto-tracked donation address ---
+  const personalDonationAddress = document.getElementById("personalDonationAddress");
+  const copyPersonalAddressBtn = document.getElementById("copyPersonalAddressBtn");
+  const lifetimeDonated = document.getElementById("lifetimeDonated");
+  const autoDetectStatus = document.getElementById("autoDetectStatus");
+  const personalDonationStatus = document.getElementById("personalDonationStatus");
+  wireCopyButton(personalDonationAddress, copyPersonalAddressBtn);
+
+  let depositPollTimer = null;
+
+  async function loadPersonalAddress(){
     try {
-      await navigator.clipboard.writeText(address);
-      copyAddressBtn.textContent = "COPIED!";
-      copyAddressBtn.classList.add("copied");
+      const response = await fetch(`${API_BASE}/api/donation/address`, { credentials: "include" });
+      const data = await response.json().catch(() => ({}));
+      if(!response.ok){
+        personalDonationAddress.textContent = "Unavailable";
+        autoDetectStatus.textContent = "Offline";
+        return;
+      }
+      personalDonationAddress.textContent = data.address;
+      lifetimeDonated.textContent = `${(data.alreadyCredited || 0).toLocaleString()} MEWC`;
+      autoDetectStatus.textContent = "Watching";
+      startDepositPolling();
     } catch {
-      // Clipboard API unavailable (e.g. insecure context) — fall back to
-      // a manual selection so the user can still copy it themselves.
-      const range = document.createRange();
-      range.selectNodeContents(donationAddress);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-      copyAddressBtn.textContent = "SELECTED";
+      personalDonationAddress.textContent = "Unavailable";
+      autoDetectStatus.textContent = "Offline";
     }
-    setTimeout(() => {
-      copyAddressBtn.textContent = "COPY";
-      copyAddressBtn.classList.remove("copied");
-    }, 2000);
+  }
+
+  async function checkForNewDeposits(){
+    try {
+      const response = await fetch(`${API_BASE}/api/donation/check-deposits`, { credentials: "include" });
+      const data = await response.json().catch(() => ({}));
+      if(!response.ok) return;
+
+      lifetimeDonated.textContent = `${(data.totalDonated || 0).toLocaleString()} MEWC`;
+
+      if(data.newTickets > 0){
+        personalDonationStatus.textContent = `+${data.newTickets.toLocaleString()} tickets credited from a new donation!`;
+        personalDonationStatus.style.color = "#29ff8a";
+      }
+    } catch {
+      autoDetectStatus.textContent = "Offline";
+    }
+  }
+
+  // Poll every 45s while this page is open — enough to feel automatic
+  // without hammering the bridge server on every donation page load.
+  function startDepositPolling(){
+    if(depositPollTimer) return;
+    checkForNewDeposits();
+    depositPollTimer = setInterval(checkForNewDeposits, 45000);
+  }
+
+  // --- Mandatory terms gate ---
+  // Donation UI (personal address generation, polling, the fallback TXID
+  // form) is fully inert until this is agreed to — nothing here runs on
+  // page load anymore.
+  const donateTermsGate = document.getElementById("donateTermsGate");
+  const donateContent = document.getElementById("donateContent");
+  const donateTermsCheckbox = document.getElementById("donateTermsCheckbox");
+  const donateTermsAgreeBtn = document.getElementById("donateTermsAgreeBtn");
+
+  donateTermsCheckbox.addEventListener("change", () => {
+    donateTermsAgreeBtn.disabled = !donateTermsCheckbox.checked;
+  });
+
+  donateTermsAgreeBtn.addEventListener("click", () => {
+    if(!donateTermsCheckbox.checked) return;
+    donateTermsGate.classList.add("hidden");
+    donateContent.classList.remove("hidden");
+    loadPersonalAddress();
   });
 
   // --- Donation-for-tickets (server-verified) ---

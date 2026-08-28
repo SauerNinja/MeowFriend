@@ -1,11 +1,29 @@
-// Shared ticket economy — used by both index.html and slots.html.
-// Tickets are a for-fun, non-redeemable score. No connection to MEWC or
-// any real value. Persisted in localStorage so the balance carries across
-// pages.
+// Shared ticket economy — used across every page (Slots, Crossing,
+// Runner, Gotchya, Shop, the homepage boop button, etc).
+//
+// The REAL, authoritative ticket balance lives server-side in the bridge
+// server's ticketLedger (see server.js) — never trust localStorage as
+// truth on its own. What's here is a synced local CACHE of that ledger:
+// getTickets() stays synchronous so every existing game's logic (spin
+// resolution, collision handlers, care actions, etc.) keeps working
+// without a rewrite, but the cached number is kept in sync with the real
+// server balance in the background, and every write-side action
+// (addTickets) also pushes to the server, not just localStorage.
+//
+// If the bridge server is unreachable (e.g. the placeholder API_BASE
+// hasn't been set to a real tunnel URL yet), everything gracefully falls
+// back to the local-only cache so the games remain playable — but that
+// state is not the real ledger, and will resync the moment the server
+// becomes reachable again.
 
 const TICKET_KEY = "meowfriend_tickets";
 const TICKET_INIT_KEY = "meowfriend_tickets_initialized";
 const STARTING_TICKETS = 10;
+
+// Point this at your real Cloudflare Tunnel URL. Every page that loads
+// shared-tickets.js picks this up automatically — no need to redeclare it
+// per page.
+const TICKETS_API_BASE = "https://YOUR_TUNNEL_URL.trycloudflare.com";
 
 function getTickets(){
   return parseInt(localStorage.getItem(TICKET_KEY) || "0", 10);
@@ -16,9 +34,48 @@ function setTickets(amount){
   document.dispatchEvent(new CustomEvent("tickets:changed", { detail: { tickets: getTickets() } }));
 }
 
+// Applies a ticket change locally (instant, so gameplay never blocks on
+// network latency) AND pushes the same delta to the real server ledger in
+// the background. The server is the actual source of truth; if the push
+// fails (offline, bridge unreachable), the local cache still reflects the
+// attempted change so games remain playable, and the next successful
+// sync reconciles it against the server's real number.
 function addTickets(amount){
   setTickets(getTickets() + amount);
+  pushTicketDeltaToServer(amount);
   return getTickets();
+}
+
+async function pushTicketDeltaToServer(amount){
+  if(amount === 0) return;
+  try {
+    await fetch(`${TICKETS_API_BASE}/api/tickets/sync-delta`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ amount }),
+    });
+  } catch {
+    // Bridge unreachable — local cache already reflects the change; a
+    // later resync will reconcile once the server is reachable again.
+  }
+}
+
+// Pulls the real balance from the server and overwrites the local cache
+// with it — called on every page load and periodically, so the cache
+// can't silently drift from the real ledger for long even if some
+// individual sync-delta pushes were missed while offline.
+async function resyncTicketsFromServer(){
+  try {
+    const response = await fetch(`${TICKETS_API_BASE}/api/tickets/balance`, { credentials: "include" });
+    if(!response.ok) return;
+    const data = await response.json();
+    if(typeof data.tickets === "number"){
+      setTickets(data.tickets);
+    }
+  } catch {
+    // Bridge unreachable — keep whatever the local cache currently has.
+  }
 }
 
 function ensureStartingTickets(){
@@ -31,6 +88,182 @@ function ensureStartingTickets(){
 // Call on every page load so the balance is correct even if this is the
 // visitor's first time landing on slots.html directly.
 ensureStartingTickets();
+
+// Sync with the real server ledger on load, then periodically, so the
+// local cache stays honest without every single game needing to be
+// rewritten to await a network call before it can render a number.
+resyncTicketsFromServer();
+setInterval(resyncTicketsFromServer, 60000);
+
+// --- Mandatory site-wide username + ToS gate ---
+// Every device must set a username and agree to terms before using any
+// part of the site. This is enforced server-side (leaderboard submission
+// and other player-tied actions check for a real username on their own),
+// but the gate below also blocks interaction client-side so the
+// requirement is visible immediately rather than only failing later deep
+// in some other flow. The modal is injected here so every page that loads
+// shared-tickets.js gets it automatically, without needing matching HTML
+// added to every single page.
+(function setupPlayerGate(){
+  function injectGateMarkup(){
+    const style = document.createElement("style");
+    style.textContent = `
+      #mfPlayerGateBackdrop{
+        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 9999; padding: 20px;
+        font-family: 'Press Start 2P', monospace;
+      }
+      #mfPlayerGateBackdrop.mf-hidden{ display: none; }
+      #mfPlayerGateModal{
+        background: linear-gradient(180deg, #2a1418, #1a0a0d);
+        border: 3px solid #ff1e43;
+        box-shadow: 0 0 30px rgba(255,30,67,0.5);
+        padding: 24px; max-width: 420px; width: 100%;
+        color: #ffb3bd;
+      }
+      #mfPlayerGateModal h2{
+        font-size: 14px; color: #ff1e43; text-shadow: 0 0 6px #ff1e43;
+        margin-bottom: 14px; line-height: 1.5;
+      }
+      #mfPlayerGateModal p{
+        font-family: 'VT323', monospace; font-size: 17px; line-height: 1.5;
+        color: #ffc7cf; margin-bottom: 14px;
+      }
+      #mfPlayerGateModal input[type="text"]{
+        width: 100%; background: #0a0a0c; border: 2px solid #3a3a42;
+        color: #ff1e43; font-family: 'Press Start 2P', monospace;
+        font-size: 11px; padding: 10px; margin-bottom: 12px;
+      }
+      #mfPlayerGateModal label{
+        display: flex; align-items: flex-start; gap: 8px;
+        font-family: 'VT323', monospace; font-size: 15px; color: #ffc7cf;
+        margin-bottom: 14px; cursor: pointer;
+      }
+      #mfPlayerGateModal button{
+        background: transparent; border: 2px solid #ff1e43; color: #ff1e43;
+        font-family: 'Press Start 2P', monospace; font-size: 9px;
+        padding: 12px 16px; width: 100%; cursor: pointer;
+        text-shadow: 0 0 6px #ff1e43;
+      }
+      #mfPlayerGateModal button:disabled{ opacity: 0.35; cursor: not-allowed; }
+      #mfPlayerGateModal button:hover:not(:disabled){ filter: brightness(1.3); }
+      #mfPlayerGateError{ color: #ff8b96; font-size: 13px; margin-top: -6px; margin-bottom: 12px; display: none; }
+    `;
+    document.head.appendChild(style);
+
+    const backdrop = document.createElement("div");
+    backdrop.id = "mfPlayerGateBackdrop";
+    backdrop.className = "mf-hidden";
+    backdrop.innerHTML = `
+      <div id="mfPlayerGateModal">
+        <h2>PICK A USERNAME TO PLAY</h2>
+        <p>MeowFriend requires a username before you can play any game, earn tickets, or appear on
+        leaderboards. Tickets are for entertainment and video-game purposes only, have no real
+        value, and there is no expectation of winning or profit.</p>
+        <input type="text" id="mfGateUsername" placeholder="Username (3-16 chars)" autocomplete="off" spellcheck="false" maxlength="16">
+        <label>
+          <input type="checkbox" id="mfGateTerms" style="margin-top:3px;">
+          <span>I agree to these terms and understand tickets have no real value.</span>
+        </label>
+        <div id="mfPlayerGateError"></div>
+        <button type="button" id="mfGateSubmitBtn" disabled>CONTINUE</button>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    return backdrop;
+  }
+
+  async function checkPlayerStatus(){
+    try {
+      const response = await fetch(`${TICKETS_API_BASE}/api/player/status`, { credentials: "include" });
+      if(!response.ok){
+        showGate(true); // server responded but with an error — stay locked
+        return;
+      }
+      const data = await response.json();
+      if(!data.hasUsername){
+        showGate(false);
+      }
+    } catch {
+      // Bridge unreachable entirely — fail CLOSED. The site stays locked
+      // until the server can be reached and confirms a username exists,
+      // rather than letting visitors through during an outage.
+      showGate(true);
+    }
+  }
+
+  function showGate(serverUnreachable){
+    const backdrop = document.getElementById("mfPlayerGateBackdrop") || injectGateMarkup();
+    backdrop.classList.remove("mf-hidden");
+
+    const usernameInput = document.getElementById("mfGateUsername");
+    const termsCheckbox = document.getElementById("mfGateTerms");
+    const submitBtn = document.getElementById("mfGateSubmitBtn");
+    const errorEl = document.getElementById("mfPlayerGateError");
+
+    if(serverUnreachable){
+      // Nothing can actually be submitted while the server is down —
+      // disable the form entirely rather than let someone fill it out
+      // and hit a guaranteed failure.
+      usernameInput.disabled = true;
+      termsCheckbox.disabled = true;
+      submitBtn.disabled = true;
+      submitBtn.textContent = "SERVER UNAVAILABLE";
+      errorEl.textContent = "Could not reach the MeowFriend server. Please try again shortly.";
+      errorEl.style.display = "block";
+      // Keep checking in the background so the gate unlocks automatically
+      // the moment the server comes back, without requiring a manual
+      // page refresh.
+      setTimeout(checkPlayerStatus, 10000);
+      return;
+    }
+
+    function updateButtonState(){
+      const validLength = /^[a-zA-Z0-9_]{3,16}$/.test(usernameInput.value.trim());
+      submitBtn.disabled = !(validLength && termsCheckbox.checked);
+    }
+    usernameInput.addEventListener("input", updateButtonState);
+    termsCheckbox.addEventListener("change", updateButtonState);
+
+    submitBtn.addEventListener("click", async () => {
+      errorEl.style.display = "none";
+      submitBtn.disabled = true;
+      submitBtn.textContent = "...";
+
+      try {
+        const response = await fetch(`${TICKETS_API_BASE}/api/player/register-username`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            username: usernameInput.value.trim(),
+            agreedToTerms: termsCheckbox.checked,
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if(!response.ok || !data.success){
+          errorEl.textContent = data.error || "Could not set that username. Try another.";
+          errorEl.style.display = "block";
+          submitBtn.disabled = false;
+          submitBtn.textContent = "CONTINUE";
+          return;
+        }
+
+        backdrop.classList.add("mf-hidden");
+      } catch {
+        errorEl.textContent = "Could not reach the server. Try again.";
+        errorEl.style.display = "block";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "CONTINUE";
+      }
+    });
+  }
+
+  checkPlayerStatus();
+})();
+
 
 // --- Gotchya cross-game item drops ---
 // Slots, Crossing, and Runner can each award a small chance of a Gotchya

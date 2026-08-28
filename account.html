@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MeowFriend — Account</title>
+<meta name="description" content="Your MeowFriend account — username, ticket balance, donation total, linked address, and game stats.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://sauerninja.github.io/MeowFriend/account.html">
+
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<script src="shared-tickets.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root{
+    --neon-red: #ff1e43;
+    --neon-red-bright: #ff0033;
+    --led-bg: #0a0a0c;
+  }
+  * { box-sizing: border-box; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, #14090b 0%, #000000 55%);
+    font-family: 'Press Start 2P', monospace;
+    color: #ffb3bd;
+    min-height: 100vh;
+  }
+
+  .scanlines::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 3px);
+    z-index: 50;
+  }
+
+  .neon-text{
+    color: var(--neon-red);
+    text-shadow: 0 0 2px var(--neon-red-bright), 0 0 8px var(--neon-red), 0 0 18px var(--neon-red);
+  }
+
+  .back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: #ff8b96;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+  .back-link:hover{ color: var(--neon-red); }
+
+  .led-screen{
+    background: var(--led-bg);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 12px rgba(255,30,67,0.25), inset 0 0 0 2px #000;
+    padding: 10px 8px;
+  }
+  .led-label{ font-size: 8px; color: #7a3038; letter-spacing: 1px; margin-bottom: 6px; }
+  .led-value{
+    font-size: 16px;
+    line-height: 1.4;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+  .body-copy{
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.65;
+    color: #ffc7cf;
+  }
+
+  .draft-warning{
+    border: 2px dashed #ffb347;
+    background: rgba(255,179,71,0.06);
+    padding: 12px 14px;
+  }
+
+  .score-table{
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    line-height: 1.6;
+    color: #ffc7cf;
+  }
+  .score-row{
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed #2a2a30;
+    padding: 4px 0;
+  }
+
+  .hidden{ display: none; }
+
+  :focus-visible{
+    outline: 2px solid var(--neon-red);
+    outline-offset: 3px;
+  }
+</style>
+</head>
+<body class="scanlines flex items-center justify-center px-4 py-10">
+
+<main class="w-full max-w-xl">
+
+  <header class="flex flex-col items-center mb-6">
+    <a href="index.html" class="back-link mb-4">&larr; BACK TO FAUCET</a>
+    <div class="text-5xl mb-5" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">🪪</div>
+    <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">ACCOUNT</h1>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">YOUR MEOWFRIEND PROFILE</p>
+  </header>
+
+  <div class="draft-warning mb-6">
+    <p class="led-label mb-2" style="color:#ffb347;">⚠ TIED TO THIS BROWSER</p>
+    <p class="body-copy text-base leading-snug">
+      Your account is identified by a cookie in this browser, not a password or seed phrase. If you
+      clear your cookies, use a different browser, or switch devices, this account and its data
+      (tickets, scores, donation total) will be lost and cannot be recovered. There is currently no
+      recovery method — use one browser consistently if you want to keep your progress.
+    </p>
+  </div>
+
+  <div id="noAccountState" class="info-panel p-6 sm:p-8 mb-6 hidden">
+    <p class="body-copy text-center">
+      No account found yet for this browser. Reload the page and complete the username setup that
+      appears, then come back here.
+    </p>
+  </div>
+
+  <div id="accountContent" class="hidden">
+    <section class="info-panel p-6 sm:p-8 mb-6" aria-labelledby="profile-heading">
+      <p class="panel-eyebrow mb-3">PROFILE</p>
+      <h2 id="profile-heading" class="panel-heading mb-4">YOUR INFO</h2>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div class="led-screen">
+          <div class="led-label">USERNAME</div>
+          <div class="led-value" id="acctUsername">—</div>
+        </div>
+        <div class="led-screen text-right">
+          <div class="led-label">JOINED</div>
+          <div class="led-value" id="acctJoined" style="font-size:13px;">—</div>
+        </div>
+      </div>
+      <div class="led-screen">
+        <div class="led-label">LINKED WITHDRAWAL ADDRESS</div>
+        <div class="led-value break-all" id="acctLinkedAddress" style="font-size:13px;">Not linked yet</div>
+      </div>
+    </section>
+
+    <section class="info-panel p-6 sm:p-8 mb-6" aria-labelledby="economy-heading">
+      <p class="panel-eyebrow mb-3">ECONOMY</p>
+      <h2 id="economy-heading" class="panel-heading mb-4">TICKETS &amp; DONATIONS</h2>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="led-screen">
+          <div class="led-label">TICKET BALANCE</div>
+          <div class="led-value" id="acctTickets">—</div>
+        </div>
+        <div class="led-screen text-right">
+          <div class="led-label">LIFETIME DONATED</div>
+          <div class="led-value" id="acctDonated">—</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="info-panel p-6 sm:p-8" aria-labelledby="scores-heading">
+      <p class="panel-eyebrow mb-3">GAMEPLAY</p>
+      <h2 id="scores-heading" class="panel-heading mb-4">YOUR BEST SCORES</h2>
+      <div class="score-table" id="acctScoresTable">
+        <div class="score-row"><span>Loading...</span><span>&mdash;</span></div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
+    <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
+    <p class="mt-2">NOT AFFILIATED WITH THE OFFICIAL MEOWCOIN TEAM. NOT FINANCIAL ADVICE.</p>
+    <p class="mt-2">DONATIONS ARE NEVER REQUIRED. TICKETS HAVE NO VALUE OUTSIDE OF FUN.</p>
+    <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
+  </footer>
+
+</main>
+
+<script>
+  const noAccountState = document.getElementById("noAccountState");
+  const accountContent = document.getElementById("accountContent");
+
+  function formatDate(ts){
+    if(!ts) return "—";
+    const d = new Date(ts);
+    return `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`;
+  }
+
+  async function loadAccount(){
+    try {
+      const response = await fetch(`${TICKETS_API_BASE}/api/player/account`, { credentials: "include" });
+      if(!response.ok){
+        noAccountState.classList.remove("hidden");
+        return;
+      }
+      const data = await response.json();
+
+      document.getElementById("acctUsername").textContent = data.username;
+      document.getElementById("acctJoined").textContent = formatDate(data.joinedAt);
+      document.getElementById("acctLinkedAddress").textContent = data.linkedAddress || "Not linked yet";
+      document.getElementById("acctTickets").textContent = `${(data.tickets || 0).toLocaleString()} 🎟️`;
+      document.getElementById("acctDonated").textContent = `${(data.totalDonated || 0).toLocaleString()} MEWC`;
+
+      const scoresTable = document.getElementById("acctScoresTable");
+      const gameNames = { crossing: "Cat Crossing", runner: "Cat Runner" };
+      const rows = Object.entries(data.scores || {}).map(([game, score]) =>
+        `<div class="score-row"><span>${gameNames[game] || game}</span><span>${score}</span></div>`
+      );
+      scoresTable.innerHTML = rows.length > 0
+        ? rows.join("")
+        : `<div class="score-row"><span>No scores yet</span><span>&mdash;</span></div>`;
+
+      accountContent.classList.remove("hidden");
+    } catch {
+      noAccountState.classList.remove("hidden");
+    }
+  }
+
+  loadAccount();
+</script>
+
+</body>
+</html>

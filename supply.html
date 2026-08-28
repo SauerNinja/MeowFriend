@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MeowFriend — Ticket Supply</title>
+<meta name="description" content="Track MeowFriend's total ticket supply over time — on-chain issued MEOWFRIEND_TICKET vs. tickets currently held in-game.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sauerninja.github.io/MeowFriend/supply.html">
+
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="MeowFriend — Ticket Supply">
+<meta property="og:description" content="Track MeowFriend's total ticket supply over time.">
+<meta property="og:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="MeowFriend logo: a glowing black cat face beside the MEOWFRIEND wordmark on a dark neon-red arcade console background">
+<meta property="og:url" content="https://sauerninja.github.io/MeowFriend/supply.html">
+<meta property="og:site_name" content="MeowFriend">
+<meta property="og:locale" content="en_US">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MeowFriend — Ticket Supply">
+<meta name="twitter:description" content="Track MeowFriend's total ticket supply over time.">
+<meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
+
+<script src="shared-tickets.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root{
+    --neon-red: #ff1e43;
+    --neon-red-bright: #ff0033;
+    --led-bg: #0a0a0c;
+  }
+  * { box-sizing: border-box; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, #14090b 0%, #000000 55%);
+    font-family: 'Press Start 2P', monospace;
+    color: #ffb3bd;
+    min-height: 100vh;
+  }
+
+  .scanlines::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 3px);
+    z-index: 50;
+  }
+
+  .neon-text{
+    color: var(--neon-red);
+    text-shadow: 0 0 2px var(--neon-red-bright), 0 0 8px var(--neon-red), 0 0 18px var(--neon-red);
+  }
+
+  .back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: #ff8b96;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+  .back-link:hover{ color: var(--neon-red); }
+
+  .led-screen{
+    background: var(--led-bg);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 12px rgba(255,30,67,0.25), inset 0 0 0 2px #000;
+    padding: 10px 8px;
+  }
+  .led-label{ font-size: 8px; color: #7a3038; letter-spacing: 1px; margin-bottom: 6px; }
+  .led-value{
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+  .body-copy{
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.65;
+    color: #ffc7cf;
+  }
+
+  .draft-warning{
+    border: 2px dashed #ffb347;
+    background: rgba(255,179,71,0.06);
+    padding: 12px 14px;
+  }
+
+  .chart-frame{
+    background: linear-gradient(180deg, #2a2a30, #17171a);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 0 2px #000, 0 0 14px rgba(255,30,67,0.2);
+    padding: 10px;
+  }
+  #supplyChart{
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    background: #0a0a0c;
+    border: 2px solid #3a3a42;
+  }
+
+  .legend-row{
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 10px;
+  }
+  .legend-item{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: #ffc7cf;
+  }
+  .legend-swatch{
+    width: 14px;
+    height: 4px;
+  }
+
+  .hidden{ display: none; }
+
+  .score-table{
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    line-height: 1.6;
+    color: #ffc7cf;
+  }
+  .score-row{
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed #2a2a30;
+    padding: 4px 0;
+  }
+
+  :focus-visible{
+    outline: 2px solid var(--neon-red);
+    outline-offset: 3px;
+  }
+</style>
+</head>
+<body class="scanlines flex items-center justify-center px-4 py-10">
+
+<main class="w-full max-w-xl">
+
+  <header class="flex flex-col items-center mb-6">
+    <a href="index.html" class="back-link mb-4">&larr; BACK TO FAUCET</a>
+    <div class="text-5xl mb-5" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">📈</div>
+    <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">TICKET SUPPLY</h1>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">TRACKED EVERY 5 HOURS</p>
+  </header>
+
+  <div class="grid grid-cols-2 gap-3 mb-5">
+    <div class="led-screen">
+      <div class="led-label">📈 ON-CHAIN SUPPLY</div>
+      <div class="led-value" id="onChainDisplay">—</div>
+    </div>
+    <div class="led-screen text-right">
+      <div class="led-label">IN-GAME LEDGER</div>
+      <div class="led-value" id="ledgerDisplay">—</div>
+    </div>
+  </div>
+
+  <section class="chart-frame mb-2" aria-labelledby="chart-heading">
+    <h2 id="chart-heading" class="sr-only">Ticket supply over time</h2>
+    <canvas id="supplyChart" width="800" height="600" aria-label="Line chart of ticket supply over time"></canvas>
+  </section>
+  <div class="legend-row mb-6">
+    <span class="legend-item"><span class="legend-swatch" style="background:#ff1e43;"></span> On-chain supply</span>
+    <span class="legend-item"><span class="legend-swatch" style="background:#29ff8a;"></span> In-game ledger</span>
+  </div>
+
+  <div id="emptyState" class="info-panel p-6 sm:p-8 mb-6 hidden">
+    <p class="body-copy text-center">
+      No snapshot data yet. The tracker runs automatically every 5 hours — check back after the
+      first run, or trigger it manually from the repo's Actions tab.
+    </p>
+  </div>
+
+  <section class="info-panel p-6 sm:p-8 mb-6" aria-labelledby="ticket-leaderboard-heading">
+    <p class="panel-eyebrow mb-3">TOP BALANCES</p>
+    <h2 id="ticket-leaderboard-heading" class="panel-heading mb-4">TICKET LEADERBOARD</h2>
+    <div class="score-table" id="ticketLeaderboardTable">
+      <div class="score-row"><span>Loading...</span><span>&mdash;</span></div>
+    </div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mb-6" aria-labelledby="donation-leaderboard-heading">
+    <p class="panel-eyebrow mb-3">TOP DONORS</p>
+    <h2 id="donation-leaderboard-heading" class="panel-heading mb-4">DONATION LEADERBOARD</h2>
+    <div class="score-table" id="donationLeaderboardTable">
+      <div class="score-row"><span>Loading...</span><span>&mdash;</span></div>
+    </div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8" aria-labelledby="about-heading">
+    <p class="panel-eyebrow mb-3">HOW THIS WORKS</p>
+    <h2 id="about-heading" class="panel-heading mb-4">ABOUT THIS CHART</h2>
+    <p class="body-copy mb-4">
+      A scheduled GitHub Action queries the faucet's bridge server every 5 hours for two numbers:
+      the total <strong>MEOWFRIEND_TICKET</strong> supply actually issued on the Meowcoin chain, and
+      the sum of every player's current in-game ticket balance. The gap between the two lines is
+      roughly how many tickets have been withdrawn out to real wallets rather than still sitting
+      in-game.
+    </p>
+    <div class="draft-warning mt-5">
+      <p class="led-label mb-2" style="color:#ffb347;">⚠ PROOF OF CONCEPT — NO REAL VALUE</p>
+      <p class="body-copy text-base leading-snug">
+        MEOWFRIEND_TICKET is a valueless, proof-of-concept Meowcoin asset. This chart exists to make
+        the supply mechanics visible and testable, not to represent anything of monetary value.
+      </p>
+    </div>
+  </section>
+
+  <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
+    <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
+    <p class="mt-2">NOT AFFILIATED WITH THE OFFICIAL MEOWCOIN TEAM. NOT FINANCIAL ADVICE.</p>
+    <p class="mt-2">DONATIONS ARE NEVER REQUIRED. TICKETS HAVE NO VALUE OUTSIDE OF FUN.</p>
+    <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
+  </footer>
+
+</main>
+
+<script>
+  const canvas = document.getElementById("supplyChart");
+  const ctx = canvas.getContext("2d");
+  const onChainDisplay = document.getElementById("onChainDisplay");
+  const ledgerDisplay = document.getElementById("ledgerDisplay");
+  const emptyState = document.getElementById("emptyState");
+
+  const LOGICAL_WIDTH = 800;
+  const LOGICAL_HEIGHT = 600;
+  const DPR = Math.min(window.devicePixelRatio || 1, 3);
+  canvas.width = LOGICAL_WIDTH * DPR;
+  canvas.height = LOGICAL_HEIGHT * DPR;
+  ctx.scale(DPR, DPR);
+
+  function drawChart(history){
+    ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+
+    const padding = { top: 30, right: 20, bottom: 40, left: 70 };
+    const chartW = LOGICAL_WIDTH - padding.left - padding.right;
+    const chartH = LOGICAL_HEIGHT - padding.top - padding.bottom;
+
+    const maxValue = Math.max(
+      1,
+      ...history.map(h => Math.max(h.onChainSupply || 0, h.ledgerSum || 0))
+    );
+
+    ctx.strokeStyle = "rgba(255,30,67,0.15)";
+    ctx.lineWidth = 1;
+    for(let i = 0; i <= 4; i++){
+      const y = padding.top + (chartH / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(padding.left + chartW, y);
+      ctx.stroke();
+
+      const value = Math.round(maxValue * (1 - i / 4));
+      ctx.fillStyle = "#7a3038";
+      ctx.font = "12px 'VT323', monospace";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillText(value.toLocaleString(), padding.left - 8, y);
+    }
+
+    function plotLine(key, color){
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      history.forEach((point, i) => {
+        const x = padding.left + (chartW / Math.max(1, history.length - 1)) * i;
+        const value = point[key] || 0;
+        const y = padding.top + chartH - (value / maxValue) * chartH;
+        if(i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      const last = history[history.length - 1];
+      const lastX = padding.left + chartW;
+      const lastY = padding.top + chartH - ((last[key] || 0) / maxValue) * chartH;
+      ctx.save();
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    plotLine("onChainSupply", "#ff1e43");
+    plotLine("ledgerSum", "#29ff8a");
+
+    ctx.fillStyle = "#7a3038";
+    ctx.font = "12px 'VT323', monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    const firstDate = new Date(history[0].timestamp);
+    ctx.fillText(firstDate.toLocaleDateString(), padding.left, padding.top + chartH + 10);
+    ctx.textAlign = "right";
+    const lastDate = new Date(history[history.length - 1].timestamp);
+    ctx.fillText(lastDate.toLocaleDateString(), padding.left + chartW, padding.top + chartH + 10);
+  }
+
+  async function loadSupplyHistory(){
+    try {
+      const response = await fetch("data/supply-history.json", { cache: "no-store" });
+      if(!response.ok) throw new Error("No history file yet");
+      const history = await response.json();
+
+      if(!Array.isArray(history) || history.length === 0){
+        emptyState.classList.remove("hidden");
+        return;
+      }
+
+      const latest = history[history.length - 1];
+      onChainDisplay.textContent = `${(latest.onChainSupply || 0).toLocaleString()} 🎟️`;
+      ledgerDisplay.textContent = `${(latest.ledgerSum || 0).toLocaleString()} 🎟️`;
+
+      drawChart(history);
+    } catch {
+      emptyState.classList.remove("hidden");
+    }
+  }
+
+  const ticketLeaderboardTable = document.getElementById("ticketLeaderboardTable");
+  const donationLeaderboardTable = document.getElementById("donationLeaderboardTable");
+
+  async function loadTicketLeaderboard(){
+    try {
+      const response = await fetch(`${TICKETS_API_BASE}/api/leaderboard/tickets`);
+      if(!response.ok) throw new Error("unavailable");
+      const data = await response.json();
+      const entries = data.leaderboard || [];
+      if(entries.length === 0){
+        ticketLeaderboardTable.innerHTML = `<div class="score-row"><span>No players yet</span><span>&mdash;</span></div>`;
+        return;
+      }
+      ticketLeaderboardTable.innerHTML = entries.map((e, i) =>
+        `<div class="score-row"><span>#${i+1} &mdash; ${e.username}</span><span>${e.tickets.toLocaleString()} 🎟️</span></div>`
+      ).join("");
+    } catch {
+      ticketLeaderboardTable.innerHTML = `<div class="score-row"><span>Leaderboard unavailable</span><span>&mdash;</span></div>`;
+    }
+  }
+
+  async function loadDonationLeaderboard(){
+    try {
+      const response = await fetch(`${TICKETS_API_BASE}/api/leaderboard/donations`);
+      if(!response.ok) throw new Error("unavailable");
+      const data = await response.json();
+      const entries = data.leaderboard || [];
+      if(entries.length === 0){
+        donationLeaderboardTable.innerHTML = `<div class="score-row"><span>No donors yet</span><span>&mdash;</span></div>`;
+        return;
+      }
+      donationLeaderboardTable.innerHTML = entries.map((e, i) =>
+        `<div class="score-row"><span>#${i+1} &mdash; ${e.username}</span><span>${e.totalDonated.toLocaleString()} MEWC</span></div>`
+      ).join("");
+    } catch {
+      donationLeaderboardTable.innerHTML = `<div class="score-row"><span>Leaderboard unavailable</span><span>&mdash;</span></div>`;
+    }
+  }
+
+  loadSupplyHistory();
+  loadTicketLeaderboard();
+  loadDonationLeaderboard();
+</script>
+
+</body>
+</html>

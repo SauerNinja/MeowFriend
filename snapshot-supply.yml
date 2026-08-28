@@ -1,0 +1,55 @@
+name: Snapshot Ticket Supply
+
+on:
+  schedule:
+    # Every 5 hours. GitHub's scheduler runs on UTC and isn't perfectly
+    # exact under load — treat this as "about every 5 hours," not a
+    # precision timer.
+    - cron: '0 */5 * * *'
+  workflow_dispatch: {} # allows manually triggering a snapshot from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Fetch supply snapshot from bridge server
+        id: fetch
+        env:
+          SNAPSHOT_URL: ${{ secrets.SNAPSHOT_URL }}
+          SNAPSHOT_SECRET: ${{ secrets.SNAPSHOT_SECRET }}
+        run: |
+          set -e
+          response=$(curl -sf -H "x-snapshot-secret: $SNAPSHOT_SECRET" "$SNAPSHOT_URL/api/tickets/supply-snapshot")
+          echo "Fetched: $response"
+          echo "response=$response" >> "$GITHUB_OUTPUT"
+
+      - name: Append snapshot to history file
+        run: |
+          mkdir -p data
+          FILE=data/supply-history.json
+          if [ ! -f "$FILE" ]; then
+            echo "[]" > "$FILE"
+          fi
+          echo '${{ steps.fetch.outputs.response }}' > /tmp/latest.json
+          jq -c '. + [input]' "$FILE" /tmp/latest.json > /tmp/merged.json
+          # Keep the file from growing unbounded — retain the most recent
+          # 2000 snapshots (~ a year at every-5-hours cadence).
+          jq -c '.[-2000:]' /tmp/merged.json > "$FILE"
+
+      - name: Commit updated history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/supply-history.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Snapshot ticket supply [skip ci]"
+            git push
+          fi

@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MeowFriend — Withdraw</title>
+<meta name="description" content="Withdraw your MeowFriend tickets as a real MEOWFRIEND_TICKET asset to your own Meowcoin wallet.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sauerninja.github.io/MeowFriend/withdraw.html">
+
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="MeowFriend — Withdraw">
+<meta property="og:description" content="Withdraw your MeowFriend tickets as a real MEOWFRIEND_TICKET asset to your own Meowcoin wallet.">
+<meta property="og:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="MeowFriend logo: a glowing black cat face beside the MEOWFRIEND wordmark on a dark neon-red arcade console background">
+<meta property="og:url" content="https://sauerninja.github.io/MeowFriend/withdraw.html">
+<meta property="og:site_name" content="MeowFriend">
+<meta property="og:locale" content="en_US">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MeowFriend — Withdraw">
+<meta name="twitter:description" content="Withdraw your MeowFriend tickets as a real MEOWFRIEND_TICKET asset to your own Meowcoin wallet.">
+<meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
+
+<script src="shared-tickets.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root{
+    --neon-red: #ff1e43;
+    --neon-red-bright: #ff0033;
+    --led-bg: #0a0a0c;
+  }
+  * { box-sizing: border-box; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, #14090b 0%, #000000 55%);
+    font-family: 'Press Start 2P', monospace;
+    color: #ffb3bd;
+    min-height: 100vh;
+  }
+
+  .scanlines::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 3px);
+    z-index: 50;
+  }
+
+  .neon-text{
+    color: var(--neon-red);
+    text-shadow: 0 0 2px var(--neon-red-bright), 0 0 8px var(--neon-red), 0 0 18px var(--neon-red);
+  }
+
+  .back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: #ff8b96;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+  .back-link:hover{ color: var(--neon-red); }
+
+  .led-screen{
+    background: var(--led-bg);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 12px rgba(255,30,67,0.25), inset 0 0 0 2px #000;
+    padding: 10px 8px;
+  }
+  .led-label{ font-size: 8px; color: #7a3038; letter-spacing: 1px; margin-bottom: 6px; }
+  .led-value{
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+  .body-copy{
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.65;
+    color: #ffc7cf;
+  }
+
+  .draft-warning{
+    border: 2px dashed #ffb347;
+    background: rgba(255,179,71,0.06);
+    padding: 12px 14px;
+  }
+
+  .addr-input, .amount-input{
+    background: #0a0a0c;
+    border: 3px solid #3a3a42;
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    padding: 12px 10px;
+    letter-spacing: 1px;
+    box-shadow: inset 0 0 10px rgba(255,30,67,0.15);
+    width: 100%;
+  }
+  .addr-input::placeholder, .amount-input::placeholder{ color: #5c2a30; }
+  .addr-input:focus, .amount-input:focus{ outline: none; box-shadow: 0 0 0 2px var(--neon-red), inset 0 0 10px rgba(255,30,67,0.25); }
+
+  .challenge-textarea{
+    background: transparent;
+    border: none;
+    color: var(--neon-red);
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    resize: none;
+    word-break: break-all;
+    width: 100%;
+  }
+  .challenge-textarea:focus{ outline: none; }
+
+  .submit-btn{
+    background: transparent;
+    border: 2px solid var(--neon-red);
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 12px 16px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+  .submit-btn:hover{ filter: brightness(1.2); }
+  .submit-btn:disabled{ opacity: 0.4; cursor: not-allowed; }
+  .addr-input.invalid, .amount-input.invalid{ border-color: #ff5566; box-shadow: 0 0 0 2px #ff5566; }
+
+  .amount-quick-row{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .amount-quick-btn{
+    background: #0a0a0c;
+    border: 2px solid #3a3a42;
+    color: #9a5a62;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 8px 4px;
+    cursor: pointer;
+  }
+  .amount-quick-btn:hover{ border-color: var(--neon-red); color: var(--neon-red); }
+  .amount-quick-btn.selected{
+    border-color: var(--neon-red);
+    color: var(--neon-red);
+    box-shadow: 0 0 8px rgba(255,30,67,0.4);
+  }
+
+  .withdraw-btn{
+    background: linear-gradient(180deg, #ff2f4d 0%, #d80f2b 55%, #9c0a1f 100%);
+    border: 3px solid #7a0818;
+    box-shadow: 0 8px 0 #6e0716, 0 10px 14px rgba(0,0,0,0.6), 0 0 22px rgba(255,30,67,0.55), inset 0 2px 0 rgba(255,255,255,0.3);
+    color: #fff0f2;
+    text-shadow: 0 0 6px rgba(0,0,0,0.4);
+    transition: transform 0.08s ease, filter 0.15s ease;
+    cursor: pointer;
+  }
+  .withdraw-btn:hover:not(:disabled){ filter: brightness(1.12); }
+  .withdraw-btn:active:not(:disabled){ transform: translateY(4px); }
+  .withdraw-btn:disabled{
+    background: linear-gradient(180deg, #3a2226, #2a1518);
+    border-color: #401019;
+    box-shadow: 0 6px 0 #200a0d;
+    color: #6e4a4f;
+    cursor: not-allowed;
+    text-shadow: none;
+  }
+
+  .status-banner{
+    border: 2px solid;
+    padding: 12px 14px;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    text-align: center;
+    white-space: pre-line;
+  }
+  .status-banner.pending{ border-color: #ffb347; color: #ffb347; background: rgba(255,179,71,0.06); }
+  .status-banner.success{ border-color: #29ff8a; color: #29ff8a; background: rgba(41,255,138,0.06); }
+  .status-banner.error{ border-color: #ff1e43; color: #ff8b96; background: rgba(255,30,67,0.06); }
+
+  .hidden{ display: none; }
+
+  :focus-visible{
+    outline: 2px solid var(--neon-red);
+    outline-offset: 3px;
+  }
+</style>
+</head>
+<body class="scanlines flex items-center justify-center px-4 py-10">
+
+<main class="w-full max-w-xl">
+
+  <header class="flex flex-col items-center mb-6">
+    <a href="index.html" class="back-link mb-4">&larr; BACK TO FAUCET</a>
+    <div class="text-5xl mb-5" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">💸</div>
+    <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">WITHDRAW</h1>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">CASH OUT YOUR TICKETS</p>
+  </header>
+
+  <div class="draft-warning mb-6">
+    <p class="led-label mb-2" style="color:#ffb347;">⚠ PROOF OF CONCEPT — NO REAL VALUE</p>
+    <p class="body-copy text-base leading-snug">
+      MEOWFRIEND_TICKET is a valueless, proof-of-concept Meowcoin asset. Withdrawing sends real
+      asset units to your wallet, but they are not redeemable for MEWC, cash, or anything else. This
+      exists to test the mechanics, not to represent value.
+    </p>
+  </div>
+
+  <section class="led-screen mb-6 text-center">
+    <div class="led-label">YOUR BALANCE</div>
+    <div class="led-value" id="balanceDisplay">— 🎟️</div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8" aria-labelledby="withdraw-heading">
+    <p class="panel-eyebrow mb-3">SEND TO YOUR WALLET</p>
+    <h2 id="withdraw-heading" class="panel-heading mb-4">WITHDRAW TICKETS</h2>
+
+    <div id="withdrawTermsGate" class="draft-warning mb-6">
+      <p class="led-label mb-2" style="color:#ffb347;">⚠ READ BEFORE WITHDRAWING</p>
+      <p class="body-copy text-base leading-snug mb-3">
+        Withdrawing sends a real, irreversible MEOWFRIEND_TICKET asset transfer to the address you
+        provide — for entertainment and video-game purposes only. This asset has no monetary value.
+        There is no expectation of profit, winning, or any return of value from withdrawing, holding,
+        or trading it.
+      </p>
+      <p class="body-copy text-base leading-snug mb-4">
+        Double-check your address before submitting. A withdrawal sent to the wrong address cannot
+        be recovered or reversed, and MeowFriend cannot restore tickets lost this way.
+      </p>
+      <label class="flex items-start gap-3 mb-4" style="cursor:pointer;">
+        <input type="checkbox" id="withdrawTermsCheckbox" class="mt-1">
+        <span class="body-copy text-base leading-snug">
+          I understand this asset has no real value, withdrawals are final and irreversible, and I
+          am responsible for entering the correct address.
+        </span>
+      </label>
+      <button type="button" id="withdrawTermsAgreeBtn" class="submit-btn" disabled>AGREE &amp; CONTINUE</button>
+    </div>
+
+    <div id="withdrawFormContent" class="hidden">
+      <!-- Shown only until an address is linked; disappears forever after -->
+      <div id="linkAddressSection" class="hidden">
+        <p class="body-copy text-base leading-snug mb-4">
+          Before your first withdrawal, link the Meowcoin address you want to receive tickets at.
+          You'll sign a one-time message with your wallet to prove you control it — this is done
+          once, ever, and reused automatically for every future withdrawal.
+        </p>
+        <div id="linkStep1">
+          <label for="linkAddressInput" class="block led-label mb-2">ADDRESS TO LINK</label>
+          <input
+            type="text"
+            id="linkAddressInput"
+            class="addr-input mb-3"
+            placeholder="M....................."
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button type="button" id="linkGetChallengeBtn" class="submit-btn w-full">GENERATE CHALLENGE</button>
+        </div>
+        <div id="linkStep2" class="hidden mt-4">
+          <div class="led-screen mb-4">
+            <div class="led-label">SIGN THIS EXACT MESSAGE IN YOUR WALLET</div>
+            <textarea id="linkChallengeMessage" class="challenge-textarea w-full mt-2" rows="2" readonly></textarea>
+          </div>
+          <label for="linkSignatureInput" class="block led-label mb-2">SIGNATURE FROM YOUR WALLET</label>
+          <input
+            type="text"
+            id="linkSignatureInput"
+            class="addr-input mb-3"
+            placeholder="Paste the signature your wallet produced"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button type="button" id="linkVerifyBtn" class="submit-btn w-full">VERIFY &amp; LINK ADDRESS</button>
+        </div>
+        <p id="linkStatus" class="text-[8px] text-center leading-relaxed mt-3" style="color:#9a5a62;"></p>
+      </div>
+
+      <!-- Shown once an address is linked -->
+      <div id="linkedAddressSection" class="hidden">
+        <div class="led-screen mb-5">
+          <div class="led-label">YOUR LINKED WITHDRAWAL ADDRESS</div>
+          <div class="led-value break-all" id="linkedAddressDisplay">—</div>
+        </div>
+
+        <label for="withdrawAmount" class="block led-label mb-2">AMOUNT TO WITHDRAW</label>
+        <input
+          type="number"
+          id="withdrawAmount"
+          class="amount-input mb-3"
+          placeholder="0"
+          min="1"
+          step="1"
+        >
+
+        <div class="amount-quick-row mb-5">
+          <button type="button" class="amount-quick-btn" data-percent="25">25%</button>
+          <button type="button" class="amount-quick-btn" data-percent="50">50%</button>
+          <button type="button" class="amount-quick-btn" data-percent="75">75%</button>
+          <button type="button" class="amount-quick-btn" data-percent="100">EMPTY (100%)</button>
+        </div>
+
+        <button type="button" id="withdrawBtn" class="withdraw-btn w-full py-5 text-sm tracking-wider mb-4">WITHDRAW</button>
+      </div>
+    </div>
+
+    <div id="statusBanner" class="status-banner pending hidden" role="status" aria-live="polite"></div>
+  </section>
+
+  <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
+    <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
+    <p class="mt-2">NOT AFFILIATED WITH THE OFFICIAL MEOWCOIN TEAM. NOT FINANCIAL ADVICE.</p>
+    <p class="mt-2">DONATIONS ARE NEVER REQUIRED. TICKETS HAVE NO VALUE OUTSIDE OF FUN.</p>
+    <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
+  </footer>
+
+</main>
+
+<script>
+  // Point this at your real Cloudflare Tunnel URL before this page works.
+  const API_BASE = "https://YOUR_TUNNEL_URL.trycloudflare.com";
+
+  const balanceDisplay = document.getElementById("balanceDisplay");
+  const withdrawAmount = document.getElementById("withdrawAmount");
+  const withdrawBtn = document.getElementById("withdrawBtn");
+  const statusBanner = document.getElementById("statusBanner");
+  const quickBtns = document.querySelectorAll(".amount-quick-btn");
+
+  const linkAddressSection = document.getElementById("linkAddressSection");
+  const linkedAddressSection = document.getElementById("linkedAddressSection");
+  const linkedAddressDisplay = document.getElementById("linkedAddressDisplay");
+  const linkStep1 = document.getElementById("linkStep1");
+  const linkStep2 = document.getElementById("linkStep2");
+  const linkAddressInput = document.getElementById("linkAddressInput");
+  const linkGetChallengeBtn = document.getElementById("linkGetChallengeBtn");
+  const linkChallengeMessage = document.getElementById("linkChallengeMessage");
+  const linkSignatureInput = document.getElementById("linkSignatureInput");
+  const linkVerifyBtn = document.getElementById("linkVerifyBtn");
+  const linkStatus = document.getElementById("linkStatus");
+
+  let currentBalance = 0;
+  let pollTimer = null;
+
+  function setStatus(text, type){
+    statusBanner.textContent = text;
+    statusBanner.className = "status-banner " + type;
+  }
+
+  function isValidAddress(addr){
+    return typeof addr === "string" && addr.trim().length >= 6 && addr.trim().startsWith("M");
+  }
+
+  // Balance here is read from the server-side ledger — the real source of
+  // truth — not from localStorage. The cookie only identifies which
+  // device is asking; it can't be edited to inflate this number.
+  async function refreshBalance(){
+    try {
+      const response = await fetch(`${API_BASE}/api/tickets/balance`, { credentials: "include" });
+      const data = await response.json();
+      currentBalance = data.tickets || 0;
+      balanceDisplay.textContent = `${currentBalance.toLocaleString()} 🎟️`;
+    } catch {
+      balanceDisplay.textContent = "-- 🎟️";
+    }
+  }
+
+  // Checks whether this device already has a linked withdrawal address —
+  // if so, skip straight to the withdraw form; if not, show the one-time
+  // link flow instead.
+  async function checkLinkedAddress(){
+    try {
+      const response = await fetch(`${API_BASE}/api/player/status`, { credentials: "include" });
+      const data = await response.json();
+      if(data.linkedAddress){
+        linkedAddressDisplay.textContent = data.linkedAddress;
+        linkedAddressSection.classList.remove("hidden");
+        linkAddressSection.classList.add("hidden");
+      } else {
+        linkAddressSection.classList.remove("hidden");
+        linkedAddressSection.classList.add("hidden");
+      }
+    } catch {
+      linkStatus.textContent = "Could not reach the faucet server.";
+    }
+  }
+
+  linkGetChallengeBtn.addEventListener("click", async () => {
+    const address = linkAddressInput.value.trim();
+    if(!isValidAddress(address)){
+      linkStatus.textContent = "Enter a valid Meowcoin address.";
+      linkStatus.style.color = "#ff8b96";
+      return;
+    }
+    linkGetChallengeBtn.disabled = true;
+    linkStatus.textContent = "Requesting challenge...";
+    linkStatus.style.color = "#9a5a62";
+
+    try {
+      const response = await fetch(`${API_BASE}/api/player/link-address/challenge`, { credentials: "include" });
+      const data = await response.json().catch(() => ({}));
+      if(!response.ok){
+        linkStatus.textContent = data.error || "Could not get a challenge.";
+        linkStatus.style.color = "#ff8b96";
+        return;
+      }
+      linkChallengeMessage.value = data.message;
+      linkStep1.classList.add("hidden");
+      linkStep2.classList.remove("hidden");
+      linkStatus.textContent = "Sign the message above in your wallet, then paste the signature.";
+      linkStatus.style.color = "#7a3038";
+    } catch {
+      linkStatus.textContent = "Could not reach the faucet server.";
+      linkStatus.style.color = "#ff8b96";
+    } finally {
+      linkGetChallengeBtn.disabled = false;
+    }
+  });
+
+  linkVerifyBtn.addEventListener("click", async () => {
+    const address = linkAddressInput.value.trim();
+    const signature = linkSignatureInput.value.trim();
+    if(!signature){
+      linkStatus.textContent = "Paste the signature your wallet produced.";
+      linkStatus.style.color = "#ff8b96";
+      return;
+    }
+    linkVerifyBtn.disabled = true;
+    linkStatus.textContent = "Verifying signature...";
+    linkStatus.style.color = "#9a5a62";
+
+    try {
+      const response = await fetch(`${API_BASE}/api/player/link-address`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ address, signature }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if(!response.ok || !data.success){
+        linkStatus.textContent = data.error || "Verification failed.";
+        linkStatus.style.color = "#ff8b96";
+        return;
+      }
+      linkedAddressDisplay.textContent = data.address;
+      linkedAddressSection.classList.remove("hidden");
+      linkAddressSection.classList.add("hidden");
+    } catch {
+      linkStatus.textContent = "Could not reach the faucet server.";
+      linkStatus.style.color = "#ff8b96";
+    } finally {
+      linkVerifyBtn.disabled = false;
+    }
+  });
+
+  quickBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      quickBtns.forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      const percent = parseInt(btn.dataset.percent, 10);
+      const amount = Math.floor(currentBalance * (percent / 100));
+      withdrawAmount.value = amount;
+    });
+  });
+
+  withdrawAmount.addEventListener("input", () => {
+    quickBtns.forEach(b => b.classList.remove("selected"));
+    withdrawAmount.classList.remove("invalid");
+  });
+
+  async function pollWithdrawStatus(){
+    try {
+      const response = await fetch(`${API_BASE}/api/tickets/withdraw-complete`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if(response.status === 202 && data.pending){
+        setStatus(`Waiting for confirmation: ${data.confirmations}/${data.required}...`, "pending");
+        pollTimer = setTimeout(pollWithdrawStatus, 15000);
+        return;
+      }
+
+      if(!response.ok || !data.success){
+        setStatus(data.error || "Could not confirm the withdrawal. It may still complete — check back shortly.", "error");
+        withdrawBtn.disabled = false;
+        withdrawBtn.textContent = "WITHDRAW";
+        return;
+      }
+
+      setStatus(`Withdrawal confirmed! Your tickets have been sent.`, "success");
+      withdrawBtn.disabled = false;
+      withdrawBtn.textContent = "WITHDRAW";
+      refreshBalance();
+    } catch {
+      setStatus("Could not reach the faucet server to check status. Retrying...", "pending");
+      pollTimer = setTimeout(pollWithdrawStatus, 15000);
+    }
+  }
+
+  withdrawBtn.addEventListener("click", async () => {
+    const amount = Number(withdrawAmount.value);
+
+    if(!Number.isFinite(amount) || amount <= 0){
+      withdrawAmount.classList.add("invalid");
+      setStatus("Enter a valid amount.", "error");
+      statusBanner.classList.remove("hidden");
+      return;
+    }
+    if(amount > currentBalance){
+      withdrawAmount.classList.add("invalid");
+      setStatus(`You only have ${currentBalance.toLocaleString()} tickets.`, "error");
+      statusBanner.classList.remove("hidden");
+      return;
+    }
+
+    withdrawBtn.disabled = true;
+    withdrawBtn.textContent = "SENDING...";
+    statusBanner.classList.remove("hidden");
+    setStatus("Broadcasting withdrawal...", "pending");
+
+    try {
+      const response = await fetch(`${API_BASE}/api/tickets/withdraw`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ amount }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if(!response.ok || !data.success){
+        setStatus(data.error || "Withdrawal failed. Try again.", "error");
+        withdrawBtn.disabled = false;
+        withdrawBtn.textContent = "WITHDRAW";
+        return;
+      }
+
+      setStatus(`Broadcast to ${data.toAddress}! Waiting for confirmation: 0/${data.required}...`, "pending");
+      pollTimer = setTimeout(pollWithdrawStatus, 15000);
+    } catch {
+      setStatus("Could not reach the faucet server. Try again later.", "error");
+      withdrawBtn.disabled = false;
+      withdrawBtn.textContent = "WITHDRAW";
+    }
+  });
+
+  // --- Mandatory withdrawal terms gate ---
+  // Separate from and in addition to the donate page's terms — this one
+  // covers irreversibility specifically, since a withdrawal is a real
+  // one-way asset transfer, not just an optional donation.
+  const withdrawTermsGate = document.getElementById("withdrawTermsGate");
+  const withdrawFormContent = document.getElementById("withdrawFormContent");
+  const withdrawTermsCheckbox = document.getElementById("withdrawTermsCheckbox");
+  const withdrawTermsAgreeBtn = document.getElementById("withdrawTermsAgreeBtn");
+
+  withdrawTermsCheckbox.addEventListener("change", () => {
+    withdrawTermsAgreeBtn.disabled = !withdrawTermsCheckbox.checked;
+  });
+
+  withdrawTermsAgreeBtn.addEventListener("click", () => {
+    if(!withdrawTermsCheckbox.checked) return;
+    withdrawTermsGate.classList.add("hidden");
+    withdrawFormContent.classList.remove("hidden");
+    checkLinkedAddress();
+  });
+
+  refreshBalance();
+</script>
+
+</body>
+</html>
