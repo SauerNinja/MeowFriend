@@ -13,12 +13,12 @@
 <link rel="canonical" href="https://sauerninja.github.io/MeowFriend/">
 
 <!-- Icons / Manifest -->
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
-<link rel="shortcut icon" href="favicon.ico">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="shortcut icon" href="assets/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
 <meta name="application-name" content="MeowFriend">
 <meta name="apple-mobile-web-app-title" content="MeowFriend">
@@ -29,7 +29,7 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="MeowFriend — Free Meowcoin (MEWC) Faucet">
 <meta property="og:description" content="Boop once every hour to claim free MEWC. No signup required, wallet connect coming soon.">
-<meta property="og:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta property="og:image" content="https://sauerninja.github.io/MeowFriend/assets/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
@@ -42,7 +42,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="MeowFriend — Free Meowcoin (MEWC) Faucet">
 <meta name="twitter:description" content="Boop once every hour to claim free MEWC. No signup required, wallet connect coming soon.">
-<meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/og-image.png">
+<meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/assets/og-image.png">
 <meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
 
 <meta name="theme-color" content="#000000">
@@ -67,7 +67,7 @@
       "description": "Claim free Meowcoin (MEWC) once every hour. No signup required.",
       "applicationCategory": "FinanceApplication",
       "operatingSystem": "Any",
-      "image": "https://sauerninja.github.io/MeowFriend/og-image.png",
+      "image": "https://sauerninja.github.io/MeowFriend/assets/og-image.png",
       "isPartOf": { "@id": "https://sauerninja.github.io/MeowFriend/#website" },
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
     }
@@ -385,8 +385,8 @@
     <!-- LED screens -->
     <div class="grid grid-cols-2 gap-4 mb-4">
       <div class="led-screen">
-        <div class="led-label">TICKETS PER BOOP</div>
-        <div class="led-value">500 🎟️</div>
+        <div class="led-label">NEXT BOOP PAYS</div>
+        <div class="led-value" id="nextPayoutDisplay">1,000 🎟️</div>
       </div>
       <div class="led-screen text-right">
         <div class="led-label">RECHARGE</div>
@@ -396,21 +396,6 @@
     <div class="led-screen mb-6 text-center">
       <div class="led-label">FAUCET BALANCE</div>
       <div class="led-value" id="balanceDisplay">-- MEWC</div>
-    </div>
-
-    <!-- Address input -->
-    <div class="mb-5">
-      <label for="mewcAddress" class="block led-label mb-2 text-center">YOUR MEOWCOIN ADDRESS</label>
-      <input
-        type="text"
-        id="mewcAddress"
-        class="addr-input w-full"
-        placeholder="M....................."
-        autocomplete="off"
-        spellcheck="false"
-        aria-describedby="addrError"
-      >
-      <p id="addrError" class="hidden text-[8px] text-[#ff8b96] mt-2 tracking-wide">ADDRESS MUST START WITH "M"</p>
     </div>
 
     <!-- Boop button -->
@@ -508,24 +493,15 @@
 </main>
 
 <script>
-  const STORAGE_KEY = "meowfriend_last_boop";
-  const COOLDOWN_MS = 60 * 60 * 1000;
   // Point this at your Cloudflare Tunnel URL, e.g.
   // "https://your-tunnel-name.trycloudflare.com"
   const API_BASE = "https://YOUR_TUNNEL_URL.trycloudflare.com";
   const balanceDisplay = document.getElementById("balanceDisplay");
 
   const boopBtn = document.getElementById("boopBtn");
-  const addrInput = document.getElementById("mewcAddress");
-  const addrError = document.getElementById("addrError");
   const statusBanner = document.getElementById("statusBanner");
   const rechargeDisplay = document.getElementById("rechargeDisplay");
-
-  const TICKETS_PER_BOOP = 500;
-
-  function isValidAddress(addr){
-    return typeof addr === "string" && addr.trim().length >= 6 && addr.trim().startsWith("M");
-  }
+  const nextPayoutDisplay = document.getElementById("nextPayoutDisplay");
 
   function formatCountdown(ms){
     const totalSec = Math.max(0, Math.floor(ms / 1000));
@@ -538,20 +514,6 @@
   function showBanner(text, type){
     statusBanner.textContent = text;
     statusBanner.className = "status-banner mb-6 " + type;
-  }
-
-  async function requestBoop(address){
-    const response = await fetch(`${API_BASE}/api/boop`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ address })
-    });
-    const data = await response.json().catch(() => ({}));
-    if(!response.ok){
-      throw new Error(data.error || `Server error (${response.status})`);
-    }
-    return data; // { success, txid, amount }
   }
 
   async function refreshBalance(){
@@ -569,23 +531,25 @@
   }
 
   let countdownTimer = null;
+  let cooldownEndsAt = 0;
 
-  function updateCooldownUI(){
-    const last = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10);
-    const elapsed = Date.now() - last;
-    const remaining = COOLDOWN_MS - elapsed;
+  function startCountdown(endsAt){
+    cooldownEndsAt = endsAt;
+    if(countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = setInterval(tickCountdown, 1000);
+    tickCountdown();
+  }
 
+  function tickCountdown(){
+    const remaining = cooldownEndsAt - Date.now();
     if(remaining > 0){
       boopBtn.disabled = true;
       boopBtn.textContent = "RECHARGING...";
       rechargeDisplay.textContent = formatCountdown(remaining);
-      if(!countdownTimer){
-        countdownTimer = setInterval(updateCooldownUI, 1000);
-      }
     } else {
       boopBtn.disabled = false;
-      boopBtn.textContent = "BOOP FOR MEOWCOIN";
-      rechargeDisplay.textContent = "1h";
+      boopBtn.textContent = "BOOP FOR TICKETS";
+      rechargeDisplay.textContent = "READY";
       if(countdownTimer){
         clearInterval(countdownTimer);
         countdownTimer = null;
@@ -593,53 +557,65 @@
     }
   }
 
-  addrInput.addEventListener("input", () => {
-    addrInput.classList.remove("invalid");
-    addrInput.removeAttribute("aria-invalid");
-    addrError.classList.add("hidden");
-  });
+  // Server is the only source of truth for cooldown/streak/ticket amount —
+  // no local timer or hardcoded ticket value here. Checked on page load so
+  // an already-cooling-down device shows the real remaining time instead
+  // of a fresh "ready" state.
+  async function checkStreakStatus(){
+    try {
+      const response = await fetch(`${API_BASE}/api/tickets/streak-status`, { credentials: "include" });
+      const data = await response.json().catch(() => ({}));
+      if(!response.ok) return;
+      if(typeof data.nextTicketsIfBoopedNow === "number"){
+        nextPayoutDisplay.textContent = `${data.nextTicketsIfBoopedNow.toLocaleString()} 🎟️`;
+      }
+      if(data.cooldownRemainingMs > 0){
+        startCountdown(Date.now() + data.cooldownRemainingMs);
+      } else {
+        boopBtn.disabled = false;
+        boopBtn.textContent = "BOOP FOR TICKETS";
+        rechargeDisplay.textContent = "READY";
+      }
+    } catch {
+      // Bridge unreachable — leave the button in its default state; the
+      // click handler itself will surface the real error if pressed.
+    }
+  }
 
   boopBtn.addEventListener("click", async () => {
-    const addr = addrInput.value.trim();
-
-    if(!isValidAddress(addr)){
-      addrInput.classList.add("invalid");
-      addrInput.setAttribute("aria-invalid", "true");
-      addrError.classList.remove("hidden");
-      showBanner("ERROR: ENTER A VALID MEOWCOIN ADDRESS", "error");
-      return;
-    }
-
-    addrInput.classList.remove("invalid");
-    addrInput.removeAttribute("aria-invalid");
-    addrError.classList.add("hidden");
-
-    // Recharge timer starts the instant boop is pressed — win, lose, or
-    // error, the wait is the same. Set this before anything else so a
-    // failed/blocked request still costs the cooldown.
-    localStorage.setItem(STORAGE_KEY, String(Date.now()));
-    updateCooldownUI();
-
-    // Tickets are granted for the boop itself, independent of whether the
-    // MEWC payout RPC call succeeds — the bridge server being unreachable
-    // (e.g. placeholder API_BASE still in place) shouldn't block the
-    // in-game ticket economy from working.
-    addTickets(TICKETS_PER_BOOP);
-
     boopBtn.disabled = true;
     boopBtn.textContent = "BOOPING...";
-    showBanner("BOOPING THE BLOCKCHAIN...", "pending");
+    showBanner("BOOPING...", "pending");
 
     try {
-      const data = await requestBoop(addr);
-      showBanner(`SUCCESS! ${data.amount || 10} MEWC DRIPPED, +${TICKETS_PER_BOOP} TICKETS.\nTXID: ${data.txid}`, "success");
-      refreshBalance();
+      const response = await fetch(`${API_BASE}/api/tickets/boop`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if(!response.ok){
+        showBanner(`ERROR: ${String(data.error || "Something went wrong").toUpperCase()}`, "error");
+        if(data.cooldownRemainingMs){
+          startCountdown(Date.now() + data.cooldownRemainingMs);
+        } else {
+          boopBtn.disabled = false;
+          boopBtn.textContent = "BOOP FOR TICKETS";
+        }
+        return;
+      }
+
+      showBanner(`+${data.ticketsAwarded.toLocaleString()} TICKETS! STREAK: ${data.streak}. BALANCE: ${data.balance.toLocaleString()}`, "success");
+      startCountdown(data.nextBoopAvailableAt);
+      checkStreakStatus();
     } catch (err) {
-      showBanner(`+${TICKETS_PER_BOOP} TICKETS. MEWC PAYOUT ERROR: ${String(err.message || err).toUpperCase()}`, "error");
+      showBanner(`ERROR: ${String(err.message || err).toUpperCase()}`, "error");
+      boopBtn.disabled = false;
+      boopBtn.textContent = "BOOP FOR TICKETS";
     }
   });
 
-  updateCooldownUI();
+  checkStreakStatus();
   refreshBalance();
   setInterval(refreshBalance, 60000);
 </script>

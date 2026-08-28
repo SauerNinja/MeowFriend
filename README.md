@@ -17,7 +17,7 @@ MeowFriend is an independent fan project and demo faucet. It is not affiliated w
 
 ## Tech
 
-Vanilla HTML/CSS/JS on the frontend (no build step, no framework), Tailwind via CDN for utility styling, and a small Express server for the parts that need to talk to a real Meowcoin node. No accounts, no tracking, no ads.
+Vanilla HTML/CSS/JS on the frontend (no build step, no framework), Tailwind via CDN for utility styling, and a small Express server for the parts that need to talk to a real Meowcoin node. No ads.
 
 ## Open source
 
