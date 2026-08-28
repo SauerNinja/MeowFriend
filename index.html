@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- Primary SEO -->
-<title>MeowFriend — Free Meowcoin (MEWC) Faucet | Boop Every Hour</title>
-<meta name="description" content="MeowFriend is a free Meowcoin (MEWC) faucet — boop once every hour to claim MEWC. No signup required, wallet connect coming soon.">
-<meta name="keywords" content="Meowcoin, MEWC, Meowcoin faucet, MEWC faucet, free crypto faucet, MeowFriend, cat cryptocurrency, MeowPow, proof of work coin, crypto giveaway">
+<title>MeowFriend — Free Meow Tickets | Boop Every Hour</title>
+<meta name="description" content="MeowFriend is a free arcade faucet — boop once every hour to earn Meow Tickets. No signup required beyond a free username.">
+<meta name="keywords" content="MeowFriend, Meow Tickets, free tickets, arcade faucet, cat game, crypto-themed arcade, free game tickets">
 <meta name="author" content="MeowFriend">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <link rel="canonical" href="https://sauerninja.github.io/MeowFriend/">
@@ -27,8 +27,8 @@
 
 <!-- Open Graph -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="MeowFriend — Free Meowcoin (MEWC) Faucet">
-<meta property="og:description" content="Boop once every hour to claim free MEWC. No signup required, wallet connect coming soon.">
+<meta property="og:title" content="MeowFriend — Free Meow Tickets">
+<meta property="og:description" content="Boop once every hour to earn free Meow Tickets. No signup required beyond a free username.">
 <meta property="og:image" content="https://sauerninja.github.io/MeowFriend/assets/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -40,8 +40,8 @@
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="MeowFriend — Free Meowcoin (MEWC) Faucet">
-<meta name="twitter:description" content="Boop once every hour to claim free MEWC. No signup required, wallet connect coming soon.">
+<meta name="twitter:title" content="MeowFriend — Free Meow Tickets">
+<meta name="twitter:description" content="Boop once every hour to earn free Meow Tickets. No signup required beyond a free username.">
 <meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/assets/og-image.png">
 <meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
 
@@ -57,15 +57,15 @@
       "@id": "https://sauerninja.github.io/MeowFriend/#website",
       "url": "https://sauerninja.github.io/MeowFriend/",
       "name": "MeowFriend",
-      "description": "A free Meowcoin (MEWC) faucet."
+      "description": "A free arcade faucet for Meow Tickets."
     },
     {
       "@type": "WebApplication",
       "@id": "https://sauerninja.github.io/MeowFriend/#app",
-      "name": "MeowFriend Faucet",
+      "name": "MeowFriend",
       "url": "https://sauerninja.github.io/MeowFriend/",
-      "description": "Claim free Meowcoin (MEWC) once every hour. No signup required.",
-      "applicationCategory": "FinanceApplication",
+      "description": "Earn free Meow Tickets once every hour. No signup required beyond a free username.",
+      "applicationCategory": "GameApplication",
       "operatingSystem": "Any",
       "image": "https://sauerninja.github.io/MeowFriend/assets/og-image.png",
       "isPartOf": { "@id": "https://sauerninja.github.io/MeowFriend/#website" },
@@ -366,16 +366,16 @@
   <header class="flex flex-col items-center mb-8">
     <div class="cat-emoji-logo cat-glow mb-5" role="img" aria-label="MeowFriend black cat logo with glowing red eyes">🐈‍⬛</div>
     <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">MEOWFRIEND</h1>
-    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">FREE MEOWCOIN, ONE BOOP AT A TIME</p>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">FREE MEOW TICKETS, ONE BOOP AT A TIME</p>
   </header>
 
   <noscript>
-    <p class="body-copy text-center px-4 py-3 mb-6 border-2" style="border-color:#2a2a30;">MeowFriend needs JavaScript enabled to process boops. Please enable it in your browser to use the faucet.</p>
+    <p class="body-copy text-center px-4 py-3 mb-6 border-2" style="border-color:#2a2a30;">MeowFriend needs JavaScript enabled to process boops. Please enable it in your browser.</p>
   </noscript>
 
   <!-- Console -->
   <section class="chassis p-5 sm:p-7" aria-labelledby="faucet-heading">
-    <h2 id="faucet-heading" class="sr-only">Meowcoin Faucet</h2>
+    <h2 id="faucet-heading" class="sr-only">Meow Ticket Faucet</h2>
     <!-- rivets -->
     <div class="rivet absolute top-2 left-2"></div>
     <div class="rivet absolute top-2 right-2"></div>
@@ -394,14 +394,14 @@
       </div>
     </div>
     <div class="led-screen mb-6 text-center">
-      <div class="led-label">FAUCET BALANCE</div>
-      <div class="led-value" id="balanceDisplay">-- MEWC</div>
+      <div class="led-label">YOUR TICKET BALANCE</div>
+      <div class="led-value" id="balanceDisplay">-- 🎟️</div>
     </div>
 
     <!-- Boop button -->
     <div class="flex justify-center mb-6">
       <button id="boopBtn" class="boop-btn w-full py-6 text-base sm:text-lg tracking-wider">
-        BOOP FOR MEOWCOIN
+        BOOP FOR MEOW TICKETS
       </button>
     </div>
 
@@ -518,15 +518,15 @@
 
   async function refreshBalance(){
     try {
-      const response = await fetch(`${API_BASE}/api/balance`, { credentials: "include" });
+      const response = await fetch(`${API_BASE}/api/tickets/balance`, { credentials: "include" });
       const data = await response.json();
-      if(response.ok && typeof data.balance === "number"){
-        balanceDisplay.textContent = `${data.balance} MEWC`;
+      if(response.ok && typeof data.tickets === "number"){
+        balanceDisplay.textContent = `${data.tickets.toLocaleString()} 🎟️`;
       } else {
-        balanceDisplay.textContent = "-- MEWC";
+        balanceDisplay.textContent = "-- 🎟️";
       }
     } catch (err) {
-      balanceDisplay.textContent = "-- MEWC";
+      balanceDisplay.textContent = "-- 🎟️";
     }
   }
 
@@ -583,6 +583,10 @@
   }
 
   boopBtn.addEventListener("click", async () => {
+    if(window.MeowFriendServerStatus && !window.MeowFriendServerStatus.isOnline){
+      showBanner("SERVER OFFLINE — CANNOT MINT TICKETS RIGHT NOW. TRY AGAIN SHORTLY.", "error");
+      return;
+    }
     boopBtn.disabled = true;
     boopBtn.textContent = "BOOPING...";
     showBanner("BOOPING...", "pending");

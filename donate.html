@@ -501,6 +501,10 @@
   }
 
   claimDonationBtn.addEventListener("click", async () => {
+    if(window.MeowFriendServerStatus && !window.MeowFriendServerStatus.isOnline){
+      setDonationStatus("Server offline — cannot credit donations right now. Try again shortly.", "#ff8b96");
+      return;
+    }
     const txid = donationTxidInput.value.trim();
     if(!looksLikeTxid(txid)){
       setDonationStatus("That doesn't look like a valid TXID.", "#ff8b96");

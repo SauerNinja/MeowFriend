@@ -104,10 +104,40 @@ setInterval(resyncTicketsFromServer, 60000);
 // in some other flow. The modal is injected here so every page that loads
 // shared-tickets.js gets it automatically, without needing matching HTML
 // added to every single page.
-(function setupPlayerGate(){
-  function injectGateMarkup(){
+// --- Server status indicator + username gate ---
+// The server is only required for actions that actually mint tickets or
+// credit donations/leaderboard entries — browsing pages and playing games
+// works fine offline. A small persistent badge in the bottom-right shows
+// live connectivity (green glow = online, red X = offline) instead of
+// locking the whole site. window.MeowFriendServerStatus.isOnline is the
+// flag any page should check before attempting a server-dependent action.
+window.MeowFriendServerStatus = { isOnline: false };
+
+(function setupServerStatusAndGate(){
+  function injectStyles(){
     const style = document.createElement("style");
     style.textContent = `
+      #mfStatusBadge{
+        position: fixed; bottom: 16px; right: 16px; z-index: 9998;
+        display: flex; align-items: center; gap: 6px;
+        background: #0a0a0c; border: 2px solid #3a3a42;
+        padding: 6px 10px; font-family: 'Press Start 2P', monospace;
+        font-size: 8px; color: #7a3038; cursor: default;
+        box-shadow: 0 0 10px rgba(0,0,0,0.6);
+      }
+      #mfStatusDot{
+        width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+        background: #444; transition: background 0.3s ease, box-shadow 0.3s ease;
+      }
+      #mfStatusBadge.online #mfStatusDot{
+        background: #29ff8a; box-shadow: 0 0 6px #29ff8a, 0 0 12px #29ff8a;
+      }
+      #mfStatusBadge.online{ color: #29ff8a; border-color: #1a4a2e; }
+      #mfStatusBadge.offline #mfStatusDot{
+        background: transparent;
+      }
+      #mfStatusBadge.offline #mfStatusIcon{ display: inline; }
+      #mfStatusIcon{ display: none; color: #ff1e43; font-size: 10px; line-height: 1; }
       #mfPlayerGateBackdrop{
         position: fixed; inset: 0; background: rgba(0,0,0,0.85);
         display: flex; align-items: center; justify-content: center;
@@ -148,19 +178,48 @@ setInterval(resyncTicketsFromServer, 60000);
       }
       #mfPlayerGateModal button:disabled{ opacity: 0.35; cursor: not-allowed; }
       #mfPlayerGateModal button:hover:not(:disabled){ filter: brightness(1.3); }
+      #mfPlayerGateModal .mf-secondary-btn{
+        border-color: #4a2a30; color: #9a5a62; text-shadow: none; margin-top: 8px;
+      }
       #mfPlayerGateError{ color: #ff8b96; font-size: 13px; margin-top: -6px; margin-bottom: 12px; display: none; }
     `;
     document.head.appendChild(style);
+  }
 
+  function injectStatusBadge(){
+    const badge = document.createElement("div");
+    badge.id = "mfStatusBadge";
+    badge.className = "offline";
+    badge.innerHTML = `<span id="mfStatusDot"></span><span id="mfStatusIcon">&times;</span><span id="mfStatusText">OFFLINE</span>`;
+    document.body.appendChild(badge);
+    return badge;
+  }
+
+  function setStatus(isOnline){
+    window.MeowFriendServerStatus.isOnline = isOnline;
+    const badge = document.getElementById("mfStatusBadge") || injectStatusBadge();
+    badge.className = isOnline ? "online" : "offline";
+    document.getElementById("mfStatusText").textContent = isOnline ? "ONLINE" : "OFFLINE";
+    document.dispatchEvent(new CustomEvent("meowfriend:server-status", { detail: { isOnline } }));
+  }
+
+  function injectGateMarkup(){
     const backdrop = document.createElement("div");
     backdrop.id = "mfPlayerGateBackdrop";
     backdrop.className = "mf-hidden";
     backdrop.innerHTML = `
       <div id="mfPlayerGateModal">
-        <h2>PICK A USERNAME TO PLAY</h2>
-        <p>MeowFriend requires a username before you can play any game, earn tickets, or appear on
-        leaderboards. Tickets are for entertainment and video-game purposes only, have no real
-        value, and there is no expectation of winning or profit.</p>
+        <h2>PICK A USERNAME</h2>
+        <p>A username is required to mint tickets, register donations, or appear on leaderboards —
+        these actions need a live connection to the MeowFriend server. Browsing the site and playing
+        games works without a username or a server connection.</p>
+        <p>MeowFriend is provided "as is," for entertainment and learning purposes only, with no
+        warranty of any kind, express or implied. Tickets have no real-world monetary value, cannot
+        be redeemed for cash or cryptocurrency, and are not a security, investment, or financial
+        product. There is no expectation of profit, winning, or any return of value. To the fullest
+        extent permitted by law, MeowFriend and its creator disclaim all liability for any loss,
+        damage, or claim arising from use of this site, including loss of tickets, account data, or
+        any donation made. Use is at your own risk and discretion.</p>
         <input type="text" id="mfGateUsername" placeholder="Username (3-16 chars)" autocomplete="off" spellcheck="false" maxlength="16">
         <label>
           <input type="checkbox" id="mfGateTerms" style="margin-top:3px;">
@@ -168,56 +227,48 @@ setInterval(resyncTicketsFromServer, 60000);
         </label>
         <div id="mfPlayerGateError"></div>
         <button type="button" id="mfGateSubmitBtn" disabled>CONTINUE</button>
+        <button type="button" id="mfGateDismissBtn" class="mf-secondary-btn">CONTINUE BROWSING WITHOUT A USERNAME</button>
       </div>
     `;
     document.body.appendChild(backdrop);
     return backdrop;
   }
 
-  async function checkPlayerStatus(){
+  // Pings the server's health regardless of whether a username exists —
+  // this is what drives the badge, independent of the gate.
+  async function pollServerHealth(){
     try {
-      const response = await fetch(`${TICKETS_API_BASE}/api/player/status`, { credentials: "include" });
-      if(!response.ok){
-        showGate(true); // server responded but with an error — stay locked
-        return;
-      }
-      const data = await response.json();
-      if(!data.hasUsername){
-        showGate(false);
-      }
+      const response = await fetch(`${TICKETS_API_BASE}/api/health`, { credentials: "include" });
+      setStatus(response.ok);
     } catch {
-      // Bridge unreachable entirely — fail CLOSED. The site stays locked
-      // until the server can be reached and confirms a username exists,
-      // rather than letting visitors through during an outage.
-      showGate(true);
+      setStatus(false);
     }
   }
 
-  function showGate(serverUnreachable){
+  async function checkPlayerStatus(){
+    try {
+      const response = await fetch(`${TICKETS_API_BASE}/api/player/status`, { credentials: "include" });
+      if(!response.ok) return; // server reachable but errored — badge already reflects reachability
+      const data = await response.json();
+      if(!data.hasUsername){
+        showGate();
+      }
+    } catch {
+      // Server unreachable — the status badge already communicates this;
+      // no need to also block the page. The gate will be offered again
+      // once the server is back and this check re-runs.
+    }
+  }
+
+  function showGate(){
     const backdrop = document.getElementById("mfPlayerGateBackdrop") || injectGateMarkup();
     backdrop.classList.remove("mf-hidden");
 
     const usernameInput = document.getElementById("mfGateUsername");
     const termsCheckbox = document.getElementById("mfGateTerms");
     const submitBtn = document.getElementById("mfGateSubmitBtn");
+    const dismissBtn = document.getElementById("mfGateDismissBtn");
     const errorEl = document.getElementById("mfPlayerGateError");
-
-    if(serverUnreachable){
-      // Nothing can actually be submitted while the server is down —
-      // disable the form entirely rather than let someone fill it out
-      // and hit a guaranteed failure.
-      usernameInput.disabled = true;
-      termsCheckbox.disabled = true;
-      submitBtn.disabled = true;
-      submitBtn.textContent = "SERVER UNAVAILABLE";
-      errorEl.textContent = "Could not reach the MeowFriend server. Please try again shortly.";
-      errorEl.style.display = "block";
-      // Keep checking in the background so the gate unlocks automatically
-      // the moment the server comes back, without requiring a manual
-      // page refresh.
-      setTimeout(checkPlayerStatus, 10000);
-      return;
-    }
 
     function updateButtonState(){
       const validLength = /^[a-zA-Z0-9_]{3,16}$/.test(usernameInput.value.trim());
@@ -225,6 +276,10 @@ setInterval(resyncTicketsFromServer, 60000);
     }
     usernameInput.addEventListener("input", updateButtonState);
     termsCheckbox.addEventListener("change", updateButtonState);
+
+    dismissBtn.addEventListener("click", () => {
+      backdrop.classList.add("mf-hidden");
+    });
 
     submitBtn.addEventListener("click", async () => {
       errorEl.style.display = "none";
@@ -253,7 +308,7 @@ setInterval(resyncTicketsFromServer, 60000);
 
         backdrop.classList.add("mf-hidden");
       } catch {
-        errorEl.textContent = "Could not reach the server. Try again.";
+        errorEl.textContent = "Could not reach the server. Try again, or continue browsing without a username.";
         errorEl.style.display = "block";
         submitBtn.disabled = false;
         submitBtn.textContent = "CONTINUE";
@@ -261,7 +316,11 @@ setInterval(resyncTicketsFromServer, 60000);
     });
   }
 
+  injectStyles();
+  injectStatusBadge();
+  pollServerHealth();
   checkPlayerStatus();
+  setInterval(pollServerHealth, 15000);
 })();
 
 
