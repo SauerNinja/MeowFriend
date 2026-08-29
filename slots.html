@@ -803,14 +803,17 @@
         }
 
         // Gotchya item drops: small chance on any real match win, guaranteed
-        // bonus item on the rare jackpot specifically. No-op if the player
-        // hasn't adopted a Gotchya pet yet.
+        // bonus item on the rare jackpot specifically. Cosmetics (room
+        // wallpaper/flooring/decorative furniture) roll separately and
+        // much more rarely — no-op if the player hasn't adopted a Gotchya
+        // pet yet.
         if(payout.type === "win"){
           if(payout.tickets >= 500000){
             grantGotchyaMilestone();
           } else {
             rollGotchyaDrop(0.08);
           }
+          rollGotchyaCosmetic(0.02);
         }
 
         // Push-notification-style toast on any real win, queued so it

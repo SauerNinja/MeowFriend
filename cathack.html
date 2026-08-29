@@ -665,6 +665,7 @@
       activeMonster.alive = false;
       battleLog(`${activeMonster.emoji} defeated!`);
       log(`${activeMonster.emoji} defeated in battle!`);
+      if(typeof rollGotchyaCosmetic === "function") rollGotchyaCosmetic(0.03);
       setTimeout(endBattle, 900);
       return;
     }
@@ -687,6 +688,7 @@
       activeMonster.alive = false;
       battleLog(`${activeMonster.emoji} defeated!`);
       log(`${activeMonster.emoji} defeated in battle!`);
+      if(typeof rollGotchyaCosmetic === "function") rollGotchyaCosmetic(0.03);
       setTimeout(endBattle, 900);
       return;
     }

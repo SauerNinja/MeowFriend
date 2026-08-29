@@ -565,8 +565,10 @@
 
   // Spawns a new pickup on a random road-lane cell (not the player's
   // current cell), replacing any pickup already on the board. Weighted
-  // mostly toward common food/generic items, rarely a permanent furniture
-  // piece — and only offers furniture the player doesn't already own.
+  // mostly toward common food/generic items, rarely a decorative cosmetic
+  // (furniture/wallpaper/flooring) via the shared rarity-weighted pool —
+  // functional stat-boosting furniture (Bookcase, Fridge, etc.) is
+  // deliberately excluded here and stays Shop-purchase-only.
   function spawnPickup(){
     const roadRows = lanes
       .map((lane, i) => (lane.type === "road" ? i : -1))
@@ -579,28 +581,27 @@
       col = (col + 1) % COLS;
     }
 
-    const pet = typeof getGotchyaPet === "function" ? getGotchyaPet() : null;
-    const ownedFurniture = (pet && pet.furniture) || {};
-    const availableFurniture = GOTCHYA_FURNITURE.filter(f => !ownedFurniture[f.id]);
-
     let itemId, isFurniture, icon;
-    if(availableFurniture.length > 0 && Math.random() < PICKUP_FURNITURE_CHANCE){
-      const item = availableFurniture[Math.floor(Math.random() * availableFurniture.length)];
-      itemId = item.id;
-      isFurniture = true;
-      icon = item.icon;
-    } else {
-      const total = GOTCHYA_DROP_TABLE.reduce((sum, e) => sum + e.weight, 0);
-      let r = Math.random() * total;
-      let chosen = GOTCHYA_DROP_TABLE[0];
-      for(const entry of GOTCHYA_DROP_TABLE){
-        if(r < entry.weight){ chosen = entry; break; }
-        r -= entry.weight;
+    if(Math.random() < PICKUP_FURNITURE_CHANCE){
+      const peeked = typeof peekGotchyaCosmetic === "function" ? peekGotchyaCosmetic() : null;
+      if(peeked){
+        activePickup = { col, row, itemId: null, isFurniture: false, isCosmetic: true, cosmeticPeek: peeked, icon: peeked.icon, spawnedAt: performance.now() };
+        return;
       }
-      itemId = chosen.id;
-      isFurniture = false;
-      icon = chosen.icon;
+      // No pet adopted, or every cosmetic already owned — fall through to
+      // a normal item instead of spawning nothing.
     }
+
+    const total = GOTCHYA_DROP_TABLE.reduce((sum, e) => sum + e.weight, 0);
+    let r = Math.random() * total;
+    let chosen = GOTCHYA_DROP_TABLE[0];
+    for(const entry of GOTCHYA_DROP_TABLE){
+      if(r < entry.weight){ chosen = entry; break; }
+      r -= entry.weight;
+    }
+    itemId = chosen.id;
+    isFurniture = false;
+    icon = chosen.icon;
 
     activePickup = { col, row, itemId, isFurniture, icon, spawnedAt: performance.now() };
   }
@@ -616,14 +617,8 @@
     activePickup = null;
     pickupSpawnTimer = PICKUP_SPAWN_MIN_MS + Math.random() * (PICKUP_SPAWN_MAX_MS - PICKUP_SPAWN_MIN_MS);
 
-    if(pickup.isFurniture){
-      const pet = typeof getGotchyaPet === "function" ? getGotchyaPet() : null;
-      if(!pet || (pet.furniture && pet.furniture[pickup.itemId])) return; // no-op if no pet or already owned by now
-      pet.furniture = pet.furniture || {};
-      pet.furniture[pickup.itemId] = true;
-      saveGotchyaPet(pet);
-      const item = GOTCHYA_FURNITURE.find(f => f.id === pickup.itemId);
-      queueWinNotification(`${item ? item.icon : "🎁"} Found permanent item: ${item ? item.name : pickup.itemId}!`);
+    if(pickup.isCosmetic){
+      if(typeof grantGotchyaCosmetic === "function") grantGotchyaCosmetic(pickup.cosmeticPeek); // queues its own "found X" notification
     } else {
       grantGotchyaItem(pickup.itemId); // this already queues its own "found X" notification
     }
@@ -817,7 +812,7 @@
         ctx.globalAlpha = alpha;
         ctx.beginPath();
         ctx.arc(px, py, 16 * pulse, 0, Math.PI * 2);
-        ctx.fillStyle = activePickup.isFurniture ? "rgba(255,215,0,0.25)" : "rgba(41,255,138,0.22)";
+        ctx.fillStyle = activePickup.isCosmetic ? "rgba(255,215,0,0.25)" : "rgba(41,255,138,0.22)";
         ctx.fill();
         ctx.font = "24px 'Noto Color Emoji', 'Apple Color Emoji', sans-serif";
         ctx.textAlign = "center";

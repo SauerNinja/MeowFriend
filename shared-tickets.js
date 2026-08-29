@@ -345,6 +345,84 @@ window.MeowFriendServerStatus = { isOnline: false };
 
 const GOTCHYA_PET_KEY = "meowfriend_gotchya_pet";
 
+// --- Item config: accessories ---
+// Accessories are wearable items (one per equip slot) that boost stats
+// while equipped — unlike furniture, which is a permanent passive
+// multiplier, an accessory's effect only applies while pet.equipped[slot]
+// points at it, and can be swapped out any time. Each accessory can boost
+// MULTIPLE stats at once via the effects array (this is the "modular,
+// easy to expand" shape — adding a new accessory or a new stat it boosts
+// never requires changing any function below, only adding a data entry).
+// stat values here match the pet's real field names directly: hunger,
+// happiness, energy, weight, iq, strength, endurance, agility — so a
+// single generic function can apply an effect to any of them.
+const GOTCHYA_ACCESSORIES = [
+  {
+    id: "bow", name: "Cute Bow", icon: "🎀", desc: "+2 Happiness growth, +1 Agility growth",
+    cost: 1200, rarity: "common", equipSlot: "head", renderIcon: "🎀", renderOffset: { x: 0, y: -20 },
+    effects: [ { stat: "happiness", type: "decayMult", value: 0.95 }, { stat: "agility", type: "gainFlat", value: 1 } ],
+  },
+  {
+    id: "top_hat", name: "Top Hat", icon: "🎩", desc: "+3 IQ growth",
+    cost: 2000, rarity: "uncommon", equipSlot: "head", renderIcon: "🎩", renderOffset: { x: 0, y: -22 },
+    effects: [ { stat: "iq", type: "gainFlat", value: 3 } ],
+  },
+  {
+    id: "bandana", name: "Bandana", icon: "🧣", desc: "+2 Strength growth, +2 Endurance growth",
+    cost: 1800, rarity: "uncommon", equipSlot: "neck", renderIcon: "🧣", renderOffset: { x: 0, y: -6 },
+    effects: [ { stat: "strength", type: "gainFlat", value: 2 }, { stat: "endurance", type: "gainFlat", value: 2 } ],
+  },
+  {
+    id: "crown", name: "Tiny Crown", icon: "👑", desc: "+2 all Training stats (Strength/Endurance/Agility)",
+    cost: 6000, rarity: "epic", equipSlot: "head", renderIcon: "👑", renderOffset: { x: 0, y: -22 },
+    effects: [ { stat: "strength", type: "gainFlat", value: 2 }, { stat: "endurance", type: "gainFlat", value: 2 }, { stat: "agility", type: "gainFlat", value: 2 } ],
+  },
+  {
+    id: "goggles", name: "Swim Goggles", icon: "🥽", desc: "+3 Agility growth",
+    cost: 1500, rarity: "common", equipSlot: "head", renderIcon: "🥽", renderOffset: { x: 0, y: -18 },
+    effects: [ { stat: "agility", type: "gainFlat", value: 3 } ],
+  },
+  {
+    id: "medal", name: "Champion Medal", icon: "🏅", desc: "+2 Strength growth, +1 all care stat decay reduction",
+    cost: 4000, rarity: "rare", equipSlot: "neck", renderIcon: "🏅", renderOffset: { x: 0, y: -4 },
+    effects: [ { stat: "strength", type: "gainFlat", value: 2 }, { stat: "hunger", type: "decayMult", value: 0.95 }, { stat: "happiness", type: "decayMult", value: 0.95 }, { stat: "energy", type: "decayMult", value: 0.95 } ],
+  },
+  // Find-only accessory — no cost field, never sold in the Shop.
+  {
+    id: "wizard_hat", name: "Wizard Hat", icon: "🧙", desc: "+5 IQ growth, +2 Agility growth — find only",
+    rarity: "legendary", equipSlot: "head", renderIcon: "🧙", renderOffset: { x: 0, y: -22 },
+    effects: [ { stat: "iq", type: "gainFlat", value: 5 }, { stat: "agility", type: "gainFlat", value: 2 } ],
+  },
+];
+
+const ACCESSORY_SLOTS = ["head", "neck"]; // one equipped item per slot at a time
+
+// Applies every effect from every currently-equipped accessory that
+// matches (stat, type). type is either "decayMult" (multiplies a decay
+// rate, like furniture does) or "gainFlat" (adds a flat amount per hour
+// to a stat's growth, on top of its existing rate). Used the same way
+// getFurnitureMultiplier is used — call once per stat/effect-type
+// wherever that calculation already happens.
+function getAccessoryEffect(pet, stat, type){
+  const equipped = (pet && pet.equipped) || {};
+  const equippedIds = Object.values(equipped).filter(Boolean);
+  const activeAccessories = GOTCHYA_ACCESSORIES.filter(a => equippedIds.includes(a.id));
+
+  if(type === "decayMult"){
+    return activeAccessories
+      .flatMap(a => a.effects)
+      .filter(e => e.stat === stat && e.type === "decayMult")
+      .reduce((mult, e) => mult * e.value, 1);
+  }
+  if(type === "gainFlat"){
+    return activeAccessories
+      .flatMap(a => a.effects)
+      .filter(e => e.stat === stat && e.type === "gainFlat")
+      .reduce((sum, e) => sum + e.value, 0);
+  }
+  return type === "decayMult" ? 1 : 0;
+}
+
 // Weighted like a loot table: common small items far more likely than the
 // rare big ones. Kept in sync with the DROP_ITEMS list in gotchya.html —
 // if that list changes, update this one too. Names/icons included here
@@ -436,40 +514,176 @@ const GOTCHYA_FURNITURE = [
   { id: "food_bowl", name: "Automatic Feeder", icon: "🥣", desc: "-30% hunger decay rate", cost: 3000, effect: "hungerDecayMult", value: 0.7 },
   { id: "scratch_post", name: "Scratching Post", icon: "🪵", desc: "-30% happiness decay rate", cost: 3000, effect: "happinessDecayMult", value: 0.7 },
   { id: "alarm_clock", name: "Alarm Clock", icon: "⏰", desc: "Shows current time + days since adoption", cost: 500, effect: "display", value: 1 },
-  // Purely decorative furniture — no stat effect, bought for the room's
-  // look and to give the pet more things to walk around. effect:"decor"
-  // never matches getFurnitureMultiplier's filter, so these are always
-  // no-ops for gameplay math by construction, not by convention.
-  { id: "plant", name: "Potted Plant", icon: "🪴", desc: "Decorative", cost: 400, effect: "decor", value: 1 },
-  { id: "lamp", name: "Floor Lamp", icon: "💡", desc: "Decorative", cost: 600, effect: "decor", value: 1 },
-  { id: "rug", name: "Round Rug", icon: "🟤", desc: "Decorative", cost: 350, effect: "decor", value: 1 },
-  { id: "scratcher_toy", name: "Cat Tree", icon: "🌳", desc: "Decorative", cost: 1200, effect: "decor", value: 1 },
-  { id: "fishtank", name: "Fish Tank", icon: "🐠", desc: "Decorative", cost: 1500, effect: "decor", value: 1 },
-  { id: "trophy", name: "Trophy Shelf", icon: "🏆", desc: "Decorative", cost: 2000, effect: "decor", value: 1 },
-  { id: "window", name: "Window", icon: "🪟", desc: "Decorative", cost: 800, effect: "decor", value: 1 },
-  { id: "mirror", name: "Wall Mirror", icon: "🪞", desc: "Decorative", cost: 900, effect: "decor", value: 1 },
+  // Purely decorative furniture — no stat effect, bought OR found, for the
+  // room's look and to give the pet more things to walk around.
+  // effect:"decor" never matches getFurnitureMultiplier's filter, so
+  // these are always no-ops for gameplay math by construction, not by
+  // convention. Each has a rarity tier controlling how often it can be
+  // found as a random drop (see GOTCHYA_RARITY_WEIGHTS below) — cost
+  // still applies if bought directly from the Shop instead.
+  { id: "plant", name: "Potted Plant", icon: "🪴", desc: "Decorative", cost: 400, effect: "decor", value: 1, rarity: "common" },
+  { id: "lamp", name: "Floor Lamp", icon: "💡", desc: "Decorative", cost: 600, effect: "decor", value: 1, rarity: "common" },
+  { id: "rug", name: "Round Rug", icon: "🟤", desc: "Decorative", cost: 350, effect: "decor", value: 1, rarity: "common" },
+  { id: "window", name: "Window", icon: "🪟", desc: "Decorative", cost: 800, effect: "decor", value: 1, rarity: "uncommon" },
+  { id: "mirror", name: "Wall Mirror", icon: "🪞", desc: "Decorative", cost: 900, effect: "decor", value: 1, rarity: "uncommon" },
+  { id: "scratcher_toy", name: "Cat Tree", icon: "🌳", desc: "Decorative", cost: 1200, effect: "decor", value: 1, rarity: "rare" },
+  { id: "fishtank", name: "Fish Tank", icon: "🐠", desc: "Decorative", cost: 1500, effect: "decor", value: 1, rarity: "rare" },
+  { id: "trophy", name: "Trophy Shelf", icon: "🏆", desc: "Decorative", cost: 2000, effect: "decor", value: 1, rarity: "epic" },
+  // Find-only decorative furniture — never sold in the Shop at any price
+  // (no "cost" field means the Shop UI can't list it for purchase), the
+  // only way to get these is a lucky drop.
+  { id: "disco_ball", name: "Disco Ball", icon: "🪩", desc: "Decorative — find only", effect: "decor", value: 1, rarity: "legendary" },
+  { id: "golden_statue", name: "Golden Cat Statue", icon: "🗿", desc: "Decorative — find only", effect: "decor", value: 1, rarity: "legendary" },
 ];
+
+// Shared rarity weighting for every randomly-earnable cosmetic — the same
+// tiers and relative odds apply whether the roll is for a wallpaper, a
+// flooring, or a decorative furniture piece, so "legendary" means the
+// same ~0.6% chance everywhere rather than drifting per-catalog.
+const GOTCHYA_RARITY_WEIGHTS = { common: 100, uncommon: 45, rare: 18, epic: 6, legendary: 1 };
+const GOTCHYA_RARITY_LABELS = { common: "Common", uncommon: "Uncommon", rare: "Rare", epic: "Epic", legendary: "Legendary" };
+const GOTCHYA_RARITY_COLORS = { common: "#9a9aa0", uncommon: "#29ff8a", rare: "#33aaff", epic: "#c266ff", legendary: "#ffd700" };
 
 // Cosmetic room customization — wallpaper (background pattern) and
 // flooring (foreground grid tint). Purely visual, never touch stat math.
 // "default" is free and is what every pet already has, so nobody's room
-// changes until they actually buy and select something new.
+// changes until they actually buy or find something new. Each carries a
+// rarity tier the same way furniture does.
 const GOTCHYA_WALLPAPERS = [
-  { id: "default", name: "Plain", icon: "⬛", cost: 0, gradient: "radial-gradient(circle at 50% 30%, rgba(255,30,67,0.08), transparent 70%)" },
-  { id: "stars", name: "Starfield", icon: "✨", cost: 800, gradient: "radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 70% 60%, #fff, transparent), radial-gradient(1px 1px at 40% 80%, #fff, transparent), radial-gradient(1px 1px at 85% 20%, #fff, transparent), radial-gradient(circle at 50% 30%, rgba(60,30,90,0.25), transparent 70%)" },
-  { id: "sunset", name: "Sunset", icon: "🌇", cost: 1000, gradient: "linear-gradient(180deg, rgba(255,120,60,0.18), rgba(255,30,67,0.08))" },
-  { id: "forest", name: "Forest", icon: "🌲", cost: 1000, gradient: "linear-gradient(180deg, rgba(40,160,90,0.14), rgba(20,60,40,0.1))" },
-  { id: "ocean", name: "Ocean", icon: "🌊", cost: 1000, gradient: "linear-gradient(180deg, rgba(40,140,220,0.16), rgba(20,60,100,0.1))" },
-  { id: "candy", name: "Candy", icon: "🍬", cost: 1200, gradient: "linear-gradient(135deg, rgba(255,100,200,0.16), rgba(150,80,255,0.14))" },
+  { id: "default", name: "Plain", icon: "⬛", cost: 0, rarity: "common", gradient: "radial-gradient(circle at 50% 30%, rgba(255,30,67,0.08), transparent 70%)" },
+  { id: "sunset", name: "Sunset", icon: "🌇", cost: 1000, rarity: "common", gradient: "linear-gradient(180deg, rgba(255,120,60,0.18), rgba(255,30,67,0.08))" },
+  { id: "forest", name: "Forest", icon: "🌲", cost: 1000, rarity: "common", gradient: "linear-gradient(180deg, rgba(40,160,90,0.14), rgba(20,60,40,0.1))" },
+  { id: "ocean", name: "Ocean", icon: "🌊", cost: 1000, rarity: "uncommon", gradient: "linear-gradient(180deg, rgba(40,140,220,0.16), rgba(20,60,100,0.1))" },
+  { id: "stars", name: "Starfield", icon: "✨", cost: 800, rarity: "rare", gradient: "radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 70% 60%, #fff, transparent), radial-gradient(1px 1px at 40% 80%, #fff, transparent), radial-gradient(1px 1px at 85% 20%, #fff, transparent), radial-gradient(circle at 50% 30%, rgba(60,30,90,0.25), transparent 70%)" },
+  { id: "candy", name: "Candy", icon: "🍬", cost: 1200, rarity: "epic", gradient: "linear-gradient(135deg, rgba(255,100,200,0.16), rgba(150,80,255,0.14))" },
+  // Find-only wallpaper.
+  { id: "aurora", name: "Aurora", icon: "🌌", rarity: "legendary", gradient: "linear-gradient(160deg, rgba(60,255,180,0.22), rgba(120,60,255,0.2), rgba(255,60,180,0.18))" },
 ];
 
 const GOTCHYA_FLOORINGS = [
-  { id: "default", name: "Concrete", icon: "⬛", cost: 0, color: "rgba(255,30,67,0.06)" },
-  { id: "wood", name: "Wood Floor", icon: "🟫", cost: 600, color: "rgba(200,140,70,0.14)" },
-  { id: "tile", name: "Checker Tile", icon: "⬜", cost: 600, color: "rgba(220,220,230,0.1)" },
-  { id: "grass", name: "Grass", icon: "🟩", cost: 900, color: "rgba(80,200,100,0.14)" },
-  { id: "sand", name: "Sand", icon: "🟨", cost: 900, color: "rgba(230,200,110,0.14)" },
+  { id: "default", name: "Concrete", icon: "⬛", cost: 0, rarity: "common", color: "rgba(255,30,67,0.06)" },
+  { id: "wood", name: "Wood Floor", icon: "🟫", cost: 600, rarity: "common", color: "rgba(200,140,70,0.14)" },
+  { id: "tile", name: "Checker Tile", icon: "⬜", cost: 600, rarity: "common", color: "rgba(220,220,230,0.1)" },
+  { id: "grass", name: "Grass", icon: "🟩", cost: 900, rarity: "uncommon", color: "rgba(80,200,100,0.14)" },
+  { id: "sand", name: "Sand", icon: "🟨", cost: 900, rarity: "rare", color: "rgba(230,200,110,0.14)" },
+  // Find-only flooring.
+  { id: "galaxy", name: "Galaxy Floor", icon: "🌠", rarity: "legendary", color: "rgba(140,70,255,0.2)" },
 ];
+
+// Rolls one random cosmetic item across wallpaper + flooring + decorative
+// furniture combined into a single pool, weighted first by rarity tier
+// and then evenly within that tier. Call this on a win/success in any
+// game, same trigger points as rollGotchyaDrop. Returns { kind, id } or
+// null if the roll missed, no pet is adopted, or the item is already
+// owned (never re-grants a duplicate cosmetic).
+function rollGotchyaCosmetic(chance){
+  if(Math.random() > chance) return null;
+  const pet = getGotchyaPet();
+  if(!pet) return null;
+
+  const pool = [
+    ...GOTCHYA_FURNITURE.filter(f => f.effect === "decor").map(f => ({ kind: "furniture", id: f.id, rarity: f.rarity, name: f.name, icon: f.icon })),
+    ...GOTCHYA_WALLPAPERS.filter(w => w.id !== "default").map(w => ({ kind: "wallpaper", id: w.id, rarity: w.rarity, name: w.name, icon: w.icon })),
+    ...GOTCHYA_FLOORINGS.filter(f => f.id !== "default").map(f => ({ kind: "flooring", id: f.id, rarity: f.rarity, name: f.name, icon: f.icon })),
+  ].filter(entry => {
+    // Skip anything already owned so a lucky roll never "wastes" itself
+    // on a duplicate — re-rolls effectively favor what's left to find.
+    if(entry.kind === "furniture") return !(pet.furniture && pet.furniture[entry.id]);
+    if(entry.kind === "wallpaper") return !(pet.ownedWallpapers && pet.ownedWallpapers[entry.id]);
+    if(entry.kind === "flooring") return !(pet.ownedFloorings && pet.ownedFloorings[entry.id]);
+    return true;
+  });
+  if(pool.length === 0) return null; // everything already owned
+
+  const totalWeight = pool.reduce((sum, e) => sum + (GOTCHYA_RARITY_WEIGHTS[e.rarity] || 1), 0);
+  let r = Math.random() * totalWeight;
+  let chosen = pool[0];
+  for(const entry of pool){
+    const w = GOTCHYA_RARITY_WEIGHTS[entry.rarity] || 1;
+    if(r < w){ chosen = entry; break; }
+    r -= w;
+  }
+
+  if(chosen.kind === "furniture"){
+    pet.furniture = pet.furniture || {};
+    pet.furniture[chosen.id] = true;
+  } else if(chosen.kind === "wallpaper"){
+    pet.ownedWallpapers = pet.ownedWallpapers || {};
+    pet.ownedWallpapers[chosen.id] = true;
+  } else if(chosen.kind === "flooring"){
+    pet.ownedFloorings = pet.ownedFloorings || {};
+    pet.ownedFloorings[chosen.id] = true;
+  }
+  saveGotchyaPet(pet);
+  document.dispatchEvent(new CustomEvent("gotchya:cosmetic-found", { detail: chosen }));
+
+  const rarityLabel = GOTCHYA_RARITY_LABELS[chosen.rarity] || "";
+  queueWinNotification(`${chosen.icon} ${rarityLabel} find! ${chosen.name} for ${pet.name || "your pet"}!`);
+  return chosen;
+}
+
+// Computes what rollGotchyaCosmetic would roll, using the exact same
+// rarity-weighted pool and already-owned filtering, but WITHOUT granting
+// or saving anything — for callers (like Crossing's on-board pickups)
+// that need to know the item at spawn time for display purposes, while
+// deferring the actual grant until the player successfully claims it.
+// Call grantGotchyaCosmetic(result) later to actually apply a peeked roll.
+function peekGotchyaCosmetic(){
+  const pet = getGotchyaPet();
+  if(!pet) return null;
+
+  const pool = [
+    ...GOTCHYA_FURNITURE.filter(f => f.effect === "decor").map(f => ({ kind: "furniture", id: f.id, rarity: f.rarity, name: f.name, icon: f.icon })),
+    ...GOTCHYA_WALLPAPERS.filter(w => w.id !== "default").map(w => ({ kind: "wallpaper", id: w.id, rarity: w.rarity, name: w.name, icon: w.icon })),
+    ...GOTCHYA_FLOORINGS.filter(f => f.id !== "default").map(f => ({ kind: "flooring", id: f.id, rarity: f.rarity, name: f.name, icon: f.icon })),
+  ].filter(entry => {
+    if(entry.kind === "furniture") return !(pet.furniture && pet.furniture[entry.id]);
+    if(entry.kind === "wallpaper") return !(pet.ownedWallpapers && pet.ownedWallpapers[entry.id]);
+    if(entry.kind === "flooring") return !(pet.ownedFloorings && pet.ownedFloorings[entry.id]);
+    return true;
+  });
+  if(pool.length === 0) return null;
+
+  const totalWeight = pool.reduce((sum, e) => sum + (GOTCHYA_RARITY_WEIGHTS[e.rarity] || 1), 0);
+  let r = Math.random() * totalWeight;
+  let chosen = pool[0];
+  for(const entry of pool){
+    const w = GOTCHYA_RARITY_WEIGHTS[entry.rarity] || 1;
+    if(r < w){ chosen = entry; break; }
+    r -= w;
+  }
+  return chosen;
+}
+
+// Actually applies a previously-peeked cosmetic roll: grants it to the
+// pet, saves, and fires the same notification rollGotchyaCosmetic does.
+// Re-checks ownership at grant time (not just at peek time) in case the
+// player found the same item some other way in between.
+function grantGotchyaCosmetic(peeked){
+  if(!peeked) return null;
+  const pet = getGotchyaPet();
+  if(!pet) return null;
+
+  if(peeked.kind === "furniture"){
+    if(pet.furniture && pet.furniture[peeked.id]) return null; // already owned since the peek
+    pet.furniture = pet.furniture || {};
+    pet.furniture[peeked.id] = true;
+  } else if(peeked.kind === "wallpaper"){
+    if(pet.ownedWallpapers && pet.ownedWallpapers[peeked.id]) return null;
+    pet.ownedWallpapers = pet.ownedWallpapers || {};
+    pet.ownedWallpapers[peeked.id] = true;
+  } else if(peeked.kind === "flooring"){
+    if(pet.ownedFloorings && pet.ownedFloorings[peeked.id]) return null;
+    pet.ownedFloorings = pet.ownedFloorings || {};
+    pet.ownedFloorings[peeked.id] = true;
+  }
+  saveGotchyaPet(pet);
+  document.dispatchEvent(new CustomEvent("gotchya:cosmetic-found", { detail: peeked }));
+
+  const rarityLabel = GOTCHYA_RARITY_LABELS[peeked.rarity] || "";
+  queueWinNotification(`${peeked.icon} ${rarityLabel} find! ${peeked.name} for ${pet.name || "your pet"}!`);
+  return peeked;
+}
 
 // Computes the combined multiplier for a given effect across all furniture
 // the pet owns. Same-effect items stack multiplicatively (two -30% decay

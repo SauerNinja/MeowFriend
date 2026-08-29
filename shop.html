@@ -380,6 +380,37 @@
     <div class="flex flex-col gap-3" id="furnitureShopList"></div>
   </section>
 
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="decor-heading">
+    <p class="panel-eyebrow mb-3">ROOM DECOR</p>
+    <h2 id="decor-heading" class="panel-heading mb-4">DECORATIVE FURNITURE</h2>
+    <p class="body-copy mb-4">
+      Purely cosmetic — no stat effect. Also rarely findable by playing Slots, Crossing, Runner, or
+      Cat Hack, at the same odds regardless of how you get them. Higher rarity items cost more and
+      are harder to find in-game.
+    </p>
+    <div class="flex flex-col gap-3" id="decorShopList"></div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="wallpaper-heading">
+    <p class="panel-eyebrow mb-3">ROOM DECOR</p>
+    <h2 id="wallpaper-heading" class="panel-heading mb-4">WALLPAPER</h2>
+    <p class="body-copy mb-4">
+      Owned wallpapers can be selected in Gotchya's Build Mode. Some are find-only and can never be
+      bought here.
+    </p>
+    <div class="flex flex-col gap-3" id="wallpaperShopList"></div>
+  </section>
+
+  <section class="info-panel p-6 sm:p-8 mt-6" aria-labelledby="flooring-heading">
+    <p class="panel-eyebrow mb-3">ROOM DECOR</p>
+    <h2 id="flooring-heading" class="panel-heading mb-4">FLOORING</h2>
+    <p class="body-copy mb-4">
+      Owned flooring can be selected in Gotchya's Build Mode. Some are find-only and can never be
+      bought here.
+    </p>
+    <div class="flex flex-col gap-3" id="flooringShopList"></div>
+  </section>
+
   <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
     <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
     <p class="mt-2">NOT AFFILIATED WITH THE OFFICIAL MEOWCOIN TEAM. NOT FINANCIAL ADVICE.</p>
@@ -393,6 +424,9 @@
   const ticketDisplay = document.getElementById("ticketDisplay");
   const itemList = document.getElementById("itemList");
   const furnitureShopList = document.getElementById("furnitureShopList");
+  const decorShopList = document.getElementById("decorShopList");
+  const wallpaperShopList = document.getElementById("wallpaperShopList");
+  const flooringShopList = document.getElementById("flooringShopList");
   const noPetWarning = document.getElementById("noPetWarning");
 
   // Weight/IQ items — these only otherwise drop from playing Slots,
@@ -422,6 +456,7 @@
     { id: "playground", name: "Cat Playground", icon: "🏰", desc: "+70 happiness, -28 hunger", cost: 16 },
     { id: "pillow", name: "Soft Pillow", icon: "🛏️", desc: "+25 energy", cost: 5 },
     { id: "blanket", name: "Warm Blanket", icon: "🧣", desc: "+40 energy", cost: 8 },
+    { id: "medicine", name: "Medicine", icon: "💊", desc: "Cures sickness", cost: 300 },
   ];
 
   function updateTicketDisplay(){
@@ -585,9 +620,10 @@
     const pet = getGotchyaPet();
     noPetWarning.classList.toggle("hidden", !!pet);
 
-    furnitureShopList.innerHTML = "";
-    GOTCHYA_FURNITURE.forEach(item => {
-      const owned = pet && pet.furniture && pet.furniture[item.id];
+    function furnitureRow(item, owned){
+      const rarityBadge = item.rarity && item.rarity !== "common"
+        ? `<span style="color:${GOTCHYA_RARITY_COLORS[item.rarity]}; text-shadow:0 0 4px ${GOTCHYA_RARITY_COLORS[item.rarity]}; font-size:10px; margin-left:6px;">${GOTCHYA_RARITY_LABELS[item.rarity]}</span>`
+        : "";
       const row = document.createElement("div");
       row.className = "shop-item" + (owned ? " owned" : "");
       row.innerHTML = owned
@@ -595,7 +631,7 @@
           <div class="shop-item-info">
             <span class="shop-item-icon">${item.icon}</span>
             <div>
-              <div class="shop-item-name">${item.name}</div>
+              <div class="shop-item-name">${item.name}${rarityBadge}</div>
               <div class="shop-item-desc">${item.desc}</div>
             </div>
           </div>
@@ -605,21 +641,106 @@
           <div class="shop-item-info">
             <span class="shop-item-icon">${item.icon}</span>
             <div>
-              <div class="shop-item-name">${item.name}</div>
+              <div class="shop-item-name">${item.name}${rarityBadge}</div>
               <div class="shop-item-desc">${item.desc}</div>
             </div>
           </div>
           <button type="button" class="shop-buy-btn" data-furniture="${item.id}" data-cost="${item.cost}">${item.cost.toLocaleString()} 🎟️</button>
         `;
-      furnitureShopList.appendChild(row);
+      return row;
+    }
+
+    // Functional (stat-affecting) furniture — never randomly findable,
+    // always exactly this list, purchase-only.
+    furnitureShopList.innerHTML = "";
+    GOTCHYA_FURNITURE.filter(item => item.effect !== "decor").forEach(item => {
+      const owned = pet && pet.furniture && pet.furniture[item.id];
+      furnitureShopList.appendChild(furnitureRow(item, owned));
     });
 
-    furnitureShopList.querySelectorAll(".shop-buy-btn[data-furniture]").forEach(btn => {
-      const cost = parseInt(btn.dataset.cost, 10);
-      const needsPet = !pet;
-      btn.disabled = needsPet || getTickets() < cost;
-      btn.addEventListener("click", () => buyFurniture(btn.dataset.furniture, cost));
+    // Decorative furniture — purchasable here (Find-only items with no
+    // cost field, e.g. Disco Ball, Golden Cat Statue, are excluded; they
+    // can only ever be won as a rare drop from playing the other games).
+    decorShopList.innerHTML = "";
+    GOTCHYA_FURNITURE.filter(item => item.effect === "decor" && typeof item.cost === "number").forEach(item => {
+      const owned = pet && pet.furniture && pet.furniture[item.id];
+      decorShopList.appendChild(furnitureRow(item, owned));
     });
+
+    [furnitureShopList, decorShopList].forEach(list => {
+      list.querySelectorAll(".shop-buy-btn[data-furniture]").forEach(btn => {
+        const cost = parseInt(btn.dataset.cost, 10);
+        const needsPet = !pet;
+        btn.disabled = needsPet || getTickets() < cost;
+        btn.addEventListener("click", () => buyFurniture(btn.dataset.furniture, cost));
+      });
+    });
+
+    renderCosmeticShop(wallpaperShopList, GOTCHYA_WALLPAPERS, "wallpaper", pet);
+    renderCosmeticShop(flooringShopList, GOTCHYA_FLOORINGS, "flooring", pet);
+  }
+
+  // Shared renderer for wallpaper/flooring shop rows — same owned-badge /
+  // buy-button / rarity-label pattern as furniture, just against
+  // pet.ownedWallpapers / pet.ownedFloorings instead of pet.furniture.
+  // Find-only entries (no cost field) are excluded from purchase the same
+  // way find-only furniture is.
+  function renderCosmeticShop(listEl, catalog, kind, pet){
+    const ownedKey = kind === "wallpaper" ? "ownedWallpapers" : "ownedFloorings";
+    listEl.innerHTML = "";
+    catalog.filter(item => item.id !== "default" && typeof item.cost === "number").forEach(item => {
+      const owned = pet && pet[ownedKey] && pet[ownedKey][item.id];
+      const rarityBadge = item.rarity && item.rarity !== "common"
+        ? `<span style="color:${GOTCHYA_RARITY_COLORS[item.rarity]}; text-shadow:0 0 4px ${GOTCHYA_RARITY_COLORS[item.rarity]}; font-size:10px; margin-left:6px;">${GOTCHYA_RARITY_LABELS[item.rarity]}</span>`
+        : "";
+      const row = document.createElement("div");
+      row.className = "shop-item" + (owned ? " owned" : "");
+      row.innerHTML = owned
+        ? `
+          <div class="shop-item-info">
+            <span class="shop-item-icon">${item.icon}</span>
+            <div class="shop-item-name">${item.name}${rarityBadge}</div>
+          </div>
+          <span class="owned-badge">OWNED</span>
+        `
+        : `
+          <div class="shop-item-info">
+            <span class="shop-item-icon">${item.icon}</span>
+            <div class="shop-item-name">${item.name}${rarityBadge}</div>
+          </div>
+          <button type="button" class="shop-buy-btn" data-cosmetic="${item.id}" data-kind="${kind}" data-cost="${item.cost}">${item.cost.toLocaleString()} 🎟️</button>
+        `;
+      listEl.appendChild(row);
+    });
+
+    listEl.querySelectorAll(".shop-buy-btn[data-cosmetic]").forEach(btn => {
+      const cost = parseInt(btn.dataset.cost, 10);
+      btn.disabled = !pet || getTickets() < cost;
+      btn.addEventListener("click", () => buyCosmetic(btn.dataset.cosmetic, btn.dataset.kind, cost));
+    });
+  }
+
+  function buyCosmetic(itemId, kind, cost){
+    const pet = getGotchyaPet();
+    if(!pet){
+      noPetWarning.classList.remove("hidden");
+      showPurchaseToast("ADOPT A PET FIRST");
+      return;
+    }
+    if(getTickets() < cost) return;
+
+    const ownedKey = kind === "wallpaper" ? "ownedWallpapers" : "ownedFloorings";
+    if(pet[ownedKey] && pet[ownedKey][itemId]) return;
+
+    const catalog = kind === "wallpaper" ? GOTCHYA_WALLPAPERS : GOTCHYA_FLOORINGS;
+    const item = catalog.find(i => i.id === itemId);
+
+    addTickets(-cost);
+    pet[ownedKey] = pet[ownedKey] || {};
+    pet[ownedKey][itemId] = true;
+    saveGotchyaPet(pet);
+    renderFurniture();
+    showPurchaseToast(`✓ BOUGHT ${item ? item.name.toUpperCase() : "ITEM"}`);
   }
 
   function buyFurniture(itemId, cost){

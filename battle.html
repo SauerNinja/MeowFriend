@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MeowFriend — Battle</title>
+<meta name="description" content="Battle another player's pet using a shared hex code — 10 simulated rounds, purely for fun, no consequences.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sauerninja.github.io/MeowFriend/battle.html">
+
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="shortcut icon" href="assets/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="MeowFriend — Battle">
+<meta property="og:description" content="Battle another player's pet using a shared hex code — purely for fun.">
+<meta property="og:image" content="https://sauerninja.github.io/MeowFriend/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="MeowFriend logo: a glowing black cat face beside the MEOWFRIEND wordmark on a dark neon-red arcade console background">
+<meta property="og:url" content="https://sauerninja.github.io/MeowFriend/battle.html">
+<meta property="og:site_name" content="MeowFriend">
+<meta property="og:locale" content="en_US">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MeowFriend — Battle">
+<meta name="twitter:description" content="Battle another player's pet using a shared hex code — purely for fun.">
+<meta name="twitter:image" content="https://sauerninja.github.io/MeowFriend/assets/og-image.png">
+<meta name="twitter:image:alt" content="MeowFriend glowing cat logo on a neon-red arcade console background">
+
+<script src="shared-tickets.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root{
+    --neon-red: #ff1e43;
+    --neon-red-bright: #ff0033;
+    --led-bg: #0a0a0c;
+  }
+  * { box-sizing: border-box; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, #14090b 0%, #000000 55%);
+    font-family: 'Press Start 2P', monospace;
+    color: #ffb3bd;
+    min-height: 100vh;
+  }
+
+  .scanlines::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 3px);
+    z-index: 50;
+  }
+
+  .neon-text{
+    color: var(--neon-red);
+    text-shadow: 0 0 2px var(--neon-red-bright), 0 0 8px var(--neon-red), 0 0 18px var(--neon-red);
+  }
+
+  .back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: #ff8b96;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+  .back-link:hover{ color: var(--neon-red); }
+
+  .led-screen{
+    background: var(--led-bg);
+    border: 3px solid #3a3a42;
+    box-shadow: inset 0 0 12px rgba(255,30,67,0.25), inset 0 0 0 2px #000;
+    padding: 10px 8px;
+  }
+  .led-label{ font-size: 8px; color: #7a3038; letter-spacing: 1px; margin-bottom: 6px; }
+  .led-value{
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+
+  .info-panel{
+    border: 2px solid #2a2a30;
+    background: linear-gradient(180deg, rgba(34,34,40,0.35), rgba(10,10,12,0.35));
+    box-shadow: inset 0 0 20px rgba(255,30,67,0.06), 0 0 0 1px #000;
+  }
+  .panel-eyebrow{
+    font-size: 9px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+    letter-spacing: 3px;
+  }
+  .panel-heading{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--neon-red);
+    text-shadow: 0 0 4px var(--neon-red-bright), 0 0 10px var(--neon-red);
+  }
+  .body-copy{
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.65;
+    color: #ffc7cf;
+  }
+
+  .draft-warning{
+    border: 2px dashed #ffb347;
+    background: rgba(255,179,71,0.06);
+    padding: 12px 14px;
+  }
+
+  .hex-output{
+    width: 100%;
+    background: #0a0a0c;
+    border: 2px solid #3a3a42;
+    color: #29ff8a;
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    letter-spacing: 1px;
+    padding: 10px;
+    word-break: break-all;
+    resize: none;
+  }
+  .hex-input{
+    width: 100%;
+    background: #0a0a0c;
+    border: 2px solid #3a3a42;
+    color: var(--neon-red);
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    letter-spacing: 1px;
+    padding: 10px;
+  }
+  .hex-input:focus, .hex-output:focus{ outline: none; box-shadow: 0 0 0 2px var(--neon-red); }
+  .hex-input.invalid{ border-color: #ff5566; box-shadow: 0 0 0 2px #ff5566; }
+
+  .submit-btn{
+    background: transparent;
+    border: 2px solid var(--neon-red);
+    color: var(--neon-red);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 12px 16px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+  .submit-btn:hover:not(:disabled){ filter: brightness(1.2); }
+  .submit-btn:disabled{ opacity: 0.4; cursor: not-allowed; }
+
+  .fight-btn{
+    background: linear-gradient(180deg, #ff2f4d 0%, #d80f2b 55%, #9c0a1f 100%);
+    border: 3px solid #7a0818;
+    box-shadow: 0 6px 0 #6e0716, 0 0 16px rgba(255,30,67,0.5);
+    color: #fff0f2;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding: 14px 20px;
+    cursor: pointer;
+  }
+  .fight-btn:hover:not(:disabled){ filter: brightness(1.12); }
+  .fight-btn:disabled{ opacity: 0.4; cursor: not-allowed; }
+
+  .vs-row{
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+  }
+  .vs-label{
+    font-size: 16px;
+    color: var(--neon-red);
+    text-shadow: 0 0 6px var(--neon-red);
+  }
+  .fighter-card{
+    border: 2px solid #2a2a30;
+    background: #0a0a0c;
+    padding: 12px;
+    text-align: center;
+  }
+  .fighter-icon{ font-size: 34px; }
+  .fighter-name{ font-size: 11px; color: var(--neon-red); margin-top: 6px; text-shadow: 0 0 4px var(--neon-red); word-break: break-word; }
+  .fighter-stats{ font-family: 'VT323', monospace; font-size: 14px; color: #9a5a62; margin-top: 8px; text-align: left; }
+
+  .hp-bar-track{
+    height: 10px;
+    background: #0a0a0c;
+    border: 2px solid #3a3a42;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .hp-bar-fill{
+    height: 100%;
+    background: linear-gradient(90deg, #29ff8a, #6bff29);
+    transition: width 0.3s ease;
+  }
+
+  .round-log{
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #ffc7cf;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 2px solid #2a2a30;
+    background: #0a0a0c;
+    padding: 10px;
+  }
+  .round-log div{ border-bottom: 1px dashed #2a2a30; padding: 4px 0; }
+
+  .winner-banner{
+    text-align: center;
+    padding: 16px;
+    border: 3px solid #29ff8a;
+    background: rgba(41,255,138,0.08);
+    margin-bottom: 16px;
+  }
+  .winner-banner.draw{ border-color: #ffb347; background: rgba(255,179,71,0.08); }
+
+  .hidden{ display: none; }
+
+  :focus-visible{
+    outline: 2px solid var(--neon-red);
+    outline-offset: 3px;
+  }
+</style>
+</head>
+<body class="scanlines flex items-center justify-center px-4 py-10">
+
+<main class="w-full max-w-xl">
+
+  <header class="flex flex-col items-center mb-6">
+    <a href="index.html" class="back-link mb-4">&larr; BACK TO FAUCET</a>
+    <div class="text-5xl mb-5" style="filter: drop-shadow(0 0 6px var(--neon-red-bright)) drop-shadow(0 0 16px var(--neon-red));" aria-hidden="true">⚔️</div>
+    <h1 class="neon-text text-2xl sm:text-3xl tracking-widest text-center">BATTLE</h1>
+    <p class="text-[9px] text-[#7a3038] mt-3 tracking-widest text-center">SHARE A HEX CODE, FIGHT FOR FUN</p>
+  </header>
+
+  <div class="draft-warning mb-6">
+    <p class="led-label mb-2" style="color:#ffb347;">⚠ FOR FUN ONLY — NO CONSEQUENCES</p>
+    <p class="body-copy text-base leading-snug">
+      Battling here never changes your pet's real stats, costs no tickets, and has no effect on
+      Cat Hack, Training, or anything else. It's a local, simulated fight using a snapshot of both
+      pets' stats — nothing is sent to any server.
+    </p>
+  </div>
+
+  <div id="noPetScreen" class="info-panel p-6 sm:p-8 mb-6 hidden">
+    <p class="body-copy text-center">
+      You need an adopted Gotchya pet before you can generate a battle code.
+      <a href="gotchya.html" style="color:var(--neon-red);">Adopt one first</a>.
+    </p>
+  </div>
+
+  <div id="battleSetup">
+    <section class="info-panel p-6 sm:p-8 mb-6" aria-labelledby="your-code-heading">
+      <p class="panel-eyebrow mb-3">STEP 1</p>
+      <h2 id="your-code-heading" class="panel-heading mb-4">YOUR BATTLE CODE</h2>
+      <p class="body-copy mb-3">Share this hex code with another player so they can battle your pet.</p>
+      <textarea id="yourHexOutput" class="hex-output mb-3" rows="2" readonly></textarea>
+      <button type="button" id="copyHexBtn" class="submit-btn">COPY CODE</button>
+    </section>
+
+    <section class="info-panel p-6 sm:p-8 mb-6" aria-labelledby="opponent-code-heading">
+      <p class="panel-eyebrow mb-3">STEP 2</p>
+      <h2 id="opponent-code-heading" class="panel-heading mb-4">PASTE AN OPPONENT'S CODE</h2>
+      <input type="text" id="opponentHexInput" class="hex-input mb-3" placeholder="Paste their battle code here..." autocomplete="off" spellcheck="false">
+      <p id="opponentPreview" class="body-copy text-base mb-3 hidden"></p>
+      <div class="flex justify-center">
+        <button type="button" id="fightBtn" class="fight-btn" disabled>⚔️ FIGHT — 10 ROUNDS</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="battleResults" class="hidden">
+    <div id="winnerBanner" class="winner-banner">
+      <p class="panel-heading" id="winnerText">RESULT</p>
+    </div>
+
+    <div class="vs-row mb-6">
+      <div class="fighter-card">
+        <div class="fighter-icon" id="resultIconA">🐱</div>
+        <div class="fighter-name" id="resultNameA">—</div>
+        <div class="hp-bar-track"><div class="hp-bar-fill" id="resultHpBarA" style="width:100%"></div></div>
+        <div class="led-label mt-1" id="resultHpTextA">--/--</div>
+        <div class="fighter-stats" id="resultStatsA"></div>
+      </div>
+      <div class="vs-label">VS</div>
+      <div class="fighter-card">
+        <div class="fighter-icon" id="resultIconB">🐱</div>
+        <div class="fighter-name" id="resultNameB">—</div>
+        <div class="hp-bar-track"><div class="hp-bar-fill" id="resultHpBarB" style="width:100%"></div></div>
+        <div class="led-label mt-1" id="resultHpTextB">--/--</div>
+        <div class="fighter-stats" id="resultStatsB"></div>
+      </div>
+    </div>
+
+    <section class="info-panel p-6 sm:p-8 mb-6" aria-labelledby="log-heading">
+      <p class="panel-eyebrow mb-3">BATTLE LOG</p>
+      <h2 id="log-heading" class="panel-heading mb-4">ROUND BY ROUND</h2>
+      <div class="round-log" id="roundLog"></div>
+    </section>
+
+    <div class="flex justify-center gap-3 mb-6 flex-wrap">
+      <button type="button" id="downloadResultsBtn" class="submit-btn">⬇ DOWNLOAD RESULTS (.TXT)</button>
+      <button type="button" id="newBattleBtn" class="submit-btn">NEW BATTLE</button>
+    </div>
+  </div>
+
+  <footer class="mt-8 text-center text-[8px] text-[#5c2a30] leading-relaxed">
+    <p>MEOWFRIEND IS AN INDEPENDENT FAN PROJECT AND DEMO FAUCET.</p>
+    <p class="mt-2">NOT AFFILIATED WITH THE OFFICIAL MEOWCOIN TEAM. NOT FINANCIAL ADVICE.</p>
+    <p class="mt-2">DONATIONS ARE NEVER REQUIRED. TICKETS HAVE NO VALUE OUTSIDE OF FUN.</p>
+    <p class="mt-2">&copy; 2026 MEOWFRIEND</p>
+  </footer>
+
+</main>
+
+<script>
+  // --- Compact hex encoding ---
+  // Fixed-width binary layout (26 bytes = 52 hex chars, vs. ~178 for a
+  // naive JSON-then-hex approach): 12 bytes name, 4 bytes species emoji,
+  // then 5 stats as big-endian uint16 (2 bytes each). Name/species
+  // truncation is byte-boundary-aware so a multi-byte emoji or accented
+  // character can never be cut mid-codepoint into invalid UTF-8 — verified
+  // against an adversarial case (ASCII text immediately followed by an
+  // emoji landing right at the truncation boundary) before shipping this.
+  function safeTruncateUtf8(str, maxBytes){
+    let bytes = new TextEncoder().encode(str);
+    if(bytes.length <= maxBytes) return bytes;
+    bytes = bytes.slice(0, maxBytes);
+
+    // Find the lead byte of the last codepoint that starts within this
+    // window (walk back at most 3 continuation bytes), then check
+    // whether that codepoint's full sequence actually fits — if not,
+    // drop it entirely rather than emit a corrupted partial sequence.
+    let leadIndex = bytes.length - 1;
+    let scanned = 0;
+    while(leadIndex >= 0 && (bytes[leadIndex] & 0xC0) === 0x80 && scanned < 3){
+      leadIndex--;
+      scanned++;
+    }
+    if(leadIndex < 0) return bytes;
+
+    const lead = bytes[leadIndex];
+    let expectedLen = 1;
+    if((lead & 0x80) === 0x00) expectedLen = 1;
+    else if((lead & 0xE0) === 0xC0) expectedLen = 2;
+    else if((lead & 0xF0) === 0xE0) expectedLen = 3;
+    else if((lead & 0xF8) === 0xF0) expectedLen = 4;
+
+    const actualLenAvailable = bytes.length - leadIndex;
+    if(actualLenAvailable < expectedLen){
+      return bytes.slice(0, leadIndex);
+    }
+    return bytes;
+  }
+
+  function encodePetToHex(pet){
+    const namePadded = new Uint8Array(12);
+    namePadded.set(safeTruncateUtf8(pet.name || "Pet", 12));
+    const speciesPadded = new Uint8Array(4);
+    speciesPadded.set(safeTruncateUtf8(pet.species || "🐱", 4));
+
+    const stats = [
+      Math.min(65535, Math.max(0, Math.round(pet.weight || 0))),
+      Math.min(65535, Math.max(0, Math.round(pet.iq || 0))),
+      Math.min(65535, Math.max(0, Math.round(pet.strength || 0))),
+      Math.min(65535, Math.max(0, Math.round(pet.endurance || 0))),
+      Math.min(65535, Math.max(0, Math.round(pet.agility || 0))),
+    ];
+
+    const buf = new Uint8Array(26);
+    buf.set(namePadded, 0);
+    buf.set(speciesPadded, 12);
+    stats.forEach((s, i) => {
+      buf[16 + i * 2] = (s >> 8) & 0xFF;
+      buf[16 + i * 2 + 1] = s & 0xFF;
+    });
+
+    return Array.from(buf).map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+  }
+
+  function decodeHexToFighter(hex){
+    const clean = (hex || "").trim().replace(/\s+/g, "");
+    // Exactly 52 hex chars for 26 bytes — anything else is rejected
+    // outright rather than guessed at.
+    if(!/^[0-9A-Fa-f]{52}$/.test(clean)) return null;
+
+    const buf = new Uint8Array(26);
+    for(let i = 0; i < 52; i += 2){
+      buf[i / 2] = parseInt(clean.substr(i, 2), 16);
+    }
+
+    // Non-fatal decode: a hand-edited or corrupted code degrades to a
+    // replacement character rather than throwing and breaking the page.
+    const nameBytes = buf.slice(0, 12);
+    const nameEnd = nameBytes.indexOf(0) === -1 ? 12 : nameBytes.indexOf(0);
+    const name = new TextDecoder("utf-8").decode(nameBytes.slice(0, nameEnd)).trim() || "Pet";
+
+    const speciesBytes = buf.slice(12, 16);
+    const speciesEnd = speciesBytes.indexOf(0) === -1 ? 4 : speciesBytes.indexOf(0);
+    const species = new TextDecoder("utf-8").decode(speciesBytes.slice(0, speciesEnd)).trim() || "🐱";
+
+    const stats = [];
+    for(let i = 0; i < 5; i++){
+      stats.push((buf[16 + i * 2] << 8) | buf[16 + i * 2 + 1]);
+    }
+    return { name, species, weight: stats[0], iq: stats[1], strength: stats[2], endurance: stats[3], agility: stats[4] };
+  }
+
+  function calcMaxHp(weight){ return Math.round(20 + (weight || 0) * 3); }
+  function calcMaxMp(iq){ return Math.round(5 + (iq || 0) * 2); }
+
+  // --- Battle simulation ---
+  // Verified via simulation before building this UI: a clearly stronger
+  // pet wins consistently, a slightly-better pet wins meaningfully more
+  // often but not deterministically, so stats matter without removing
+  // all suspense from a close fight. Agility affects hit chance,
+  // Strength affects damage dealt, Endurance mitigates damage taken.
+  function simulateBattle(fighterA, fighterB){
+    const hpA0 = calcMaxHp(fighterA.weight), hpB0 = calcMaxHp(fighterB.weight);
+    let hpA = hpA0, hpB = hpB0;
+    const rounds = [];
+
+    for(let i = 1; i <= 10; i++){
+      const hitChanceA = Math.max(0.3, Math.min(0.95, 0.65 + (fighterA.agility - fighterB.agility) * 0.01));
+      const hitChanceB = Math.max(0.3, Math.min(0.95, 0.65 + (fighterB.agility - fighterA.agility) * 0.01));
+      const aHits = Math.random() < hitChanceA;
+      const bHits = Math.random() < hitChanceB;
+
+      let dmgToB = 0, dmgToA = 0;
+      if(aHits && hpB > 0){
+        const base = 3 + (fighterA.strength || 0) * 0.3;
+        const mitigation = 1 - Math.min(0.5, (fighterB.endurance || 0) * 0.01);
+        dmgToB = Math.max(1, Math.round(base * mitigation));
+        hpB = Math.max(0, hpB - dmgToB);
+      }
+      if(bHits && hpA > 0){
+        const base = 3 + (fighterB.strength || 0) * 0.3;
+        const mitigation = 1 - Math.min(0.5, (fighterA.endurance || 0) * 0.01);
+        dmgToA = Math.max(1, Math.round(base * mitigation));
+        hpA = Math.max(0, hpA - dmgToA);
+      }
+
+      rounds.push({ round: i, aHits, bHits, dmgToA, dmgToB, hpA, hpB });
+      if(hpA <= 0 || hpB <= 0) break;
+    }
+
+    let winner;
+    if(hpA <= 0 && hpB <= 0) winner = "draw";
+    else if(hpB <= 0) winner = "A";
+    else if(hpA <= 0) winner = "B";
+    else winner = hpA > hpB ? "A" : hpA < hpB ? "B" : "draw";
+
+    return { rounds, winner, hpA, hpB, hpA0, hpB0 };
+  }
+
+  // --- Page wiring ---
+  const noPetScreen = document.getElementById("noPetScreen");
+  const battleSetup = document.getElementById("battleSetup");
+  const yourHexOutput = document.getElementById("yourHexOutput");
+  const copyHexBtn = document.getElementById("copyHexBtn");
+  const opponentHexInput = document.getElementById("opponentHexInput");
+  const opponentPreview = document.getElementById("opponentPreview");
+  const fightBtn = document.getElementById("fightBtn");
+  const battleResults = document.getElementById("battleResults");
+
+  let myFighter = null;
+  let opponentFighter = null;
+  let lastBattleResult = null;
+
+  function petToFighter(pet){
+    return {
+      name: pet.name || "Pet",
+      species: pet.species || "🐱",
+      weight: pet.weight || 0,
+      iq: pet.iq || 0,
+      strength: pet.strength || 0,
+      endurance: pet.endurance || 0,
+      agility: pet.agility || 0,
+    };
+  }
+
+  function init(){
+    const myPet = getGotchyaPet();
+    if(!myPet){
+      noPetScreen.classList.remove("hidden");
+      battleSetup.classList.add("hidden");
+      return;
+    }
+    myFighter = petToFighter(myPet);
+    yourHexOutput.value = encodePetToHex(myFighter);
+  }
+
+  copyHexBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(yourHexOutput.value);
+      copyHexBtn.textContent = "COPIED!";
+    } catch {
+      yourHexOutput.select();
+      copyHexBtn.textContent = "SELECTED";
+    }
+    setTimeout(() => { copyHexBtn.textContent = "COPY CODE"; }, 2000);
+  });
+
+  opponentHexInput.addEventListener("input", () => {
+    const hex = opponentHexInput.value.trim();
+    opponentHexInput.classList.remove("invalid");
+    if(!hex){
+      opponentPreview.classList.add("hidden");
+      fightBtn.disabled = true;
+      opponentFighter = null;
+      return;
+    }
+    const decoded = decodeHexToFighter(hex);
+    if(!decoded){
+      opponentHexInput.classList.add("invalid");
+      opponentPreview.textContent = "Invalid battle code — check it was copied in full.";
+      opponentPreview.classList.remove("hidden");
+      fightBtn.disabled = true;
+      opponentFighter = null;
+      return;
+    }
+    opponentFighter = decoded;
+    opponentPreview.textContent = `${decoded.species} ${decoded.name} — STR ${decoded.strength} · END ${decoded.endurance} · AGI ${decoded.agility}`;
+    opponentPreview.classList.remove("hidden");
+    fightBtn.disabled = false;
+  });
+
+  fightBtn.addEventListener("click", () => {
+    if(!myFighter || !opponentFighter) return;
+    lastBattleResult = simulateBattle(myFighter, opponentFighter);
+    renderResults(lastBattleResult);
+    battleSetup.classList.add("hidden");
+    battleResults.classList.remove("hidden");
+  });
+
+  function renderResults(result){
+    const winnerBanner = document.getElementById("winnerBanner");
+    const winnerText = document.getElementById("winnerText");
+    winnerBanner.classList.remove("draw");
+    if(result.winner === "draw"){
+      winnerText.textContent = "DRAW!";
+      winnerBanner.classList.add("draw");
+    } else if(result.winner === "A"){
+      winnerText.textContent = `${myFighter.name.toUpperCase()} WINS!`;
+    } else {
+      winnerText.textContent = `${opponentFighter.name.toUpperCase()} WINS!`;
+    }
+
+    document.getElementById("resultIconA").textContent = myFighter.species;
+    document.getElementById("resultNameA").textContent = myFighter.name;
+    document.getElementById("resultHpBarA").style.width = `${Math.max(0, (result.hpA / result.hpA0) * 100)}%`;
+    document.getElementById("resultHpTextA").textContent = `${result.hpA}/${result.hpA0} HP`;
+    document.getElementById("resultStatsA").innerHTML = `Weight ${myFighter.weight} · IQ ${myFighter.iq}<br>STR ${myFighter.strength} · END ${myFighter.endurance} · AGI ${myFighter.agility}`;
+
+    document.getElementById("resultIconB").textContent = opponentFighter.species;
+    document.getElementById("resultNameB").textContent = opponentFighter.name;
+    document.getElementById("resultHpBarB").style.width = `${Math.max(0, (result.hpB / result.hpB0) * 100)}%`;
+    document.getElementById("resultHpTextB").textContent = `${result.hpB}/${result.hpB0} HP`;
+    document.getElementById("resultStatsB").innerHTML = `Weight ${opponentFighter.weight} · IQ ${opponentFighter.iq}<br>STR ${opponentFighter.strength} · END ${opponentFighter.endurance} · AGI ${opponentFighter.agility}`;
+
+    const roundLog = document.getElementById("roundLog");
+    roundLog.innerHTML = result.rounds.map(r => {
+      const aLine = r.aHits ? `${myFighter.name} hits for ${r.dmgToB} dmg` : `${myFighter.name} misses`;
+      const bLine = r.bHits ? `${opponentFighter.name} hits for ${r.dmgToA} dmg` : `${opponentFighter.name} misses`;
+      return `<div>Round ${r.round}: ${aLine} — ${bLine} (HP: ${r.hpA} / ${r.hpB})</div>`;
+    }).join("");
+  }
+
+  document.getElementById("downloadResultsBtn").addEventListener("click", () => {
+    if(!lastBattleResult) return;
+    const r = lastBattleResult;
+    const lines = [];
+    lines.push("MEOWFRIEND BATTLE RESULTS");
+    lines.push("==========================");
+    lines.push("");
+    lines.push(`${myFighter.species} ${myFighter.name}  (hex: ${yourHexOutput.value})`);
+    lines.push(`  Weight ${myFighter.weight} | IQ ${myFighter.iq} | STR ${myFighter.strength} | END ${myFighter.endurance} | AGI ${myFighter.agility}`);
+    lines.push("");
+    lines.push(`${opponentFighter.species} ${opponentFighter.name}  (hex: ${opponentHexInput.value.trim()})`);
+    lines.push(`  Weight ${opponentFighter.weight} | IQ ${opponentFighter.iq} | STR ${opponentFighter.strength} | END ${opponentFighter.endurance} | AGI ${opponentFighter.agility}`);
+    lines.push("");
+    lines.push("ROUND BY ROUND:");
+    r.rounds.forEach(round => {
+      const aLine = round.aHits ? `${myFighter.name} hits for ${round.dmgToB} dmg` : `${myFighter.name} misses`;
+      const bLine = round.bHits ? `${opponentFighter.name} hits for ${round.dmgToA} dmg` : `${opponentFighter.name} misses`;
+      lines.push(`  Round ${round.round}: ${aLine} | ${bLine} | HP: ${round.hpA}/${round.hpB}`);
+    });
+    lines.push("");
+    lines.push(`FINAL: ${myFighter.name} ${r.hpA}/${r.hpA0} HP  vs  ${opponentFighter.name} ${r.hpB}/${r.hpB0} HP`);
+    lines.push(`RESULT: ${r.winner === "draw" ? "DRAW" : r.winner === "A" ? myFighter.name + " WINS" : opponentFighter.name + " WINS"}`);
+    lines.push("");
+    lines.push("This battle was simulated locally and had no effect on either pet's real stats.");
+
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `meowfriend-battle-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("newBattleBtn").addEventListener("click", () => {
+    battleResults.classList.add("hidden");
+    battleSetup.classList.remove("hidden");
+    opponentHexInput.value = "";
+    opponentPreview.classList.add("hidden");
+    fightBtn.disabled = true;
+    opponentFighter = null;
+  });
+
+  init();
+</script>
+
+</body>
+</html>

@@ -128,7 +128,7 @@
   /* The room is a 10x10 grid of cells; the viewport only shows 6x6 of
      them at a time and clips everything else. CELL_PX must match the JS
      ROOM_CONFIG.cellPx constant exactly. */
-  :root{ --cell-px: 56px; }
+  :root{ --cell-px: 56px; --room-cells: 12; }
 
   .room-viewport{
     width: calc(var(--cell-px) * 6);
@@ -172,8 +172,8 @@
   }
 
   .room-world{
-    width: calc(var(--cell-px) * 12);
-    height: calc(var(--cell-px) * 12);
+    width: calc(var(--cell-px) * var(--room-cells));
+    height: calc(var(--cell-px) * var(--room-cells));
     position: relative;
     background-image:
       linear-gradient(rgba(255,30,67,0.06) 1px, transparent 1px),
@@ -212,6 +212,23 @@
     transition: left 2.6s linear, top 2.6s linear;
     z-index: 2;
   }
+
+  /* Equipped accessories render as small overlays positioned relative to
+     the sprite's own box — since they're children of .pet-sprite, they
+     inherit its left/top movement automatically and never need their own
+     position-tracking logic. Empty by default (display:none) until
+     renderEquippedAccessories() sets content for a slot. */
+  .accessory-overlay{
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    font-size: 20px;
+    line-height: 1;
+    transform: translate(-50%, -50%);
+    display: none;
+    pointer-events: none;
+  }
+  .accessory-overlay.visible{ display: inline-block; }
 
   /* Idle wander: a gentle up-down bob while standing still, so the pet
      never looks like a static image even between walks. */
@@ -493,8 +510,8 @@
     inset: 0;
     z-index: 4;
     display: grid;
-    grid-template-columns: repeat(12, var(--cell-px));
-    grid-template-rows: repeat(12, var(--cell-px));
+    grid-template-columns: repeat(var(--room-cells), var(--cell-px));
+    grid-template-rows: repeat(var(--room-cells), var(--cell-px));
   }
   .room-build-cell{
     border: 1px solid rgba(255,30,67,0.15);
@@ -510,32 +527,18 @@
     background: rgba(255,80,80,0.15);
   }
 
-  .cosmetic-grid{
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-  .cosmetic-btn{
+  .build-select{
+    width: 100%;
     background: #0a0a0c;
     border: 2px solid #2a2a30;
-    padding: 10px 6px;
-    cursor: pointer;
-    text-align: center;
+    color: var(--neon-red);
     font-family: 'VT323', monospace;
-    color: #ffc7cf;
+    font-size: 17px;
+    padding: 10px 12px;
+    cursor: pointer;
   }
-  .cosmetic-btn:hover:not(:disabled){ border-color: var(--neon-red); }
-  .cosmetic-btn.selected{
-    border-color: var(--neon-red);
-    box-shadow: 0 0 10px rgba(255,30,67,0.5), inset 0 0 8px rgba(255,30,67,0.2);
-  }
-  .cosmetic-btn:disabled{
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .cosmetic-icon{ font-size: 22px; display: block; margin-bottom: 4px; }
-  .cosmetic-name{ font-size: 14px; display: block; }
-  .cosmetic-cost{ font-size: 12px; color: #7a3038; display: block; }
+  .build-select:hover{ border-color: var(--neon-red); }
+  .build-select:focus{ outline: none; box-shadow: 0 0 0 2px var(--neon-red); }
 
   .species-btn{
     background: #0a0a0c;
@@ -897,6 +900,12 @@
       </div>
     </div>
 
+    <div class="led-screen mb-5">
+      <div class="led-label">LIFE STAGE &amp; TRAITS</div>
+      <div class="led-value" id="lifeStageDisplay" style="font-size:15px;">🐣 Baby</div>
+      <div class="text-[10px] mt-2" id="traitsDisplay" style="color:#9a5a62; font-family:'VT323', monospace; font-size:15px;"></div>
+    </div>
+
     <div id="alarmClockScreen" class="grid grid-cols-2 gap-4 mb-5 hidden">
       <div class="led-screen">
         <div class="led-label">⏰ CURRENT TIME</div>
@@ -915,7 +924,11 @@
           <div class="room-flooring-tint" id="roomFlooringTint" aria-hidden="true"></div>
           <div class="room-furniture" id="roomFurniture" aria-hidden="true"></div>
           <div class="room-build-grid hidden" id="roomBuildGrid" aria-hidden="true"></div>
-          <span class="pet-sprite" id="petSprite">🐱</span>
+          <span class="pet-sprite" id="petSprite">
+            <span id="petSpeciesEmoji">🐱</span>
+            <span class="accessory-overlay" id="accessoryHead" aria-hidden="true"></span>
+            <span class="accessory-overlay" id="accessoryNeck" aria-hidden="true"></span>
+          </span>
         </div>
         <div class="room-lighting" id="roomLighting" aria-hidden="true"></div>
       </div>
@@ -929,6 +942,37 @@
         Tap a piece of furniture below, then tap an empty cell in the room to place it.
       </p>
       <div class="build-item-grid" id="buildItemGrid"></div>
+
+      <p class="text-[9px] mt-5 mb-2" style="color:var(--neon-red); text-shadow:0 0 6px var(--neon-red);">WALLPAPER</p>
+      <select id="wallpaperSelect" class="build-select"></select>
+
+      <p class="text-[9px] mt-4 mb-2" style="color:var(--neon-red); text-shadow:0 0 6px var(--neon-red);">FLOORING</p>
+      <select id="flooringSelect" class="build-select"></select>
+
+      <p class="body-copy text-base leading-snug mt-4" style="color:#7a3038;">
+        Only items you already own appear here. Buy more from the <a href="shop.html" style="color:var(--neon-red);">Shop</a>, or find them rarely by playing.
+      </p>
+
+      <p class="text-[9px] mt-5 mb-2" style="color:var(--neon-red); text-shadow:0 0 6px var(--neon-red);">EXPAND ROOM</p>
+      <div id="expandReadyState">
+        <p class="body-copy text-base leading-snug mb-3" id="expandDescription">
+          Current size: 12&times;12. Expanding gives your pet more room to walk and more space to
+          place furniture.
+        </p>
+        <button type="button" id="expandRoomBtn" class="build-mode-btn w-full">EXPAND — 5,000 🎟️ (2H BUILD TIME)</button>
+      </div>
+      <div id="expandInProgressState" class="hidden">
+        <p class="body-copy text-base leading-snug mb-2">
+          🚧 Construction in progress...
+        </p>
+        <p class="led-value" id="expandCountdown" style="font-size:15px;">--:--:--</p>
+      </div>
+      <div id="expandMaxedState" class="hidden">
+        <p class="body-copy text-base leading-snug">
+          Your room is fully expanded. More space unlocks as separate rooms in a future update.
+        </p>
+      </div>
+
       <div class="flex justify-center mt-4">
         <button type="button" id="buildModeExitBtn" class="feed-cancel-btn">DONE</button>
       </div>
@@ -962,6 +1006,13 @@
         <div class="fixed-stat-rate" id="iqRate">+0.2/day</div>
       </div>
       <span class="fixed-stat-value" id="iqValue">1</span>
+    </div>
+
+    <div id="sicknessBanner" class="hidden mb-4" style="border:2px solid #ff1e43; background:rgba(255,30,67,0.1); padding:12px;">
+      <p class="body-copy text-base leading-snug mb-2" style="color:#ff8b96;">
+        🤒 <span id="petNameSick">Your pet</span> is sick! Use Medicine to cure them, or they'll feel worse over time.
+      </p>
+      <button type="button" id="useMedicineBtn" class="care-btn w-full">💊 USE MEDICINE (<span id="medicineCount">0</span> owned)</button>
     </div>
 
     <div class="grid grid-cols-3 gap-3 my-5">
@@ -1011,15 +1062,15 @@
     </p>
   </section>
 
-  <section id="roomCustomizeSection" class="info-panel p-6 sm:p-8 mt-6 hidden" aria-labelledby="customize-heading">
-    <p class="panel-eyebrow mb-3">HOME</p>
-    <h2 id="customize-heading" class="panel-heading mb-4">ROOM STYLE</h2>
-
-    <p class="text-[9px] mb-3" style="color:var(--neon-red); text-shadow:0 0 6px var(--neon-red);">WALLPAPER</p>
-    <div class="cosmetic-grid mb-5" id="wallpaperGrid"></div>
-
-    <p class="text-[9px] mb-3" style="color:var(--neon-red); text-shadow:0 0 6px var(--neon-red);">FLOORING</p>
-    <div class="cosmetic-grid" id="flooringGrid"></div>
+  <section id="accessorySection" class="info-panel p-6 sm:p-8 mt-6 hidden" aria-labelledby="accessory-heading">
+    <p class="panel-eyebrow mb-3">WEAR</p>
+    <h2 id="accessory-heading" class="panel-heading mb-4">ACCESSORIES</h2>
+    <p class="body-copy text-base leading-snug mb-4">
+      Buy and equip accessories to boost stats while worn, and see them on your pet. One item per
+      slot (Head, Neck) — equipping a new one automatically swaps out whatever was there before.
+      Some are rare finds only, never sold here.
+    </p>
+    <div class="inventory-list" id="accessoryList"></div>
   </section>
 
   <div id="resetWrap" class="flex justify-center mt-6 hidden">
@@ -1091,6 +1142,7 @@
     { id: "playground", name: "Cat Playground", icon: "🏰", desc: "+70 happiness, -28 hunger", cost: 16, stat: "happiness", amount: 70, hungerCost: 28 },
     { id: "pillow", name: "Soft Pillow", icon: "🛏️", desc: "+25 energy", cost: 5, stat: "energy", amount: 25 },
     { id: "blanket", name: "Warm Blanket", icon: "🧣", desc: "+40 energy", cost: 8, stat: "energy", amount: 40 },
+    { id: "medicine", name: "Medicine", icon: "💊", desc: "Cures sickness", cost: 300 }, // no stat field — cures sickness directly, not a stat booster; kept out of FOOD_ITEMS/PLAY_ITEMS filters by design
   ];
 
   // Weight and IQ items are NOT sold in this shop — they only drop from
@@ -1131,28 +1183,109 @@
   const WEIGHT_GROWTH_PER_HOUR = 0.02;
   const IQ_GROWTH_PER_HOUR = 0.008;
 
+  // --- Life stages ---
+  // Purely time-based from adoptedAt, same for every pet regardless of
+  // care quality — always recomputed live, never stored, so it can never
+  // drift out of sync with actual elapsed time the way a cached value
+  // could.
+  const LIFE_STAGES = [
+    { id: "baby", label: "Baby", minDays: 0, icon: "🐣" },
+    { id: "teen", label: "Teen", minDays: 3, icon: "🐥" },
+    { id: "adult", label: "Adult", minDays: 14, icon: "🐓" },
+  ];
+
+  function getPetAgeDays(p){
+    return Math.floor((Date.now() - (p.adoptedAt || Date.now())) / (1000 * 60 * 60 * 24));
+  }
+
+  function getLifeStage(p){
+    const days = getPetAgeDays(p);
+    let stage = LIFE_STAGES[0];
+    for(const s of LIFE_STAGES){
+      if(days >= s.minDays) stage = s;
+    }
+    return stage;
+  }
+
+  // --- Personality traits ---
+  // Derived live from pet.careCounts (lifetime action totals) — never
+  // stored as their own field, so they can never go stale relative to
+  // actual care history. Cosmetic badges only, exactly per the explicit
+  // design decision — none of these read into any stat calculation
+  // anywhere else in this file.
+  const PERSONALITY_TRAIT_THRESHOLD = 15; // lifetime actions of a type before its trait shows up
+
+  function getPersonalityTraits(p){
+    const counts = p.careCounts || {};
+    const traits = [];
+    if((counts.hunger || 0) >= PERSONALITY_TRAIT_THRESHOLD) traits.push({ label: "Chubby", icon: "🍔" });
+    if((counts.happiness || 0) >= PERSONALITY_TRAIT_THRESHOLD) traits.push({ label: "Playful", icon: "🎾" });
+    if((counts.energy || 0) >= PERSONALITY_TRAIT_THRESHOLD) traits.push({ label: "Sleepy", icon: "😴" });
+    // "Trusting" rewards consistently good care rather than any single
+    // action type — checks the pet has rarely been left critically
+    // neglected relative to its age, using the same avg-care logic the
+    // sickness roll uses, sampled at render time rather than tracked
+    // continuously (a lightweight proxy, not a perfect history).
+    const avgCare = ((p.hunger || 0) + (p.happiness || 0) + (p.energy || 0)) / 3;
+    if(avgCare >= 70 && getPetAgeDays(p) >= 3) traits.push({ label: "Trusting", icon: "🤝" });
+    return traits;
+  }
+
+  // --- Sickness ---
+  // Rolled probabilistically during each decay tick, weighted by how
+  // neglected the pet currently is — a well-cared-for pet (all stats
+  // high) has a near-zero chance; a badly neglected one (stats near 0)
+  // has a meaningfully higher chance. Cured with a specific consumable
+  // item (Medicine) rather than passively resolving itself, so it's a
+  // real consequence rather than a cosmetic flicker.
+  const SICKNESS_BASE_CHANCE_PER_HOUR = 0.0008; // ~2% over 24h even when well cared for
+  const SICKNESS_NEGLECT_MULTIPLIER = 6; // up to 6x more likely at zero care
+
+  function rollForSickness(p, hoursElapsed){
+    if(p.sick) return; // already sick, don't re-roll
+    const avgCare = ((p.hunger || 0) + (p.happiness || 0) + (p.energy || 0)) / 3;
+    const neglectFactor = 1 + (1 - avgCare / 100) * (SICKNESS_NEGLECT_MULTIPLIER - 1);
+    const chance = SICKNESS_BASE_CHANCE_PER_HOUR * neglectFactor * hoursElapsed;
+    if(Math.random() < chance){
+      p.sick = true;
+      p.sickSince = Date.now();
+      queueWinNotification(`🤒 ${p.name || "Your pet"} has gotten sick! Use Medicine to cure them.`);
+    }
+  }
+
   function applyDecay(p){
     const now = Date.now();
     const hoursElapsed = (now - p.lastSeen) / (1000 * 60 * 60);
     if(hoursElapsed > 0){
-      const hungerLoss = hoursElapsed * DECAY_PER_HOUR * getFurnitureMultiplier(p, "hungerDecayMult");
-      const happinessLoss = hoursElapsed * DECAY_PER_HOUR * getFurnitureMultiplier(p, "happinessDecayMult");
-      const energyLoss = hoursElapsed * DECAY_PER_HOUR * getFurnitureMultiplier(p, "energyDecayMult");
+      // Accessory decayMult effects stack with furniture's the same way —
+      // multiplicatively — so an accessory and a piece of furniture that
+      // both reduce hunger decay combine rather than one overriding the
+      // other.
+      const hungerLoss = hoursElapsed * DECAY_PER_HOUR * getFurnitureMultiplier(p, "hungerDecayMult") * getAccessoryEffect(p, "hunger", "decayMult");
+      const happinessLoss = hoursElapsed * DECAY_PER_HOUR * getFurnitureMultiplier(p, "happinessDecayMult") * getAccessoryEffect(p, "happiness", "decayMult");
+      const energyLoss = hoursElapsed * DECAY_PER_HOUR * getFurnitureMultiplier(p, "energyDecayMult") * getAccessoryEffect(p, "energy", "decayMult");
       p.hunger = clamp(p.hunger - hungerLoss, 0, 100);
       p.happiness = clamp(p.happiness - happinessLoss, 0, 100);
       p.energy = clamp(p.energy - energyLoss, 0, 100);
 
       // Weight/IQ grow at a fixed rate over time, no upper bound, boosted
-      // by owned furniture (Fridge/Bookcase).
+      // by owned furniture (Fridge/Bookcase) and any equipped accessory
+      // with a gainFlat effect on that stat (added per hour, same as the
+      // base growth rate itself).
       const weightMult = getFurnitureMultiplier(p, "weightGainMult");
       const iqMult = getFurnitureMultiplier(p, "iqGainMult");
-      p.weight = Math.max(0, (p.weight || 0) + WEIGHT_GROWTH_PER_HOUR * hoursElapsed * weightMult);
-      p.iq = Math.max(0, (p.iq || 0) + IQ_GROWTH_PER_HOUR * hoursElapsed * iqMult);
+      const weightAccessoryFlat = getAccessoryEffect(p, "weight", "gainFlat");
+      const iqAccessoryFlat = getAccessoryEffect(p, "iq", "gainFlat");
+      p.weight = Math.max(0, (p.weight || 0) + (WEIGHT_GROWTH_PER_HOUR * weightMult + weightAccessoryFlat) * hoursElapsed);
+      p.iq = Math.max(0, (p.iq || 0) + (IQ_GROWTH_PER_HOUR * iqMult + iqAccessoryFlat) * hoursElapsed);
+
+      rollForSickness(p, hoursElapsed);
 
       p.lastSeen = now;
     }
     return p;
   }
+
 
   let pet = loadPet();
   if(pet){
@@ -1167,6 +1300,30 @@
       pet.adoptedAt = Date.now();
       neededBackfill = true;
     }
+    if(pet.roomLevel === undefined){
+      pet.roomLevel = 0; // existing pets start at the base 12x12 room size
+      neededBackfill = true;
+    }
+    if(pet.construction === undefined){
+      pet.construction = null;
+      neededBackfill = true;
+    }
+    if(pet.sick === undefined){
+      pet.sick = false;
+      neededBackfill = true;
+    }
+    if(pet.careCounts === undefined){
+      pet.careCounts = { hunger: 0, happiness: 0, energy: 0 };
+      neededBackfill = true;
+    }
+    if(pet.accessories === undefined){
+      pet.accessories = {};
+      neededBackfill = true;
+    }
+    if(pet.equipped === undefined){
+      pet.equipped = { head: null, neck: null };
+      neededBackfill = true;
+    }
     if(neededBackfill){
       savePet(pet);
     }
@@ -1179,6 +1336,8 @@
   const careScreen = document.getElementById("careScreen");
   const furnitureSection = document.getElementById("furnitureSection");
   const furnitureList = document.getElementById("furnitureList");
+  const accessorySection = document.getElementById("accessorySection");
+  const accessoryList = document.getElementById("accessoryList");
   const resetWrap = document.getElementById("resetWrap");
 
   const speciesGrid = document.getElementById("speciesGrid");
@@ -1188,6 +1347,9 @@
   const ticketDisplay = document.getElementById("ticketDisplay");
   const petStage = document.getElementById("petStage");
   const petSprite = document.getElementById("petSprite");
+  const petSpeciesEmoji = document.getElementById("petSpeciesEmoji");
+  const accessoryHead = document.getElementById("accessoryHead");
+  const accessoryNeck = document.getElementById("accessoryNeck");
   const petNameDisplay = document.getElementById("petNameDisplay");
   const petMoodDisplay = document.getElementById("petMoodDisplay");
   const alarmClockScreen = document.getElementById("alarmClockScreen");
@@ -1199,6 +1361,11 @@
   const energyBar = document.getElementById("energyBar");
   const hungerValue = document.getElementById("hungerValue");
   const happinessValue = document.getElementById("happinessValue");
+  const lifeStageDisplay = document.getElementById("lifeStageDisplay");
+  const traitsDisplay = document.getElementById("traitsDisplay");
+  const sicknessBanner = document.getElementById("sicknessBanner");
+  const petNameSick = document.getElementById("petNameSick");
+  const useMedicineBtn = document.getElementById("useMedicineBtn");
   const energyValue = document.getElementById("energyValue");
   const hungerCountdown = document.getElementById("hungerCountdown");
   const happinessCountdown = document.getElementById("happinessCountdown");
@@ -1292,6 +1459,12 @@
       lastAction: {},
       lastSeen: Date.now(),
       adoptedAt: Date.now(),
+      roomLevel: 0,
+      construction: null,
+      sick: false,
+      careCounts: { hunger: 0, happiness: 0, energy: 0 },
+      accessories: {},
+      equipped: { head: null, neck: null },
     };
     savePet(pet);
     renderAll();
@@ -1340,6 +1513,24 @@
     happinessValue.textContent = Math.round(pet.happiness);
     energyValue.textContent = Math.round(pet.energy);
 
+    // Life stage + personality traits — always recomputed live, never
+    // stored, so they can't drift from actual pet age/history.
+    const stage = getLifeStage(pet);
+    lifeStageDisplay.textContent = `${stage.icon} ${stage.label}`;
+    const traits = getPersonalityTraits(pet);
+    traitsDisplay.textContent = traits.length > 0
+      ? traits.map(t => `${t.icon} ${t.label}`).join("   ")
+      : "No traits yet — keep caring for your pet.";
+
+    // Sickness banner + Use Medicine.
+    sicknessBanner.classList.toggle("hidden", !pet.sick);
+    if(pet.sick){
+      petNameSick.textContent = pet.name || "Your pet";
+      const medicineCount = (pet.inventory && pet.inventory.medicine) || 0;
+      document.getElementById("medicineCount").textContent = medicineCount;
+      useMedicineBtn.disabled = medicineCount <= 0;
+    }
+
     // Time until each stat hits 0 at its current decay rate (furniture
     // like the Automatic Feeder/Cozy Bed/Scratching Post slows this down,
     // so it's computed live rather than off a fixed rate).
@@ -1375,9 +1566,10 @@
     petSprite.classList.toggle("distress", isCritical);
     petSprite.classList.toggle("thriving", !isCritical && isThriving);
 
-    petSprite.textContent = pet.species;
+    petSpeciesEmoji.textContent = pet.species;
     petNameDisplay.textContent = pet.name.toUpperCase();
     petMoodDisplay.textContent = getMood(pet);
+    renderEquippedAccessories();
   }
 
   // Scales an uncapped value into a 0-100 bar width using soft milestones
@@ -1405,21 +1597,97 @@
       adoptScreen.classList.remove("hidden");
       careScreen.classList.add("hidden");
       furnitureSection.classList.add("hidden");
-      roomCustomizeSection.classList.add("hidden");
+      accessorySection.classList.add("hidden");
       resetWrap.classList.add("hidden");
       return;
     }
     adoptScreen.classList.add("hidden");
     careScreen.classList.remove("hidden");
     furnitureSection.classList.remove("hidden");
-    roomCustomizeSection.classList.remove("hidden");
+    accessorySection.classList.remove("hidden");
     resetWrap.classList.remove("hidden");
 
     ticketDisplay.textContent = `${getTickets()} 🎟️`;
     renderStats();
     renderFurniture();
-    renderCosmeticGrids();
+    renderAccessoryShop();
+    renderCosmeticDropdowns();
     updateCareButtons();
+  }
+
+  // --- Accessories: equip/unequip + visual rendering on the sprite ---
+  const ACCESSORY_OVERLAY_ELS = { head: accessoryHead, neck: accessoryNeck };
+
+  function renderEquippedAccessories(){
+    pet.equipped = pet.equipped || {};
+    ACCESSORY_SLOTS.forEach(slot => {
+      const el = ACCESSORY_OVERLAY_ELS[slot];
+      const equippedId = pet.equipped[slot];
+      const item = equippedId ? GOTCHYA_ACCESSORIES.find(a => a.id === equippedId) : null;
+      if(item){
+        el.textContent = item.renderIcon || item.icon;
+        el.style.transform = `translate(-50%, -50%) translate(${item.renderOffset.x}px, ${item.renderOffset.y}px)`;
+        el.classList.add("visible");
+      } else {
+        el.textContent = "";
+        el.classList.remove("visible");
+      }
+    });
+  }
+
+  function renderAccessoryShop(){
+    pet.accessories = pet.accessories || {}; // owned accessories, separate from furniture's owned map
+    pet.equipped = pet.equipped || {};
+
+    accessoryList.innerHTML = GOTCHYA_ACCESSORIES.map(item => {
+      const owned = pet.accessories[item.id];
+      const equipped = pet.equipped[item.slotKey || item.equipSlot] === item.id;
+      const rarityBadge = item.rarity && item.rarity !== "common"
+        ? `<span style="color:${GOTCHYA_RARITY_COLORS[item.rarity]}; text-shadow:0 0 4px ${GOTCHYA_RARITY_COLORS[item.rarity]}; font-size:10px; margin-left:6px;">${GOTCHYA_RARITY_LABELS[item.rarity]}</span>`
+        : "";
+      if(!owned){
+        // Not owned: show cost + buy button, or "Find only" if uncostable.
+        const action = typeof item.cost === "number"
+          ? `<button type="button" class="care-btn" data-buy-accessory="${item.id}">${item.cost.toLocaleString()} 🎟️</button>`
+          : `<span class="text-[10px]" style="color:#7a3038;">FIND ONLY</span>`;
+        return `<div class="inventory-chip" style="display:flex; align-items:center; justify-content:space-between;">
+          <span>${item.icon} ${item.name}${rarityBadge}<br><span class="chip-desc">${item.desc}</span></span>
+          ${action}
+        </div>`;
+      }
+      const btnLabel = equipped ? "UNEQUIP" : "EQUIP";
+      return `<div class="inventory-chip" style="display:flex; align-items:center; justify-content:space-between;">
+        <span>${item.icon} ${item.name}${rarityBadge} ${equipped ? '<span style="color:#29ff8a;">(EQUIPPED)</span>' : ""}<br><span class="chip-desc">${item.desc}</span></span>
+        <button type="button" class="care-btn" data-toggle-accessory="${item.id}">${btnLabel}</button>
+      </div>`;
+    }).join("");
+
+    accessoryList.querySelectorAll("[data-buy-accessory]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const item = GOTCHYA_ACCESSORIES.find(a => a.id === btn.dataset.buyAccessory);
+        if(!item || typeof item.cost !== "number") return;
+        if(getTickets() < item.cost) return;
+        addTickets(-item.cost);
+        pet.accessories[item.id] = true;
+        savePet(pet);
+        renderAccessoryShop();
+      });
+    });
+    accessoryList.querySelectorAll("[data-toggle-accessory]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const item = GOTCHYA_ACCESSORIES.find(a => a.id === btn.dataset.toggleAccessory);
+        if(!item) return;
+        const slot = item.equipSlot;
+        if(pet.equipped[slot] === item.id){
+          pet.equipped[slot] = null; // unequip
+        } else {
+          pet.equipped[slot] = item.id; // equip — automatically replaces whatever else was in this slot
+        }
+        savePet(pet);
+        renderAccessoryShop();
+        renderEquippedAccessories();
+      });
+    });
   }
 
   function renderFurniture(){
@@ -1506,10 +1774,24 @@
   const roomViewport = document.getElementById("roomViewport");
   const roomWorld = document.getElementById("roomWorld");
 
-  // Room grid: matches --cell-px (56) and the 12x12 world / 6x6 viewport
-  // sizing set in CSS. Kept in one place so movement, furniture placement,
-  // and the camera all agree on the same coordinate system.
+  // Room grid size scales with pet.roomLevel (0 = 12x12, 1 = 16x16,
+  // 2 = 20x20 after two expansions). ROOM is mutated in place (not
+  // reassigned) so every existing call site that reads ROOM.cols/.rows
+  // fresh each time automatically picks up the new size — nothing needs
+  // to re-fetch a reference. syncRoomSize() keeps the CSS --room-cells
+  // custom property in lockstep with ROOM.cols so the visible room and
+  // the JS coordinate system can never silently drift apart.
+  const ROOM_SIZES = [12, 16, 20]; // indexed by pet.roomLevel
   const ROOM = { cols: 12, rows: 12, viewCols: 6, viewRows: 6, cellPx: 56 };
+
+  function syncRoomSize(){
+    const level = Math.min((pet && pet.roomLevel) || 0, ROOM_SIZES.length - 1);
+    const size = ROOM_SIZES[level];
+    ROOM.cols = size;
+    ROOM.rows = size;
+    document.documentElement.style.setProperty("--room-cells", String(size));
+  }
+  syncRoomSize();
 
   // Furniture sits at fixed, spaced-out grid cells along the room rather
   // than drifting with the pet, and is now sized/positioned in real grid
@@ -1560,6 +1842,117 @@
 
   let buildModeActive = false;
   let selectedBuildItemId = null;
+
+  // --- Room expansion (construction timer) ---
+  // Cost and build time both increase per level, matching the "5,000/2h,
+  // then 15,000/8h" progression. Purely local — no server call needed,
+  // since this only ever spends tickets (via addTickets, which does sync
+  // spends to the real ledger) and mutates the pet's own saved data.
+  // Construction survives a closed tab/page reload: completesAt is a
+  // real stored timestamp, checked against Date.now() on load, the same
+  // pattern used for the pet's stat decay elsewhere on this page.
+  const ROOM_EXPANSION_CONFIG = [
+    null, // level 0 -> level 1 doesn't exist as an "upgrade from below" case
+    { cost: 5000, hours: 2, label: "16×16" },
+    { cost: 15000, hours: 8, label: "20×20" },
+  ];
+
+  const expandReadyState = document.getElementById("expandReadyState");
+  const expandInProgressState = document.getElementById("expandInProgressState");
+  const expandMaxedState = document.getElementById("expandMaxedState");
+  const expandDescription = document.getElementById("expandDescription");
+  const expandRoomBtn = document.getElementById("expandRoomBtn");
+  const expandCountdown = document.getElementById("expandCountdown");
+
+  function formatDuration(ms){
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  }
+
+  // Checks whether a pending construction has actually finished (real
+  // elapsed time, not a running timer that resets on reload) and applies
+  // it if so — call this before rendering any expansion UI state.
+  function checkConstructionCompletion(){
+    if(!pet.construction) return;
+    if(Date.now() >= pet.construction.completesAt){
+      pet.roomLevel = pet.construction.targetLevel;
+      pet.construction = null;
+      savePet(pet);
+      syncRoomSize();
+      renderRoomFurniture(ownedFurnitureIds());
+      queueWinNotification(`🏗️ Construction complete! Your room is now bigger.`);
+    }
+  }
+
+  let expandCountdownTimer = null;
+
+  function renderRoomExpansion(){
+    checkConstructionCompletion();
+    const currentLevel = pet.roomLevel || 0;
+
+    if(pet.construction){
+      expandReadyState.classList.add("hidden");
+      expandMaxedState.classList.add("hidden");
+      expandInProgressState.classList.remove("hidden");
+      if(!expandCountdownTimer){
+        expandCountdownTimer = setInterval(() => {
+          const remaining = pet.construction ? pet.construction.completesAt - Date.now() : 0;
+          if(remaining <= 0){
+            clearInterval(expandCountdownTimer);
+            expandCountdownTimer = null;
+            renderRoomExpansion();
+            return;
+          }
+          expandCountdown.textContent = formatDuration(remaining);
+        }, 1000);
+      }
+      return;
+    }
+
+    if(expandCountdownTimer){
+      clearInterval(expandCountdownTimer);
+      expandCountdownTimer = null;
+    }
+
+    const nextLevel = currentLevel + 1;
+    const config = ROOM_EXPANSION_CONFIG[nextLevel];
+
+    if(!config){
+      // Fully expanded — no more size upgrades available.
+      expandReadyState.classList.add("hidden");
+      expandInProgressState.classList.add("hidden");
+      expandMaxedState.classList.remove("hidden");
+      return;
+    }
+
+    expandInProgressState.classList.add("hidden");
+    expandMaxedState.classList.add("hidden");
+    expandReadyState.classList.remove("hidden");
+    const currentSize = ROOM_SIZES[currentLevel];
+    expandDescription.textContent = `Current size: ${currentSize}×${currentSize}. Expanding gives your pet more room to walk and more space to place furniture.`;
+    expandRoomBtn.textContent = `EXPAND — ${config.cost.toLocaleString()} 🎟️ (${config.hours}H BUILD TIME)`;
+    expandRoomBtn.disabled = getTickets() < config.cost;
+  }
+
+  expandRoomBtn.addEventListener("click", () => {
+    const currentLevel = pet.roomLevel || 0;
+    const nextLevel = currentLevel + 1;
+    const config = ROOM_EXPANSION_CONFIG[nextLevel];
+    if(!config || pet.construction) return;
+    if(getTickets() < config.cost) return;
+
+    addTickets(-config.cost);
+    pet.construction = {
+      targetLevel: nextLevel,
+      startedAt: Date.now(),
+      completesAt: Date.now() + config.hours * 60 * 60 * 1000,
+    };
+    savePet(pet);
+    renderRoomExpansion();
+  });
 
   function ownedFurnitureIds(){
     return Object.entries(pet.furniture || {}).filter(([, has]) => has).map(([id]) => id);
@@ -1641,6 +2034,7 @@
     renderBuildPalette();
     renderBuildGrid();
     updateBuildInstructions();
+    renderRoomExpansion();
   }
 
   function exitBuildMode(){
@@ -1657,66 +2051,46 @@
   });
   buildModeExitBtn.addEventListener("click", exitBuildMode);
 
-  // --- Room cosmetics: wallpaper & flooring ---
-  const wallpaperGrid = document.getElementById("wallpaperGrid");
-  const flooringGrid = document.getElementById("flooringGrid");
-  const roomCustomizeSection = document.getElementById("roomCustomizeSection");
+  // --- Room cosmetics: wallpaper & flooring selection (Build Mode only) ---
+  // Purchasing wallpaper/flooring happens in shop.html, same as
+  // furniture. These dropdowns only ever list items this pet actually
+  // owns — "default" is always available since every pet starts with it
+  // for free. Picking an option here just changes pet.wallpaper /
+  // pet.flooring, no ticket cost, no ownership change.
+  const wallpaperSelect = document.getElementById("wallpaperSelect");
+  const flooringSelect = document.getElementById("flooringSelect");
 
-  function renderCosmeticGrids(){
-    const tickets = getTickets();
+  function renderCosmeticDropdowns(){
+    const ownedWallpaperIds = GOTCHYA_WALLPAPERS
+      .filter(w => w.id === "default" || (pet.ownedWallpapers && pet.ownedWallpapers[w.id]))
+      .map(w => w.id);
+    const ownedFlooringIds = GOTCHYA_FLOORINGS
+      .filter(f => f.id === "default" || (pet.ownedFloorings && pet.ownedFloorings[f.id]))
+      .map(f => f.id);
 
-    wallpaperGrid.innerHTML = "";
-    GOTCHYA_WALLPAPERS.forEach(w => {
-      const owned = (pet.ownedWallpapers && pet.ownedWallpapers[w.id]) || w.cost === 0;
-      const selected = (pet.wallpaper || "default") === w.id;
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "cosmetic-btn" + (selected ? " selected" : "");
-      btn.disabled = !owned && tickets < w.cost;
-      btn.innerHTML = `<span class="cosmetic-icon">${w.icon}</span><span class="cosmetic-name">${w.name}</span><span class="cosmetic-cost">${owned ? (selected ? "Selected" : "Owned") : `${w.cost} 🎟️`}</span>`;
-      btn.addEventListener("click", () => {
-        if(owned){
-          pet.wallpaper = w.id;
-        } else {
-          if(tickets < w.cost) return;
-          addTickets(-w.cost);
-          pet.ownedWallpapers = pet.ownedWallpapers || {};
-          pet.ownedWallpapers[w.id] = true;
-          pet.wallpaper = w.id;
-        }
-        savePet(pet);
-        renderWallpaperAndFlooring();
-        renderCosmeticGrids();
-      });
-      wallpaperGrid.appendChild(btn);
-    });
+    wallpaperSelect.innerHTML = GOTCHYA_WALLPAPERS
+      .filter(w => ownedWallpaperIds.includes(w.id))
+      .map(w => `<option value="${w.id}">${w.icon} ${w.name}</option>`)
+      .join("");
+    wallpaperSelect.value = ownedWallpaperIds.includes(pet.wallpaper) ? pet.wallpaper : "default";
 
-    flooringGrid.innerHTML = "";
-    GOTCHYA_FLOORINGS.forEach(f => {
-      const owned = (pet.ownedFloorings && pet.ownedFloorings[f.id]) || f.cost === 0;
-      const selected = (pet.flooring || "default") === f.id;
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "cosmetic-btn" + (selected ? " selected" : "");
-      btn.disabled = !owned && tickets < f.cost;
-      btn.innerHTML = `<span class="cosmetic-icon">${f.icon}</span><span class="cosmetic-name">${f.name}</span><span class="cosmetic-cost">${owned ? (selected ? "Selected" : "Owned") : `${f.cost} 🎟️`}</span>`;
-      btn.addEventListener("click", () => {
-        if(owned){
-          pet.flooring = f.id;
-        } else {
-          if(tickets < f.cost) return;
-          addTickets(-f.cost);
-          pet.ownedFloorings = pet.ownedFloorings || {};
-          pet.ownedFloorings[f.id] = true;
-          pet.flooring = f.id;
-        }
-        savePet(pet);
-        renderWallpaperAndFlooring();
-        renderCosmeticGrids();
-      });
-      flooringGrid.appendChild(btn);
-    });
+    flooringSelect.innerHTML = GOTCHYA_FLOORINGS
+      .filter(f => ownedFlooringIds.includes(f.id))
+      .map(f => `<option value="${f.id}">${f.icon} ${f.name}</option>`)
+      .join("");
+    flooringSelect.value = ownedFlooringIds.includes(pet.flooring) ? pet.flooring : "default";
   }
+
+  wallpaperSelect.addEventListener("change", () => {
+    pet.wallpaper = wallpaperSelect.value;
+    savePet(pet);
+    renderWallpaperAndFlooring();
+  });
+  flooringSelect.addEventListener("change", () => {
+    pet.flooring = flooringSelect.value;
+    savePet(pet);
+    renderWallpaperAndFlooring();
+  });
 
 
   // The pet has a position in grid cells (can be fractional while
@@ -1957,6 +2331,14 @@
     pet.lastAction = pet.lastAction || {};
     pet.lastAction[statType] = Date.now();
     pet.lastSeen = Date.now();
+
+    // Personality traits: simple lifetime counters per care action type,
+    // read later by getPersonalityTraits() to decide which badges apply.
+    // Cosmetic only — never affects any stat or gameplay math, matching
+    // the explicit design decision for this feature.
+    pet.careCounts = pet.careCounts || { hunger: 0, happiness: 0, energy: 0 };
+    pet.careCounts[statType] = (pet.careCounts[statType] || 0) + 1;
+
     savePet(pet);
     renderAll();
     playCareSuccess(STAT_LABELS[statType], actualGain);
@@ -2108,6 +2490,18 @@
 
   playCancelBtn.addEventListener("click", closePlayPicker);
 
+  useMedicineBtn.addEventListener("click", () => {
+    if(!pet.sick) return;
+    const count = (pet.inventory && pet.inventory.medicine) || 0;
+    if(count <= 0) return;
+    pet.inventory.medicine -= 1;
+    pet.sick = false;
+    pet.sickSince = null;
+    savePet(pet);
+    renderAll();
+    queueWinNotification(`💊 ${pet.name || "Your pet"} has been cured!`);
+  });
+
   feedBtn.addEventListener("click", openFeedPicker);
   playBtn.addEventListener("click", openPlayPicker);
   sleepBtn.addEventListener("click", () => doCareAction("energy"));
@@ -2164,6 +2558,7 @@
     updateStatCountdown(energyCountdown, clamp(pet.energy - energyRate * hoursSinceDecay, 0, 100), energyRate);
   }, 1000);
 
+  if(pet) checkConstructionCompletion();
   renderAll();
   if(pet) startWander();
 </script>

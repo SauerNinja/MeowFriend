@@ -474,12 +474,14 @@
         score += 25;
         birdsCaught += 1;
         // Small chance on every bird catch; guaranteed bonus item every
-        // 5th bird caught in the same run. No-op if no Gotchya pet yet.
+        // 5th bird caught in the same run. Cosmetics roll separately and
+        // much more rarely. No-op if no Gotchya pet yet.
         if(birdsCaught % 5 === 0){
           grantGotchyaMilestone();
         } else {
           rollGotchyaDrop(0.1);
         }
+        rollGotchyaCosmetic(0.02);
       }
     }
 
